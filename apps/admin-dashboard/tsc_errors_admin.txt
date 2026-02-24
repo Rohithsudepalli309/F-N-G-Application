@@ -1,0 +1,13 @@
+src/components/tests/AuthGuard.test.tsx(2,32): error TS2307: Cannot find module '@testing-library/react' or its corresponding type declarations.
+src/components/tests/AuthGuard.test.tsx(4,27): error TS2307: Cannot find module '../AuthGuard' or its corresponding type declarations.
+src/components/tests/AuthGuard.test.tsx(7,1): error TS2304: Cannot find name 'jest'.
+src/components/tests/AuthGuard.test.tsx(14,1): error TS2593: Cannot find name 'describe'. Do you need to install type definitions for a test runner? Try `npm i --save-dev @types/jest` or `npm i --save-dev @types/mocha` and then add 'jest' or 'mocha' to the types field in your tsconfig.
+src/components/tests/AuthGuard.test.tsx(15,3): error TS2593: Cannot find name 'it'. Do you need to install type definitions for a test runner? Try `npm i --save-dev @types/jest` or `npm i --save-dev @types/mocha` and then add 'jest' or 'mocha' to the types field in your tsconfig.
+src/components/tests/AuthGuard.test.tsx(24,5): error TS2304: Cannot find name 'expect'.
+src/pages/Dashboard.tsx(30,13): error TS2322: Type '{ name: string; count: number; }' is not assignable to type 'never'.
+src/pages/Dashboard.tsx(31,13): error TS2322: Type '{ name: string; count: number; }' is not assignable to type 'never'.
+src/pages/Dashboard.tsx(32,13): error TS2322: Type '{ name: string; count: number; }' is not assignable to type 'never'.
+src/pages/Dashboard.tsx(33,13): error TS2322: Type '{ name: string; count: number; }' is not assignable to type 'never'.
+src/pages/Dashboard.tsx(34,13): error TS2322: Type '{ name: string; count: number; }' is not assignable to type 'never'.
+src/pages/Dashboard.tsx(35,13): error TS2322: Type '{ name: string; count: number; }' is not assignable to type 'never'.
+src/pages/Dashboard.tsx(36,13): error TS2322: Type '{ name: string; count: number; }' is not assignable to type 'never'.
