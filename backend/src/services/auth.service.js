@@ -62,7 +62,10 @@ class AuthService {
       
       const user = result.rows[0];
       logger.info(`User registered: ${user.id} (${user.role})`);
-      return this.generateTokens(user);
+      return {
+        tokens: this.generateTokens(user),
+        user: { id: user.id, name: user.name, role: user.role, address: user.address }
+      };
     } catch (err) {
       if (err.code === '23505') { // Unique violation
         throw new Error('User already exists');
@@ -119,11 +122,33 @@ class AuthService {
     logger.info(`User logged in: ${user.id}`);
     return {
       tokens: this.generateTokens(user),
-      user: { id: user.id, name: user.name, role: user.role }
+      user: { id: user.id, name: user.name, role: user.role, address: user.address }
     };
   }
 
-  // 4. OTP Mock (For MVP)
+  // 4. Update Profile
+  async updateProfile(userId, data) {
+    const { name, email, address } = data;
+    
+    // Dynamically build update query
+    const fields = [];
+    const values = [];
+    let idx = 1;
+
+    if (name) { fields.push(`name = $${idx++}`); values.push(name); }
+    if (email) { fields.push(`email = $${idx++}`); values.push(email); }
+    if (address) { fields.push(`address = $${idx++}`); values.push(address); }
+
+    if (fields.length === 0) return { message: 'No changes' };
+
+    values.push(userId);
+    const query = `UPDATE users SET ${fields.join(', ')}, updated_at = NOW() WHERE id = $${idx} RETURNING id, name, email, role, address`;
+    
+    const result = await db.query(query, values);
+    return result.rows[0];
+  }
+
+  // 5. OTP Mock (For MVP)
   async sendOtp(phone) {
     // In production, integrate SMS provider here.
     const otp = '123456'; // Fixed for tests

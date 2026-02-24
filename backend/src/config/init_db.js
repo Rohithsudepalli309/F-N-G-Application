@@ -11,9 +11,10 @@ const initDb = async () => {
         id SERIAL PRIMARY KEY,
         phone VARCHAR(20) UNIQUE,
         email VARCHAR(255) UNIQUE,
-        password_hash TEXT NOT NULL,
+        password_hash TEXT, -- Nullable for OTP users
         role VARCHAR(20) NOT NULL CHECK (role IN ('customer', 'merchant', 'driver', 'admin')),
         name VARCHAR(100) NOT NULL,
+        address TEXT, -- New: for Zepto flow
         created_at TIMESTAMP DEFAULT NOW(),
         updated_at TIMESTAMP DEFAULT NOW()
       );

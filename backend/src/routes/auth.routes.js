@@ -23,10 +23,25 @@ router.post('/login', authLimiter, async (req, res, next) => {
   }
 });
 
+const { authenticate } = require('../middleware/auth');
+
+// 1. Signup
+// ... previous routes ...
+
 // 3. Send OTP
 router.post('/otp', async (req, res, next) => {
   try {
     const result = await authService.sendOtp(req.body.phone);
+    res.json(result);
+  } catch (err) {
+    next(err);
+  }
+});
+
+// 4. Update Profile (Authenticated)
+router.put('/profile', authenticate, async (req, res, next) => {
+  try {
+    const result = await authService.updateProfile(req.user.id, req.body);
     res.json(result);
   } catch (err) {
     next(err);
