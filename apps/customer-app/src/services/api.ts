@@ -4,9 +4,7 @@ import { getToken } from '../utils/storage';
 
 import { Platform } from 'react-native';
 
-const API_URL = Platform.OS === 'android' 
-  ? 'http://10.0.2.2:3000/api/v1' 
-  : 'http://localhost:3000/api/v1';
+const API_URL = 'http://localhost:3000/api/v1';
 
 export const api = axios.create({
   baseURL: API_URL,
