@@ -66,6 +66,7 @@ I have manually verified the core system to ensure everything "works" from end-t
 | **Authentication Engine**| 🟢 OK | `AuthService` successfully validated `admin1@gmail.com`. |
 | **API Endpoints** | 🟢 OK | `POST /auth/login` returned `200 OK` with a valid JWT token. |
 | **Android Build System**| 🟢 OK | `assembleDebug` passed successfully (SDK 34 + Force core 1.12.0). |
+| **IDE Sync Status** | 🟢 OK | AGP version locked to `8.1.1` for IDE compatibility. |
 | **Real-time Engine** | 🟢 OK | Price updates are actively emitting every 30 seconds. |
 | **GitHub Repository** | 🟢 OK | Public repository created and fully populated in 4 phases. |
 
