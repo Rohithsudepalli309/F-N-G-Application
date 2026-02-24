@@ -1,0 +1,2 @@
+src/store/tests/useAuthStore.test.ts(17,13): error TS2339: Property 'setToken' does not exist on type 'AuthState'.
+src/store/tests/useAuthStore.test.ts(26,13): error TS2339: Property 'setToken' does not exist on type 'AuthState'.

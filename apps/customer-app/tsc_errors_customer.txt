@@ -1,0 +1,3 @@
+error TS2688: Cannot find type definition file for 'react-native'.
+  The file is in the program because:
+    Entry point of type library 'react-native' specified in compilerOptions

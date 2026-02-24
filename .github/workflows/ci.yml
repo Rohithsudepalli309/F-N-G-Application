@@ -1,0 +1,50 @@
+name: FNG Platform CI
+
+on:
+  push:
+    branches: [ main, develop ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  backend-ci:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: ./backend
+    steps:
+      - uses: actions/checkout@v4
+      - name: Use Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+      - run: npm ci --legacy-peer-deps
+      - run: npm test
+
+  customer-app-ci:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: ./apps/customer-app
+    steps:
+      - uses: actions/checkout@v4
+      - name: Use Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+      - run: npm ci --legacy-peer-deps
+      - run: npx tsc --noEmit
+
+  admin-dashboard-ci:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: ./apps/admin-dashboard
+    steps:
+      - uses: actions/checkout@v4
+      - name: Use Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+      - run: npm ci --legacy-peer-deps
+      - run: npm run build
