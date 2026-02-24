@@ -12,6 +12,7 @@ import {
 import { useNavigation } from '@react-navigation/native';
 import { theme } from '../theme';
 import { useAuthStore } from '../store/useAuthStore';
+import { api } from '../services/api';
 
 const MOCK_ADDRESSES = [
   { id: '1', name: 'Home', address: '123, Jubilee Hills, Hyderabad' },
@@ -24,9 +25,17 @@ export const LocationSelectScreen = () => {
   const navigation = useNavigation();
   const updateUser = useAuthStore((state) => state.updateUser);
 
-  const handleSelect = (address: string) => {
-    updateUser({ address });
-    navigation.goBack();
+  const handleSelect = async (address: string) => {
+    try {
+      await api.put('/auth/profile', { address });
+      updateUser({ address });
+      navigation.goBack();
+    } catch (e) {
+      console.error('Failed to save address', e);
+      // Still update local state for immediate UX
+      updateUser({ address });
+      navigation.goBack();
+    }
   };
 
   return (

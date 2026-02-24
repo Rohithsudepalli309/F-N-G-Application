@@ -32,8 +32,7 @@ export const ProfileSetupScreen = () => {
 
     setLoading(true);
     try {
-      // In a real app, we'd call the backend API here
-      // await api.put('/auth/profile', { name, email });
+      await api.put('/auth/profile', { name, email });
       
       updateUser({ name, email });
       Alert.alert('Success', 'Profile updated successfully!');

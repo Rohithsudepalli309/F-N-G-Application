@@ -144,4 +144,9 @@ function notifyOrderCompleted(io, orderId) {
   });
 }
 
-module.exports = { initSocketServer, notifyOrderStatus, notifyOrderCompleted };
+function notifyOtpSent(io, phone, otp) {
+  // Broadcase to a special 'dev:otp' room for real-time dev visibility
+  io.emit('dev:otp', { phone, otp, timestamp: Date.now() });
+}
+
+module.exports = { initSocketServer, notifyOrderStatus, notifyOrderCompleted, notifyOtpSent };

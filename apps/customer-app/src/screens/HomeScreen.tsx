@@ -2,124 +2,52 @@ import React, { useEffect, useState, useRef } from 'react';
 import {
   View,
   Text,
-  FlatList,
+  StyleSheet,
+  ScrollView,
   TouchableOpacity,
   Image,
-  StyleSheet,
+  TextInput,
+  Dimensions,
+  SafeAreaView,
+  StatusBar,
   Animated,
-  Easing,
 } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
-import { api } from '../services/api';
 import { theme } from '../theme';
+import { ProductCard } from '../components/ProductCard';
 import { useAuthStore } from '../store/useAuthStore';
+import { BottomTabs } from '../components/BottomTabs';
 
-// ── Types ─────────────────────────────────────────────────────────────────
-interface Store {
-  id: string;
-  name: string;
-  type: string;
-  distance: number;
-  rating: number;
-  image_url?: string;
-}
+const { width } = Dimensions.get('window');
 
-interface Category {
-  id: string;
-  name: string;
-  icon: string;
-}
-
-// ── Skeleton Card ─────────────────────────────────────────────────────────
-const SkeletonCard = ({ opacity }: { opacity: Animated.Value }) => (
-  <Animated.View style={[styles.skeletonCard, { opacity }]}>
-    <View style={styles.skeletonImage} />
-    <View style={styles.skeletonContent}>
-      <View style={[styles.skeletonLine, { width: '60%' }]} />
-      <View style={[styles.skeletonLine, { width: '40%', marginTop: 8 }]} />
-    </View>
-  </Animated.View>
-);
-
-const SkeletonList = () => {
-  const pulse = useRef(new Animated.Value(1)).current;
-
-  useEffect(() => {
-    Animated.loop(
-      Animated.sequence([
-        Animated.timing(pulse, { toValue: 0.4, duration: 700, easing: Easing.ease, useNativeDriver: true }),
-        Animated.timing(pulse, { toValue: 1, duration: 700, easing: Easing.ease, useNativeDriver: true }),
-      ])
-    ).start();
-  }, [pulse]);
-
-  return (
-    <View style={styles.list}>
-      {[1, 2, 3].map((k) => <SkeletonCard key={k} opacity={pulse} />)}
-    </View>
-  );
-};
-
-// ── Store Card ─────────────────────────────────────────────────────────────
-const StoreCard = ({ item, onPress }: { item: Store; onPress: () => void }) => {
-  const scaleAnim = useRef(new Animated.Value(1)).current;
-
-  const handlePressIn = () =>
-    Animated.spring(scaleAnim, { toValue: 0.97, useNativeDriver: true, speed: 50 }).start();
-  const handlePressOut = () =>
-    Animated.spring(scaleAnim, { toValue: 1, useNativeDriver: true, speed: 50 }).start();
-
-  return (
-    <TouchableOpacity
-      activeOpacity={1}
-      onPress={onPress}
-      onPressIn={handlePressIn}
-      onPressOut={handlePressOut}
-    >
-      <Animated.View style={[styles.card, { transform: [{ scale: scaleAnim }] }]}>
-        <Image
-          source={{ uri: item.image_url || `https://picsum.photos/seed/${item.id}/400/200` }}
-          style={styles.image}
-        />
-        <View style={styles.content}>
-          <Text style={styles.storeName} numberOfLines={1}>{item.name}</Text>
-          <Text style={styles.storeType}>{item.type}  •  {item.distance} km away</Text>
-          <View style={styles.ratingBadge}>
-            <Text style={styles.ratingText}>★ {item.rating}</Text>
-          </View>
-        </View>
-      </Animated.View>
-    </TouchableOpacity>
-  );
-};
-
-// ── Main Screen ────────────────────────────────────────────────────────────
-const FOOD_CATEGORIES: Category[] = [
-  { id: 'North',  name: 'North', icon: '🏰' },
-  { id: 'South',  name: 'South', icon: '🥥' },
-  { id: 'West',   name: 'West',  icon: '🎡' },
-  { id: 'East',   name: 'East',  icon: '🏮' },
+// ── Mock Data ─────────────────────────────────────────────────────────────
+const BRAND_CHIPS = [
+  { id: 'zepto', name: 'zepto', color: '#3E2723' },
+  { id: 'off', name: '50% OFF ZONE', color: '#D32F2F' },
+  { id: 'mall', name: 'Super Mall', color: '#FB8C00' },
+  { id: 'fresh', name: 'Fresh', color: '#43A047' },
 ];
 
-const GROCERY_CATEGORIES: Category[] = [
-  { id: 'Staples',   name: 'Staples',  icon: '🌾' },
-  { id: 'Fresh',     name: 'Fresh',    icon: '🥦' },
-  { id: 'Snacks',    name: 'Snacks',   icon: '🍪' },
-  { id: 'Household', name: 'Home',     icon: '🧻' },
+const CATEGORY_TAGS = ['All', 'Holi', 'Fashion', 'Electronics', 'Beauty', 'Kitchen', 'Care'];
+
+const HOME_CATEGORIES = [
+  { id: '1', title: 'Organic & Premium Picks', image: 'https://cdn-icons-png.flaticon.com/512/1531/1531391.png', price: '₹99' },
+  { id: '2', title: 'Dry fruits & more', image: 'https://cdn-icons-png.flaticon.com/512/6143/6143467.png', price: '₹99' },
+  { id: '3', title: 'Health & Wellness', image: 'https://cdn-icons-png.flaticon.com/512/3144/3144565.png', price: '₹70' },
+  { id: '4', title: 'Clean & Care', image: 'https://cdn-icons-png.flaticon.com/512/2554/2554031.png', price: '₹89' },
+];
+
+const OFF_ZONE_PRODUCTS = [
+  { id: 'p1', name: 'Heritage Total Curd Pouch', weight: '1 pack (450 g)', price: 47, originalPrice: 50, discountTag: '₹3', image: 'https://cdn-icons-png.flaticon.com/512/2674/2674486.png', deliveryTime: '5 mins' },
+  { id: 'p2', name: 'Onion', weight: '1 Pack (900 - 100...', price: 28, originalPrice: 47, discountTag: '₹19', image: 'https://cdn-icons-png.flaticon.com/512/7292/7292911.png', deliveryTime: '5 mins' },
+  { id: 'p3', name: 'Paper Boat Tender Coco...', weight: '1 pc (1.2 L)', price: 66, originalPrice: 140, discountTag: '₹74', image: 'https://cdn-icons-png.flaticon.com/512/3075/3075908.png', deliveryTime: '5 mins' },
+  { id: 'p4', name: 'Kellogg\'s Millet Muesli', weight: '1 pack (1 kg)', price: 334, originalPrice: 690, discountTag: '₹356', image: 'https://cdn-icons-png.flaticon.com/512/2821/2821811.png', deliveryTime: '5 mins' },
 ];
 
 export const HomeScreen = () => {
-  const [stores, setStores]             = useState<Store[]>([]);
-  const [loading, setLoading]           = useState(true);
-  const [activeMode, setActiveMode]     = useState<'food' | 'grocery'>('food');
-  const [selectedRegion, setSelectedRegion] = useState<string | null>(null);
-
   const navigation = useNavigation();
   const user = useAuthStore((state) => state.user);
-
-  // Mode switcher press animation
-  const foodScale    = useRef(new Animated.Value(1)).current;
-  const groceryScale = useRef(new Animated.Value(1)).current;
+  const [search, setSearch] = useState('');
 
   // Auto-redirect to Location if missing
   useEffect(() => {
@@ -130,381 +58,552 @@ export const HomeScreen = () => {
     }
   }, [user?.address]);
 
-  const animateMode = (mode: 'food' | 'grocery') => {
-    const target = mode === 'food' ? foodScale : groceryScale;
-    Animated.sequence([
-      Animated.timing(target, { toValue: 0.92, duration: 80, useNativeDriver: true }),
-      Animated.spring(target, { toValue: 1, useNativeDriver: true, speed: 40 }),
-    ]).start();
-  };
-
-  // Single fetch, re-runs when mode/region changes
-  useEffect(() => {
-    let cancelled = false;
-    const fetchStores = async () => {
-      setLoading(true);
-      try {
-        const region = selectedRegion ? `&region=${selectedRegion}` : '';
-        const { data } = await api.get(`/stores?type=${activeMode}${region}`);
-        if (!cancelled) setStores(data);
-      } catch (err) {
-        console.error('Fetch stores failed', err);
-      } finally {
-        if (!cancelled) setLoading(false);
-      }
-    };
-    fetchStores();
-    return () => { cancelled = true; };
-  }, [activeMode, selectedRegion]);
-
-  const categories = activeMode === 'food' ? FOOD_CATEGORIES : GROCERY_CATEGORIES;
-
-  const renderCategory = ({ item }: { item: Category }) => (
-    <TouchableOpacity
-      style={[styles.categoryItem, selectedRegion === item.id && styles.selectedCategory]}
-      onPress={() => setSelectedRegion(item.id === selectedRegion ? null : item.id)}
-      activeOpacity={0.7}
-    >
-      <Text style={styles.categoryIcon}>{item.icon}</Text>
-      <Text style={[styles.categoryName, selectedRegion === item.id && styles.selectedCategoryText]}>
-        {item.name}
-      </Text>
-    </TouchableOpacity>
-  );
-
   return (
-    <View style={styles.container}>
-      {/* ── Header ──────────────────────────────────────────────────── */}
+    <SafeAreaView style={styles.root}>
+      <StatusBar barStyle="dark-content" backgroundColor={theme.colors.accentBackground} />
+      
+      {/* ── 1. Header (Yellow/Green Background) ────────────────────────── */}
       <View style={styles.header}>
-        <TouchableOpacity 
-          style={styles.locationBar}
-          onPress={() => (navigation as any).navigate('LocationSelect')}
-        >
-          <View style={styles.locationInfo}>
-            <Text style={styles.locationLabel}>DELIVERING TO</Text>
-            <View style={styles.locationRow}>
-              <Text style={styles.locationText} numberOfLines={1}>
-                {user?.address || 'Select Address'}
-              </Text>
-              <Text style={styles.downArrow}>▼</Text>
-            </View>
+        <View style={styles.headerTop}>
+          <View style={styles.speedIndicator}>
+            <Text style={styles.boltEmoji}>⚡</Text>
+            <Text style={styles.speedText}>5 minutes</Text>
           </View>
           <TouchableOpacity 
-            style={styles.profileBtn}
-            onPress={() => (navigation as any).navigate('ProfileSetup')}
+            style={styles.profileCircle}
+            onPress={() => (navigation as any).navigate('Settings')}
           >
-            <Text style={styles.profileIconLabel}>👤</Text>
+            <Text style={styles.profileIcon}>👤</Text>
           </TouchableOpacity>
+        </View>
+
+        <TouchableOpacity 
+          style={styles.addressBar}
+          onPress={() => (navigation as any).navigate('LocationSelect')}
+        >
+          <Text style={styles.addressText} numberOfLines={1}>
+            {user?.address || 'Bachupally - 70, Harithavanam Colo...'}
+          </Text>
+          <Text style={styles.downArrow}>▼</Text>
         </TouchableOpacity>
 
-        {/* Profile Completion Prompt */}
-        {user?.name === 'New User' && (
-          <TouchableOpacity 
-            style={styles.profileBanner}
-            onPress={() => (navigation as any).navigate('ProfileSetup')}
-          >
-            <View style={styles.bannerContent}>
-              <Text style={styles.bannerEmoji}>✨</Text>
-              <Text style={styles.bannerText}>Complete your profile to get personalized offers</Text>
-            </View>
-            <Text style={styles.bannerArrow}>→</Text>
-          </TouchableOpacity>
-        )}
-
-        {/* Mode Switcher */}
-        <View style={styles.modeSwitcher}>
-          <TouchableOpacity
-            style={[styles.modeBtn, activeMode === 'food' && styles.activeModeBtn]}
-            onPress={() => { animateMode('food'); setActiveMode('food'); setSelectedRegion(null); }}
-            activeOpacity={0.9}
-          >
-            <Animated.Text
-              style={[styles.modeText, activeMode === 'food' && styles.activeModeText,
-                { transform: [{ scale: foodScale }] }]}
-            >
-              🥘  Food
-            </Animated.Text>
-          </TouchableOpacity>
-
-          <TouchableOpacity
-            style={[styles.modeBtn, activeMode === 'grocery' && styles.activeModeBtn]}
-            onPress={() => { animateMode('grocery'); setActiveMode('grocery'); setSelectedRegion(null); }}
-            activeOpacity={0.9}
-          >
-            <Animated.Text
-              style={[styles.modeText, activeMode === 'grocery' && styles.activeModeText,
-                { transform: [{ scale: groceryScale }] }]}
-            >
-              🛒  Grocery
-            </Animated.Text>
-          </TouchableOpacity>
-        </View>
-      </View>
-
-      {/* ── Category Strip ──────────────────────────────────────────── */}
-      <View style={styles.categoryContainer}>
-        <FlatList
-          horizontal
+        {/* ── 2. Brand swiper ────────────────────────────────────────── */}
+        <ScrollView 
+          horizontal 
           showsHorizontalScrollIndicator={false}
-          data={categories}
-          renderItem={renderCategory}
-          keyExtractor={(item) => item.id}
-          contentContainerStyle={styles.categoryList}
-        />
+          style={styles.brandSwiper}
+          contentContainerStyle={styles.brandSwiperContent}
+        >
+          {BRAND_CHIPS.map(chip => (
+            <TouchableOpacity key={chip.id} style={[styles.brandChip, { backgroundColor: '#FFFFFF' }]}>
+               <Text style={[styles.brandChipText, { color: chip.color, fontWeight: '900' }]}>{chip.name.toUpperCase()}</Text>
+            </TouchableOpacity>
+          ))}
+        </ScrollView>
       </View>
 
-      {/* ── Store List ──────────────────────────────────────────────── */}
-      {loading ? (
-        <SkeletonList />
-      ) : stores.length === 0 ? (
-        <View style={styles.empty}>
-          <Text style={styles.emptyIcon}>🍽️</Text>
-          <Text style={styles.emptyText}>No stores found nearby.</Text>
-        </View>
-      ) : (
-        <FlatList
-          data={stores}
-          renderItem={({ item }) => (
-            <StoreCard
-              item={item}
-              onPress={() =>
-                (navigation as any).navigate('Store', { storeId: item.id, name: item.name })
-              }
+      <ScrollView style={styles.content} showsVerticalScrollIndicator={false}>
+        {/* ── 3. Search Bar ────────────────────────────────────────── */}
+        <View style={styles.searchSection}>
+          <View style={styles.searchBar}>
+            <Text style={styles.searchIcon}>🔍</Text>
+            <TextInput 
+              style={styles.searchInput}
+              placeholder="Search for 'Milk'"
+              placeholderTextColor="#999"
+              value={search}
+              onChangeText={setSearch}
             />
-          )}
-          keyExtractor={(item) => item.id}
-          contentContainerStyle={styles.list}
-          showsVerticalScrollIndicator={false}
-        />
-      )}
-    </View>
+            <View style={styles.searchDivider} />
+            <View style={styles.ramadanBadge}>
+               <Text style={styles.ramadanText}>Ramadan Specials 🏮</Text>
+            </View>
+          </View>
+        </View>
+
+        {/* ── 4. Horizontal Tags ────────────────────────────────────── */}
+        <ScrollView 
+          horizontal 
+          showsHorizontalScrollIndicator={false} 
+          contentContainerStyle={styles.tagsContainer}
+        >
+          {CATEGORY_TAGS.map((tag, i) => (
+            <TouchableOpacity key={tag} style={[styles.tag, i === 0 && styles.activeTag]}>
+              <Text style={[styles.tagText, i === 0 && styles.activeTagText]}>{tag}</Text>
+            </TouchableOpacity>
+          ))}
+        </ScrollView>
+
+        {/* ── 5. Back to Top Button (Sticky) ────────────────────────── */}
+        <View style={styles.backToTopSection}>
+           <TouchableOpacity style={styles.backToTopBtn}>
+              <Text style={styles.backToTopText}>Back to top ⬆️</Text>
+           </TouchableOpacity>
+        </View>
+
+        {/* ── 6. Amul Banner ────────────────────────────────────────── */}
+        <View style={styles.promoBanner}>
+           <View style={[styles.promoContent, { backgroundColor: '#108D10' }]}>
+              <View style={styles.promoTextCol}>
+                 <Text style={styles.promoBrand}>Amul</Text>
+                 <Text style={styles.promoTitle}>Cool, Creamy, Completely Amul</Text>
+                 <Text style={styles.promoTag}>BEST DEALS</Text>
+                 <TouchableOpacity style={styles.promoBtn}>
+                    <Text style={styles.promoBtnText}>ORDER NOW</Text>
+                 </TouchableOpacity>
+              </View>
+              <Image source={{ uri: 'https://cdn-icons-png.flaticon.com/512/3050/3050161.png' }} style={styles.promoImg} />
+           </View>
+        </View>
+
+        {/* ── 7. Category Grid ──────────────────────────────────────── */}
+        <View style={styles.gridSection}>
+          <Text style={styles.sectionTitle}>Grocery & Kitchen</Text>
+          <View style={styles.gridWrapper}>
+            {HOME_CATEGORIES.map(category => (
+              <TouchableOpacity key={category.id} style={styles.gridCard}>
+                <Text style={[styles.gridTitle, { color: '#2E7D32' }]}>{category.title}</Text>
+                <Image source={{ uri: category.image }} style={styles.gridImage} />
+                <View style={styles.gridFooter}>
+                  <Text style={styles.gridStarts}>Starts at</Text>
+                  <Text style={styles.gridPrice}>{category.price}</Text>
+                </View>
+              </TouchableOpacity>
+            ))}
+          </View>
+        </View>
+
+        {/* ── 8. 50% OFF ZONE ──────────────────────────────────────── */}
+        <View style={styles.offZoneSection}>
+          <View style={styles.offZoneHeader}>
+             <Text style={styles.offZoneTitle}>50% Off Zone</Text>
+             <Text style={styles.offZoneSubtitle}>Half the price, double the joy!</Text>
+          </View>
+          <ScrollView horizontal showsHorizontalScrollIndicator={false} style={{ paddingLeft: 16 }}>
+             {OFF_ZONE_PRODUCTS.map(p => <ProductCard key={p.id} product={p} />)}
+             <TouchableOpacity style={styles.seeAllCard}>
+                <Text style={styles.seeAllText}>See All</Text>
+                <View style={styles.seeAllCircle}>
+                   <Text style={{ fontSize: 18, color: '#E91E63' }}>→</Text>
+                </View>
+             </TouchableOpacity>
+          </ScrollView>
+        </View>
+
+        <View style={{ height: 180 }} />
+      </ScrollView>
+
+      {/* ── 8. Unlock Free Delivery Sticky ──────────────────────────── */}
+      <View style={styles.stickyFooter}>
+        <View style={styles.freeDeliveryContainer}>
+          <View style={styles.scooterIcon}>
+             <Text style={{ fontSize: 20 }}>🛵</Text>
+          </View>
+          <View style={styles.freeDeliveryInfo}>
+            <Text style={styles.freeTitle}>Unlock free delivery</Text>
+            <Text style={styles.freeSubtitle}>Shop for ₹99</Text>
+          </View>
+        </View>
+      </View>
+
+      <BottomTabs activeTab="Home" />
+    </SafeAreaView>
   );
 };
 
-// ── Styles ─────────────────────────────────────────────────────────────────
 const styles = StyleSheet.create({
-  container: {
+  root: {
     flex: 1,
-    backgroundColor: theme.colors.surface,
+    backgroundColor: '#FFFFFF',
   },
   header: {
-    paddingHorizontal: theme.spacing.l,
-    paddingTop: theme.spacing.m,
+    backgroundColor: theme.colors.accentBackground,
+    paddingTop: theme.spacing.s,
     paddingBottom: theme.spacing.m,
-    backgroundColor: theme.colors.background,
   },
-  locationBar: {
+  headerTop: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    paddingHorizontal: theme.spacing.l,
+  },
+  speedIndicator: {
     flexDirection: 'row',
     alignItems: 'center',
-    marginBottom: theme.spacing.m,
   },
-  locationInfo: {
-    flex: 1,
-  },
-  locationLabel: {
-    fontSize: 10,
-    fontFamily: theme.typography.fontFamily.bold,
-    color: theme.colors.primary,
-    letterSpacing: 1,
-  },
-  locationRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginTop: 2,
-  },
-  locationText: {
-    fontSize: theme.typography.size.m,
-    fontFamily: theme.typography.fontFamily.bold,
-    color: theme.colors.text.primary,
+  boltEmoji: {
+    fontSize: 22,
     marginRight: 4,
+  },
+  speedText: {
+    fontSize: 22,
+    fontFamily: theme.typography.fontFamily.bold,
+    color: '#000',
+  },
+  profileCircle: {
+    width: 36,
+    height: 36,
+    borderRadius: 18,
+    backgroundColor: '#000',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  profileIcon: {
+    fontSize: 18,
+    color: '#FFF',
+  },
+  addressBar: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingHorizontal: theme.spacing.l,
+    marginTop: 4,
+  },
+  addressText: {
+    fontSize: theme.typography.size.s,
+    color: '#333',
+    fontFamily: theme.typography.fontFamily.medium,
+    marginRight: 4,
+    maxWidth: '85%',
   },
   downArrow: {
     fontSize: 10,
-    color: theme.colors.text.secondary,
+    color: '#333',
   },
-  profileBtn: {
+  brandSwiper: {
+    marginTop: theme.spacing.m,
+  },
+  brandSwiperContent: {
+    paddingHorizontal: theme.spacing.l,
+  },
+  brandChip: {
+    paddingHorizontal: theme.spacing.m,
+    paddingVertical: 10,
+    borderRadius: 12,
+    marginRight: 10,
+    elevation: 2,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.1,
+    shadowRadius: 2,
+  },
+  brandChipText: {
+    fontSize: 14,
+    fontFamily: theme.typography.fontFamily.bold,
+  },
+  content: {
+    flex: 1,
+  },
+  searchSection: {
+    padding: theme.spacing.l,
+    marginTop: -10,
+  },
+  searchBar: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#FFF',
+    borderWidth: 1,
+    borderColor: '#EEE',
+    borderRadius: 12,
+    height: 54,
+    paddingHorizontal: theme.spacing.m,
+    elevation: 3,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+  },
+  searchIcon: {
+    fontSize: 18,
+    marginRight: 10,
+  },
+  searchInput: {
+    flex: 1,
+    fontSize: 16,
+    color: '#000',
+  },
+  searchDivider: {
+    width: 1,
+    height: 24,
+    backgroundColor: '#EEE',
+    marginHorizontal: 10,
+  },
+  ramadanBadge: {
+    backgroundColor: '#F0F8E8',
+    paddingHorizontal: 8,
+    paddingVertical: 4,
+    borderRadius: 8,
+  },
+  ramadanText: {
+    fontSize: 11,
+    fontFamily: theme.typography.fontFamily.bold,
+    color: '#2E7D32',
+  },
+  tagsContainer: {
+    paddingLeft: theme.spacing.l,
+    paddingBottom: theme.spacing.m,
+  },
+  tag: {
+    paddingHorizontal: theme.spacing.xl,
+    paddingVertical: 8,
+    marginRight: 10,
+    borderBottomWidth: 3,
+    borderBottomColor: 'transparent',
+  },
+  activeTag: {
+    borderBottomColor: '#000',
+  },
+  tagText: {
+    fontSize: 15,
+    fontFamily: theme.typography.fontFamily.medium,
+    color: '#666',
+  },
+  activeTagText: {
+    color: '#000',
+    fontFamily: theme.typography.fontFamily.bold,
+  },
+  mainBanner: {
+    height: 180,
+    marginHorizontal: theme.spacing.l,
+    borderRadius: 20,
+    overflow: 'hidden',
+    marginBottom: theme.spacing.l,
+    position: 'relative',
+  },
+  bannerImg: {
+    width: '100%',
+    height: '100%',
+  },
+  bannerOverlay: {
+    position: 'absolute',
+    bottom: 20,
+    left: 20,
+  },
+  bannerTitle: {
+    fontSize: 28,
+    color: '#FFF',
+    fontFamily: theme.typography.fontFamily.bold,
+    textShadowColor: 'rgba(0,0,0,0.5)',
+    textShadowOffset: { width: 1, height: 1 },
+    textShadowRadius: 4,
+  },
+  bannerSubtitle: {
+    fontSize: 42,
+    color: '#FFF',
+    fontWeight: '900',
+    marginTop: -10,
+    textShadowColor: 'rgba(0,0,0,0.5)',
+    textShadowOffset: { width: 1, height: 1 },
+    textShadowRadius: 4,
+  },
+  zeroFeesBox: {
+    backgroundColor: '#F0F8E8',
+    marginHorizontal: theme.spacing.l,
+    borderRadius: 16,
+    padding: theme.spacing.l,
+    marginBottom: theme.spacing.xl,
+    borderWidth: 1,
+    borderColor: '#CFD8DC',
+  },
+  zeroFeesHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  zeroFeesPrice: {
+    fontSize: 32,
+    fontWeight: '900',
+    color: '#2E7D32',
+    marginRight: 20,
+    width: 100,
+  },
+  backToTopSection: {
+    alignItems: 'center',
+    marginBottom: 20,
+  },
+  backToTopBtn: {
+    backgroundColor: '#333',
+    paddingHorizontal: 20,
+    paddingVertical: 10,
+    borderRadius: 20,
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  backToTopText: {
+    color: '#FFF',
+    fontSize: 14,
+    fontFamily: theme.typography.fontFamily.bold,
+  },
+  promoBanner: {
+    marginHorizontal: theme.spacing.l,
+    marginBottom: 32,
+  },
+  promoContent: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    borderRadius: 20,
+    padding: 24,
+    overflow: 'hidden',
+  },
+  promoTextCol: {
+    flex: 1,
+  },
+  promoBrand: {
+    fontSize: 14,
+    color: '#FFF',
+    fontFamily: theme.typography.fontFamily.bold,
+    opacity: 0.8,
+  },
+  promoTitle: {
+    fontSize: 22,
+    color: '#FFF',
+    fontFamily: theme.typography.fontFamily.bold,
+    marginVertical: 4,
+    lineHeight: 26,
+  },
+  promoTag: {
+    color: '#FFF',
+    fontSize: 12,
+    fontWeight: '900',
+    marginBottom: 16,
+  },
+  promoBtn: {
+    backgroundColor: '#FFF',
+    paddingHorizontal: 16,
+    paddingVertical: 8,
+    borderRadius: 8,
+    alignSelf: 'flex-start',
+  },
+  promoBtnText: {
+    color: '#000',
+    fontSize: 12,
+    fontFamily: theme.typography.fontFamily.bold,
+  },
+  promoImg: {
+    width: 100,
+    height: 100,
+  },
+  sectionTitle: {
+    fontSize: 20,
+    fontFamily: theme.typography.fontFamily.bold,
+    color: '#333',
+    marginBottom: 16,
+  },
+  gridSection: {
+    paddingHorizontal: theme.spacing.l,
+    marginBottom: 32,
+  },
+  gridWrapper: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    justifyContent: 'space-between',
+  },
+  gridCard: {
+    width: (width - 48) / 2,
+    backgroundColor: '#F5F7FA',
+    borderRadius: 16,
+    padding: theme.spacing.m,
+    marginBottom: 16,
+    alignItems: 'center',
+  },
+  offZoneSection: {
+    marginBottom: 32,
+  },
+  offZoneHeader: {
+    paddingHorizontal: theme.spacing.l,
+    marginBottom: 16,
+  },
+  offZoneTitle: {
+    fontSize: 20,
+    fontFamily: theme.typography.fontFamily.bold,
+    color: '#000',
+  },
+  offZoneSubtitle: {
+    fontSize: 14,
+    color: '#666',
+    marginTop: 2,
+  },
+  seeAllCard: {
+    width: (width - 48) / 3,
+    height: 200,
+    backgroundColor: '#E91E63',
+    borderRadius: 16,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginRight: 24,
+  },
+  seeAllText: {
+    color: '#FFF',
+    fontSize: 20,
+    fontFamily: theme.typography.fontFamily.bold,
+    marginBottom: 16,
+  },
+  seeAllCircle: {
     width: 40,
     height: 40,
     borderRadius: 20,
-    backgroundColor: theme.colors.surface,
+    backgroundColor: '#FFF',
     alignItems: 'center',
     justifyContent: 'center',
-    marginLeft: theme.spacing.m,
   },
-  profileIconLabel: {
-    fontSize: 20,
-  },
-  profileBanner: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    backgroundColor: theme.colors.secondary,
-    padding: theme.spacing.m,
-    borderRadius: theme.borderRadius.m,
-    marginBottom: theme.spacing.m,
-  },
-  bannerContent: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    flex: 1,
-  },
-  bannerEmoji: {
-    fontSize: 18,
-    marginRight: theme.spacing.s,
-  },
-  bannerText: {
-    color: theme.colors.text.inverse,
-    fontSize: theme.typography.size.xs,
-    fontFamily: theme.typography.fontFamily.medium,
-    flex: 1,
-  },
-  bannerArrow: {
-    color: theme.colors.text.inverse,
-    fontSize: 18,
+  gridTitle: {
+    fontSize: 13,
     fontFamily: theme.typography.fontFamily.bold,
+    textAlign: 'center',
+    marginBottom: 10,
+    height: 40,
   },
-  modeSwitcher: {
-    flexDirection: 'row',
-    backgroundColor: theme.colors.surface,
-    padding: 4,
-    borderRadius: theme.borderRadius.m,
+  gridImage: {
+    width: 80,
+    height: 80,
+    marginBottom: 10,
   },
-  modeBtn: {
-    flex: 1,
-    paddingVertical: theme.spacing.s + 2,
+  gridFooter: {
     alignItems: 'center',
-    borderRadius: theme.borderRadius.s,
   },
-  activeModeBtn: {
-    backgroundColor: theme.colors.background,
-    ...theme.shadows.card,
+  gridStarts: {
+    fontSize: 10,
+    color: '#666',
   },
-  modeText: {
-    fontFamily: theme.typography.fontFamily.medium,
-    fontSize: theme.typography.size.s,
-    color: theme.colors.text.secondary,
-  },
-  activeModeText: {
-    color: theme.colors.primary,
+  gridPrice: {
+    fontSize: 16,
     fontFamily: theme.typography.fontFamily.bold,
+    color: '#000',
   },
-  categoryContainer: {
-    backgroundColor: theme.colors.background,
-    paddingBottom: theme.spacing.m,
-    borderBottomWidth: 1,
-    borderBottomColor: theme.colors.border,
-  },
-  categoryList: {
-    paddingHorizontal: theme.spacing.m,
-    paddingTop: theme.spacing.m,
-  },
-  categoryItem: {
-    alignItems: 'center',
-    marginRight: theme.spacing.l,
-    paddingHorizontal: theme.spacing.m,
-    paddingVertical: theme.spacing.s,
-    borderRadius: theme.borderRadius.m,
-    borderWidth: 1.5,
-    borderColor: 'transparent',
-  },
-  selectedCategory: {
-    backgroundColor: theme.colors.primary + '12',
-    borderColor: theme.colors.primary,
-  },
-  categoryIcon: {
-    fontSize: 26,
-    marginBottom: 4,
-  },
-  categoryName: {
-    fontSize: theme.typography.size.xs,
-    fontFamily: theme.typography.fontFamily.medium,
-    color: theme.colors.text.secondary,
-  },
-  selectedCategoryText: {
-    color: theme.colors.primary,
-    fontFamily: theme.typography.fontFamily.bold,
-  },
-  list: {
-    padding: theme.spacing.m,
-    paddingBottom: 40,
-  },
-  // Store Card
-  card: {
-    backgroundColor: theme.colors.background,
-    borderRadius: theme.borderRadius.l,
-    marginBottom: theme.spacing.m,
-    overflow: 'hidden',
-    ...theme.shadows.card,
-  },
-  image: {
-    height: 160,
-    width: '100%',
-  },
-  content: {
-    padding: theme.spacing.m,
-    position: 'relative',
-  },
-  storeName: {
-    fontFamily: theme.typography.fontFamily.bold,
-    fontSize: theme.typography.size.l,
-    color: theme.colors.text.primary,
-    marginBottom: 2,
-    paddingRight: 60,
-  },
-  storeType: {
-    fontFamily: theme.typography.fontFamily.regular,
-    fontSize: theme.typography.size.xs,
-    color: theme.colors.text.secondary,
-    marginTop: 2,
-  },
-  ratingBadge: {
+  stickyFooter: {
     position: 'absolute',
-    right: theme.spacing.m,
-    top: theme.spacing.m,
-    backgroundColor: theme.colors.success,
-    paddingHorizontal: theme.spacing.s,
-    paddingVertical: 3,
-    borderRadius: theme.borderRadius.s,
-  },
-  ratingText: {
-    color: theme.colors.text.inverse,
-    fontSize: theme.typography.size.xs,
-    fontFamily: theme.typography.fontFamily.bold,
-  },
-  // Skeleton
-  skeletonCard: {
-    backgroundColor: theme.colors.background,
-    borderRadius: theme.borderRadius.l,
-    marginBottom: theme.spacing.m,
-    overflow: 'hidden',
-    ...theme.shadows.card,
-  },
-  skeletonImage: {
-    height: 160,
-    backgroundColor: '#E8EAED',
-  },
-  skeletonContent: {
+    bottom: 20,
+    left: theme.spacing.l,
+    right: theme.spacing.l,
+    backgroundColor: theme.colors.secondary,
+    borderRadius: 16,
+    height: 70,
     padding: theme.spacing.m,
+    flexDirection: 'row',
+    alignItems: 'center',
+    elevation: 10,
   },
-  skeletonLine: {
-    height: 14,
-    backgroundColor: '#E8EAED',
-    borderRadius: 7,
+  freeDeliveryContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
   },
-  // Empty state
-  empty: {
-    flex: 1,
+  scooterIcon: {
+    width: 44,
+    height: 44,
+    borderRadius: 22,
+    backgroundColor: 'rgba(255,255,255,0.1)',
     alignItems: 'center',
     justifyContent: 'center',
-    paddingBottom: 60,
+    marginRight: 12,
   },
-  emptyIcon: {
-    fontSize: 48,
-    marginBottom: theme.spacing.m,
+  freeDeliveryInfo: {
+    flex: 1,
   },
-  emptyText: {
-    fontFamily: theme.typography.fontFamily.medium,
-    color: theme.colors.text.secondary,
-    fontSize: theme.typography.size.m,
+  freeTitle: {
+    fontSize: 16,
+    fontFamily: theme.typography.fontFamily.bold,
+    color: '#FFF',
+  },
+  freeSubtitle: {
+    fontSize: 13,
+    color: 'rgba(255,255,255,0.7)',
   },
 });

@@ -7,12 +7,16 @@ import { useAuthStore } from '../store/useAuthStore';
 import { LoginScreen } from '../screens/LoginScreen';
 import { OtpScreen } from '../screens/OtpScreen';
 import { HomeScreen } from '../screens/HomeScreen';
+import { CategoriesScreen } from '../screens/CategoriesScreen';
+import { BuyAgainScreen } from '../screens/BuyAgainScreen';
+import { FreshScreen } from '../screens/FreshScreen';
 import { StoreScreen } from '../screens/StoreScreen';
 import { CartScreen } from '../screens/CartScreen';
 import { CheckoutScreen } from '../screens/CheckoutScreen';
 import { OrderTrackingScreen } from '../screens/OrderTrackingScreen';
 import { LocationSelectScreen } from '../screens/LocationSelectScreen';
 import { ProfileSetupScreen } from '../screens/ProfileSetupScreen';
+import { SettingsScreen } from '../screens/SettingsScreen';
 
 const Stack = createNativeStackNavigator();
 
@@ -32,12 +36,16 @@ export const AppNavigator = () => {
           // App Stack
           <>
             <Stack.Screen name="Home" component={HomeScreen} />
+            <Stack.Screen name="Categories" component={CategoriesScreen} />
+            <Stack.Screen name="BuyAgain" component={BuyAgainScreen} />
+            <Stack.Screen name="Fresh" component={FreshScreen} />
             <Stack.Screen name="Store" component={StoreScreen} />
             <Stack.Screen name="Cart" component={CartScreen} />
             <Stack.Screen name="Checkout" component={CheckoutScreen} />
             <Stack.Screen name="OrderTracking" component={OrderTrackingScreen} />
             <Stack.Screen name="LocationSelect" component={LocationSelectScreen} />
             <Stack.Screen name="ProfileSetup" component={ProfileSetupScreen} />
+            <Stack.Screen name="Settings" component={SettingsScreen} />
           </>
         )}
       </Stack.Navigator>

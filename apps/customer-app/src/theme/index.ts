@@ -1,26 +1,27 @@
 export const theme = {
   colors: {
-    primary: '#FF5200', // Swiggy-like Orange
-    secondary: '#2C3E50',
+    primary: '#FF5200',
+    secondary: '#222A33', // Zepto Dark Blue/Black
     background: '#FFFFFF',
-    surface: '#F8F9FA',
+    surface: '#F5F7FA',
+    accentBackground: '#F0F8E8', // Light yellow/green for home
     text: {
-      primary: '#1A1A1A',
-      secondary: '#6E7A89',
+      primary: '#000000',
+      secondary: '#666666',
       inverse: '#FFFFFF',
     },
-    border: '#E0E0E0',
-    success: '#28A745',
+    border: '#EAEAEA',
+    success: '#108D10', // Zepto Green
     error: '#DC3545',
     warning: '#FFC107',
   },
   spacing: {
     xs: 4,
     s: 8,
-    m: 16,
-    l: 24,
-    xl: 32,
-    xxl: 48,
+    m: 12,
+    l: 16,
+    xl: 20,
+    xxl: 24,
   },
   typography: {
     fontFamily: {
