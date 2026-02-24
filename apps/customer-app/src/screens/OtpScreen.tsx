@@ -116,6 +116,7 @@ const styles = StyleSheet.create({
     textAlign: 'center',
     letterSpacing: 8,
     height: 60,
+    color: theme.colors.text.primary,
   },
   resendContainer: {
     alignItems: 'center',

@@ -19,7 +19,8 @@ const signupSchema = z.object({
 const loginSchema = z.object({
   phone: z.string().optional(),
   email: z.string().email().optional(),
-  password: z.string()
+  password: z.string().optional(),
+  otp: z.string().optional()
 }).refine(data => data.phone || data.email, {
   message: "Either phone or email must be provided"
 });
@@ -72,7 +73,7 @@ class AuthService {
 
   // 3. Login
   async login(data) {
-    let { phone, email, password } = loginSchema.parse(data);
+    let { phone, email, password, otp } = loginSchema.parse(data);
 
     let user;
     if (email) {
@@ -87,8 +88,32 @@ class AuthService {
       user = result.rows[0];
     }
 
-    if (!user || !(await bcrypt.compare(password, user.password_hash))) {
-      throw new Error('Invalid credentials');
+    // OTP Verification (Mock for dev)
+    if (otp) {
+      if (otp !== '123456') {
+        throw new Error('Invalid OTP');
+      }
+      
+      // AUTO-REGISTRATION: If user doesn't exist, create them
+      if (!user && phone) {
+        logger.info(`Auto-registering new phone user: ${phone}`);
+        const signupResult = await db.query(
+          `INSERT INTO users (phone, role, name) 
+           VALUES ($1, $2, $3) 
+           ON CONFLICT (phone) DO UPDATE SET role = EXCLUDED.role
+           RETURNING id, role, name`,
+          [phone, 'customer', 'New User']
+        );
+        user = signupResult.rows[0];
+      } else if (!user) {
+        throw new Error('User not found and no phone provided for auto-registration');
+      }
+    } else if (password) {
+      if (!user || !(await bcrypt.compare(password, user.password_hash))) {
+        throw new Error('Invalid credentials');
+      }
+    } else {
+      throw new Error('Either password or OTP is required');
     }
 
     logger.info(`User logged in: ${user.id}`);
