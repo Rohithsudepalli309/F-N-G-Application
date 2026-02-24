@@ -56,3 +56,7 @@ A detailed chronological record of the application's building process, technical
     1. Optimized repository size by excluding `node_modules` and heavy `.npm-cache` folders in `.gitignore`.
     2. Implemented a **Segmented Push** (4 Phases: Backend → Dashboards → Source → Native) to guarantee success.
 - **Visibility**: Repository successfully finalized as **PUBLIC** at [Rohithsudepalli309/F-N-G-Application](https://github.com/Rohithsudepalli309/F-N-G-Application).
+
+### **Challenge: IDE Sync Error (com.android.tools.build:gradle:null)**
+- **Problem**: The IDE (Android Studio) was failing to sync because the Android Gradle Plugin (AGP) version was missing in the classpath line of the root build.gradle.
+- **Resolution**: Explicitly set the AGP version to **8.1.1** (stable for RN 0.73.6). This allowed the IDE to resolve task dependencies successfully.

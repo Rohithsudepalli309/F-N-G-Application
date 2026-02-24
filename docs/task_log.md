@@ -27,6 +27,7 @@
 - [x] Downgrade react-native-maps to 1.10.0
 - [x] Launch Customer App on Android
 - [x] GitHub Repository Setup
+- [x] Fix IDE Sync Error (agp_version)
 
 ## Visual Documentation
 - [x] `app_preview.md` — High-fidelity design spec for F&G mobile screens
