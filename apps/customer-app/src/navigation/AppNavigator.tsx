@@ -1,0 +1,42 @@
+import React from 'react';
+import { NavigationContainer } from '@react-navigation/native';
+import { createNativeStackNavigator } from '@react-navigation/native-stack';
+import { useAuthStore } from '../store/useAuthStore';
+
+// Screens
+import { LoginScreen } from '../screens/LoginScreen';
+import { OtpScreen } from '../screens/OtpScreen';
+import { HomeScreen } from '../screens/HomeScreen';
+import { StoreScreen } from '../screens/StoreScreen';
+import { CartScreen } from '../screens/CartScreen';
+import { CheckoutScreen } from '../screens/CheckoutScreen';
+import { OrderTrackingScreen } from '../screens/OrderTrackingScreen';
+
+const Stack = createNativeStackNavigator();
+
+export const AppNavigator = () => {
+  const isAuthenticated = useAuthStore((state) => state.isAuthenticated);
+
+  return (
+    <NavigationContainer>
+      <Stack.Navigator screenOptions={{ headerShown: false }}>
+        {!isAuthenticated ? (
+          // Auth Stack
+          <>
+            <Stack.Screen name="Login" component={LoginScreen} />
+            <Stack.Screen name="Otp" component={OtpScreen} />
+          </>
+        ) : (
+          // App Stack
+          <>
+            <Stack.Screen name="Home" component={HomeScreen} />
+            <Stack.Screen name="Store" component={StoreScreen} />
+            <Stack.Screen name="Cart" component={CartScreen} />
+            <Stack.Screen name="Checkout" component={CheckoutScreen} />
+            <Stack.Screen name="OrderTracking" component={OrderTrackingScreen} />
+          </>
+        )}
+      </Stack.Navigator>
+    </NavigationContainer>
+  );
+};
