@@ -1,0 +1,52 @@
+# Dependencies
+node_modules/
+.pnpm-store/
+.npm-cache/
+.ignored/
+
+# Build outputs
+dist/
+build/
+bin/
+obj/
+*.apk
+*.aab
+*.exe
+*.o
+*.pyc
+
+# Environment variables
+.env
+.env.*
+!.env.example
+
+# IDEs
+.vscode/
+.idea/
+*.swp
+*.swo
+.DS_Store
+
+# Android-specific
+.gradle/
+local.properties
+Captures/
+*.keystore
+!debug.keystore
+
+# Node-specific
+pnpm-debug.log*
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+.npm/
+.eslintcache
+
+# Logs
+*.log
+build_log*.txt
+dep_tree.txt
+
+# Temporary files
+tmp/
+temp/
