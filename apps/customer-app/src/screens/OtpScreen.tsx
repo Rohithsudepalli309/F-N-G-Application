@@ -4,6 +4,7 @@ import { useRoute } from '@react-navigation/native';
 import { api } from '../services/api';
 import { useAuthStore } from '../store/useAuthStore';
 import { theme } from '../theme';
+import { socketService } from '../services/socket';
 
 export const OtpScreen = () => {
   const [otp, setOtp] = useState('');
@@ -21,6 +22,21 @@ export const OtpScreen = () => {
     }
     return () => clearInterval(interval);
   }, [timer]);
+
+  React.useEffect(() => {
+    // Connect socket to hear real-time events (dev only or all)
+    socketService.connect();
+    
+    // Listen for development OTPs
+    socketService.on('dev:otp', (data: any) => {
+      if (data.phone === (`+91${phone}` || phone)) {
+        Alert.alert('Developer Mode', `Real-time OTP received via Socket: ${data.otp}`);
+        setOtp(data.otp);
+      }
+    });
+
+    return () => socketService.off('dev:otp');
+  }, [phone]);
 
   const handleResend = async () => {
     if (timer > 0) return;

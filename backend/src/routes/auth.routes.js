@@ -31,7 +31,8 @@ const { authenticate } = require('../middleware/auth');
 // 3. Send OTP
 router.post('/otp', async (req, res, next) => {
   try {
-    const result = await authService.sendOtp(req.body.phone);
+    const io = req.app.get('io');
+    const result = await authService.sendOtp(req.body.phone, io);
     res.json(result);
   } catch (err) {
     next(err);

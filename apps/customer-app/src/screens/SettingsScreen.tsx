@@ -42,7 +42,15 @@ export const SettingsScreen = () => {
   };
 
   const renderMenuItem = (item: MenuItem) => (
-    <TouchableOpacity key={item.id} style={styles.menuItem}>
+    <TouchableOpacity 
+      key={item.id} 
+      style={styles.menuItem}
+      onPress={() => {
+        if (item.id === 'profile') navigation.navigate('ProfileSetup' as never);
+        else if (item.id === 'addresses') navigation.navigate('LocationSelect' as never);
+        else navigation.navigate('ProductList' as never, { categoryName: item.label } as never);
+      }}
+    >
       <View style={styles.menuLeft}>
         <View style={styles.iconContainer}>
           <Text style={styles.menuIcon}>{item.icon}</Text>

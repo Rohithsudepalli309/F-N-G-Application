@@ -17,6 +17,7 @@ import { OrderTrackingScreen } from '../screens/OrderTrackingScreen';
 import { LocationSelectScreen } from '../screens/LocationSelectScreen';
 import { ProfileSetupScreen } from '../screens/ProfileSetupScreen';
 import { SettingsScreen } from '../screens/SettingsScreen';
+import { ProductListScreen } from '../screens/ProductListScreen';
 
 const Stack = createNativeStackNavigator();
 
@@ -46,6 +47,7 @@ export const AppNavigator = () => {
             <Stack.Screen name="LocationSelect" component={LocationSelectScreen} />
             <Stack.Screen name="ProfileSetup" component={ProfileSetupScreen} />
             <Stack.Screen name="Settings" component={SettingsScreen} />
+            <Stack.Screen name="ProductList" component={ProductListScreen} />
           </>
         )}
       </Stack.Navigator>

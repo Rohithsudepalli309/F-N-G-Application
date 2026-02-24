@@ -35,12 +35,6 @@ export const BottomTabs = ({ activeTab }: { activeTab: string }) => {
         );
       })}
       
-      {/* Brand Tab (Zepto specialized logo) */}
-      <TouchableOpacity style={styles.brandTab}>
-        <View style={styles.brandLogoBox}>
-           <Text style={styles.brandLogoText}>durex</Text>
-        </View>
-      </TouchableOpacity>
     </View>
   );
 };

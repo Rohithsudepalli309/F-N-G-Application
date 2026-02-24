@@ -9,6 +9,7 @@ import {
   SafeAreaView,
   StatusBar,
 } from 'react-native';
+import { useNavigation } from '@react-navigation/native';
 import { theme } from '../theme';
 import { BottomTabs } from '../components/BottomTabs';
 
@@ -60,6 +61,7 @@ const SECTIONS: Section[] = [
 ];
 
 export const CategoriesScreen = () => {
+  const navigation = useNavigation();
   return (
     <SafeAreaView style={styles.root}>
       <StatusBar barStyle="dark-content" />
@@ -83,7 +85,11 @@ export const CategoriesScreen = () => {
             <Text style={styles.sectionTitle}>{section.title}</Text>
             <View style={styles.grid}>
               {section.items.map((item) => (
-                <TouchableOpacity key={item.id} style={styles.gridItem}>
+                <TouchableOpacity 
+                  key={item.id} 
+                  style={styles.gridItem}
+                  onPress={() => (navigation as any).navigate('ProductList', { categoryName: item.name })}
+                >
                   <View style={styles.iconContainer}>
                     <Image source={{ uri: item.image }} style={styles.categoryImg} />
                   </View>

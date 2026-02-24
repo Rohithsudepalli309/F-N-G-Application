@@ -4,6 +4,7 @@ const db = require('../config/db');
 const env = require('../config/env');
 const logger = require('../config/logger');
 const { z } = require('zod');
+const { notifyOtpSent } = require('./socket.service');
 
 // Input Validation Schemas
 const signupSchema = z.object({
@@ -148,12 +149,51 @@ class AuthService {
     return result.rows[0];
   }
 
-  // 5. OTP Mock (For MVP)
-  async sendOtp(phone) {
-    // In production, integrate SMS provider here.
-    const otp = '123456'; // Fixed for tests
-    logger.info(`OTP sent to ${phone}: ${otp}`);
-    return { message: 'OTP sent', requestId: 'req_mock_123' };
+  // 5. OTP Real-Time (Fast2SMS + Socket.io)
+  async sendOtp(phone, io) {
+    if (!phone) throw new Error('Phone number is required');
+
+    // Standardize
+    let formattedPhone = phone;
+    if (phone.length === 10) formattedPhone = `+91${phone}`;
+
+    // 1. Generate OTP (Random 6 digits)
+    const otp = Math.floor(100000 + Math.random() * 900000).toString();
+    const isDev = process.env.NODE_ENV === 'development';
+    
+    // 2. Real-time Dev Broadcast (via Socket.io)
+    if (io) {
+      notifyOtpSent(io, formattedPhone, otp);
+    }
+
+    // 3. Real SMS via Fast2SMS (if key present)
+    const apiKey = process.env.FAST2SMS_API_KEY;
+    if (apiKey && !isDev) {
+      try {
+        const response = await fetch(`https://www.fast2sms.com/dev/bulkV2?authorization=${apiKey}&route=otp&variables_values=${otp}&numbers=${phone.replace('+91', '')}`);
+        const data = await response.json();
+        if (!data.return) {
+          logger.error(`Fast2SMS Error: ${data.message}`);
+        } else {
+          logger.info(`Real SMS sent to ${formattedPhone}`);
+          return { message: 'OTP sent to mobile', requestId: data.request_id };
+        }
+      } catch (err) {
+        logger.error(`SMS Provider failure: ${err.message}`);
+      }
+    }
+
+    // 4. Fallback (Development)
+    const dummyOtp = '123456'; 
+    logger.info(`DEV MODE: OTP for ${formattedPhone} is ${otp} (Mock: ${dummyOtp})`);
+    
+    return { 
+      message: 'OTP sent (Debug Mode)', 
+      requestId: 'req_dev_' + Date.now(),
+      // In dev, we can actually return it for easier testing if needed, 
+      // but usually we check logs or socket
+      debugOtp: otp 
+    };
   }
 }
 

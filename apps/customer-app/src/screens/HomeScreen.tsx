@@ -28,7 +28,7 @@ const BRAND_CHIPS = [
   { id: 'fresh', name: 'Fresh', color: '#43A047' },
 ];
 
-const CATEGORY_TAGS = ['All', 'Holi', 'Fashion', 'Electronics', 'Beauty', 'Kitchen', 'Care'];
+const CATEGORY_TAGS = ['All', 'Snacks', 'Drinks', 'Fashion', 'Electronics', 'Beauty', 'Kitchen', 'Care'];
 
 const HOME_CATEGORIES = [
   { id: '1', title: 'Organic & Premium Picks', image: 'https://cdn-icons-png.flaticon.com/512/1531/1531391.png', price: '₹99' },
@@ -48,6 +48,8 @@ export const HomeScreen = () => {
   const navigation = useNavigation();
   const user = useAuthStore((state) => state.user);
   const [search, setSearch] = useState('');
+  const [showBackToTop, setShowBackToTop] = useState(false);
+  const scrollRef = useRef<ScrollView>(null);
 
   // Auto-redirect to Location if missing
   useEffect(() => {
@@ -57,6 +59,15 @@ export const HomeScreen = () => {
       }, 800);
     }
   }, [user?.address]);
+
+  const handleScroll = (event: any) => {
+    const offsetY = event.nativeEvent.contentOffset.y;
+    setShowBackToTop(offsetY > 300);
+  };
+
+  const scrollToTop = () => {
+    scrollRef.current?.scrollTo({ y: 0, animated: true });
+  };
 
   return (
     <SafeAreaView style={styles.root}>
@@ -102,7 +113,13 @@ export const HomeScreen = () => {
         </ScrollView>
       </View>
 
-      <ScrollView style={styles.content} showsVerticalScrollIndicator={false}>
+      <ScrollView 
+        ref={scrollRef}
+        style={styles.content} 
+        showsVerticalScrollIndicator={false}
+        onScroll={handleScroll}
+        scrollEventThrottle={16}
+      >
         {/* ── 3. Search Bar ────────────────────────────────────────── */}
         <View style={styles.searchSection}>
           <View style={styles.searchBar}>
@@ -116,7 +133,7 @@ export const HomeScreen = () => {
             />
             <View style={styles.searchDivider} />
             <View style={styles.ramadanBadge}>
-               <Text style={styles.ramadanText}>Ramadan Specials 🏮</Text>
+               <Text style={styles.ramadanText}>Daily Deals 🏷️</Text>
             </View>
           </View>
         </View>
@@ -134,12 +151,14 @@ export const HomeScreen = () => {
           ))}
         </ScrollView>
 
-        {/* ── 5. Back to Top Button (Sticky) ────────────────────────── */}
-        <View style={styles.backToTopSection}>
-           <TouchableOpacity style={styles.backToTopBtn}>
-              <Text style={styles.backToTopText}>Back to top ⬆️</Text>
-           </TouchableOpacity>
-        </View>
+        {/* ── 5. Back to Top Button (Dynamic) ────────────────────────── */}
+        {showBackToTop && (
+          <View style={styles.backToTopSection}>
+             <TouchableOpacity style={styles.backToTopBtn} onPress={scrollToTop}>
+                <Text style={styles.backToTopText}>Back to top ⬆️</Text>
+             </TouchableOpacity>
+          </View>
+        )}
 
         {/* ── 6. Amul Banner ────────────────────────────────────────── */}
         <View style={styles.promoBanner}>
@@ -161,7 +180,11 @@ export const HomeScreen = () => {
           <Text style={styles.sectionTitle}>Grocery & Kitchen</Text>
           <View style={styles.gridWrapper}>
             {HOME_CATEGORIES.map(category => (
-              <TouchableOpacity key={category.id} style={styles.gridCard}>
+              <TouchableOpacity 
+                key={category.id} 
+                style={styles.gridCard}
+                onPress={() => (navigation as any).navigate('ProductList', { categoryName: category.title })}
+              >
                 <Text style={[styles.gridTitle, { color: '#2E7D32' }]}>{category.title}</Text>
                 <Image source={{ uri: category.image }} style={styles.gridImage} />
                 <View style={styles.gridFooter}>
@@ -181,7 +204,10 @@ export const HomeScreen = () => {
           </View>
           <ScrollView horizontal showsHorizontalScrollIndicator={false} style={{ paddingLeft: 16 }}>
              {OFF_ZONE_PRODUCTS.map(p => <ProductCard key={p.id} product={p} />)}
-             <TouchableOpacity style={styles.seeAllCard}>
+             <TouchableOpacity 
+               style={styles.seeAllCard}
+               onPress={() => (navigation as any).navigate('ProductList', { categoryName: 'Special Offers' })}
+             >
                 <Text style={styles.seeAllText}>See All</Text>
                 <View style={styles.seeAllCircle}>
                    <Text style={{ fontSize: 18, color: '#E91E63' }}>→</Text>
@@ -193,20 +219,18 @@ export const HomeScreen = () => {
         <View style={{ height: 180 }} />
       </ScrollView>
 
-      {/* ── 8. Unlock Free Delivery Sticky ──────────────────────────── */}
-      <View style={styles.stickyFooter}>
-        <View style={styles.freeDeliveryContainer}>
-          <View style={styles.scooterIcon}>
-             <Text style={{ fontSize: 20 }}>🛵</Text>
-          </View>
-          <View style={styles.freeDeliveryInfo}>
-            <Text style={styles.freeTitle}>Unlock free delivery</Text>
-            <Text style={styles.freeSubtitle}>Shop for ₹99</Text>
-          </View>
-        </View>
-      </View>
-
       <BottomTabs activeTab="Home" />
+
+      {/* ── 9. Back to Top Button (Floating) ────────────────────────── */}
+      {showBackToTop && (
+        <TouchableOpacity 
+          style={styles.floatingBackToTop} 
+          onPress={scrollToTop}
+          activeOpacity={0.8}
+        >
+          <Text style={styles.backToTopText}>Back to top ⬆️</Text>
+        </TouchableOpacity>
+      )}
     </SafeAreaView>
   );
 };
@@ -605,5 +629,21 @@ const styles = StyleSheet.create({
   freeSubtitle: {
     fontSize: 13,
     color: 'rgba(255,255,255,0.7)',
+  },
+  floatingBackToTop: {
+    position: 'absolute',
+    bottom: 100, // Above bottom tabs
+    alignSelf: 'center',
+    backgroundColor: 'rgba(0,0,0,0.8)',
+    paddingHorizontal: 16,
+    paddingVertical: 8,
+    borderRadius: 20,
+    flexDirection: 'row',
+    alignItems: 'center',
+    elevation: 5,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.25,
+    shadowRadius: 3.84,
   },
 });
