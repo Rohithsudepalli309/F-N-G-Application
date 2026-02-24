@@ -121,6 +121,15 @@ export const HomeScreen = () => {
   const foodScale    = useRef(new Animated.Value(1)).current;
   const groceryScale = useRef(new Animated.Value(1)).current;
 
+  // Auto-redirect to Location if missing
+  useEffect(() => {
+    if (!user?.address) {
+      setTimeout(() => {
+        (navigation as any).navigate('LocationSelect');
+      }, 800);
+    }
+  }, [user?.address]);
+
   const animateMode = (mode: 'food' | 'grocery') => {
     const target = mode === 'food' ? foodScale : groceryScale;
     Animated.sequence([
@@ -167,12 +176,40 @@ export const HomeScreen = () => {
     <View style={styles.container}>
       {/* ── Header ──────────────────────────────────────────────────── */}
       <View style={styles.header}>
-        <View style={styles.headerTop}>
-          <View>
-            <Text style={styles.greeting}>Hello, {user?.name || 'there'} 👋</Text>
-            <Text style={styles.subtitle}>What are you craving today?</Text>
+        <TouchableOpacity 
+          style={styles.locationBar}
+          onPress={() => (navigation as any).navigate('LocationSelect')}
+        >
+          <View style={styles.locationInfo}>
+            <Text style={styles.locationLabel}>DELIVERING TO</Text>
+            <View style={styles.locationRow}>
+              <Text style={styles.locationText} numberOfLines={1}>
+                {user?.address || 'Select Address'}
+              </Text>
+              <Text style={styles.downArrow}>▼</Text>
+            </View>
           </View>
-        </View>
+          <TouchableOpacity 
+            style={styles.profileBtn}
+            onPress={() => (navigation as any).navigate('ProfileSetup')}
+          >
+            <Text style={styles.profileIconLabel}>👤</Text>
+          </TouchableOpacity>
+        </TouchableOpacity>
+
+        {/* Profile Completion Prompt */}
+        {user?.name === 'New User' && (
+          <TouchableOpacity 
+            style={styles.profileBanner}
+            onPress={() => (navigation as any).navigate('ProfileSetup')}
+          >
+            <View style={styles.bannerContent}>
+              <Text style={styles.bannerEmoji}>✨</Text>
+              <Text style={styles.bannerText}>Complete your profile to get personalized offers</Text>
+            </View>
+            <Text style={styles.bannerArrow}>→</Text>
+          </TouchableOpacity>
+        )}
 
         {/* Mode Switcher */}
         <View style={styles.modeSwitcher}>
@@ -252,26 +289,79 @@ const styles = StyleSheet.create({
   },
   header: {
     paddingHorizontal: theme.spacing.l,
-    paddingTop: theme.spacing.l,
+    paddingTop: theme.spacing.m,
     paddingBottom: theme.spacing.m,
     backgroundColor: theme.colors.background,
   },
-  headerTop: {
+  locationBar: {
     flexDirection: 'row',
-    justifyContent: 'space-between',
     alignItems: 'center',
     marginBottom: theme.spacing.m,
   },
-  greeting: {
-    fontFamily: theme.typography.fontFamily.bold,
-    fontSize: theme.typography.size.xl,
-    color: theme.colors.text.primary,
+  locationInfo: {
+    flex: 1,
   },
-  subtitle: {
-    fontFamily: theme.typography.fontFamily.regular,
-    fontSize: theme.typography.size.s,
-    color: theme.colors.text.secondary,
+  locationLabel: {
+    fontSize: 10,
+    fontFamily: theme.typography.fontFamily.bold,
+    color: theme.colors.primary,
+    letterSpacing: 1,
+  },
+  locationRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
     marginTop: 2,
+  },
+  locationText: {
+    fontSize: theme.typography.size.m,
+    fontFamily: theme.typography.fontFamily.bold,
+    color: theme.colors.text.primary,
+    marginRight: 4,
+  },
+  downArrow: {
+    fontSize: 10,
+    color: theme.colors.text.secondary,
+  },
+  profileBtn: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    backgroundColor: theme.colors.surface,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginLeft: theme.spacing.m,
+  },
+  profileIconLabel: {
+    fontSize: 20,
+  },
+  profileBanner: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    backgroundColor: theme.colors.secondary,
+    padding: theme.spacing.m,
+    borderRadius: theme.borderRadius.m,
+    marginBottom: theme.spacing.m,
+  },
+  bannerContent: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    flex: 1,
+  },
+  bannerEmoji: {
+    fontSize: 18,
+    marginRight: theme.spacing.s,
+  },
+  bannerText: {
+    color: theme.colors.text.inverse,
+    fontSize: theme.typography.size.xs,
+    fontFamily: theme.typography.fontFamily.medium,
+    flex: 1,
+  },
+  bannerArrow: {
+    color: theme.colors.text.inverse,
+    fontSize: 18,
+    fontFamily: theme.typography.fontFamily.bold,
   },
   modeSwitcher: {
     flexDirection: 'row',
