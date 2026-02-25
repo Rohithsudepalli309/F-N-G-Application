@@ -22,7 +22,7 @@ const { width } = Dimensions.get('window');
 
 // ── Mock Data ─────────────────────────────────────────────────────────────
 const BRAND_CHIPS = [
-  { id: 'zepto', name: 'zepto', color: '#3E2723' },
+  { id: 'fng', name: 'F&G', color: '#2E7D32' },
   { id: 'off', name: '50% OFF ZONE', color: '#D32F2F' },
   { id: 'mall', name: 'Super Mall', color: '#FB8C00' },
   { id: 'fresh', name: 'Fresh', color: '#43A047' },
@@ -76,9 +76,17 @@ export const HomeScreen = () => {
       {/* ── 1. Header (Yellow/Green Background) ────────────────────────── */}
       <View style={styles.header}>
         <View style={styles.headerTop}>
-          <View style={styles.speedIndicator}>
-            <Text style={styles.boltEmoji}>⚡</Text>
-            <Text style={styles.speedText}>5 minutes</Text>
+          <View style={styles.logoAndSpeed}>
+            <Image 
+              source={require('../assets/fg_logo.png')} 
+              style={styles.logoIcon} 
+              resizeMode="contain"
+            />
+            <View style={styles.headerDivider} />
+            <View style={styles.speedIndicator}>
+              <Text style={styles.boltEmoji}>⚡</Text>
+              <Text style={styles.speedText}>5 minutes</Text>
+            </View>
           </View>
           <TouchableOpacity 
             style={styles.profileCircle}
@@ -260,9 +268,23 @@ const styles = StyleSheet.create({
     marginRight: 4,
   },
   speedText: {
-    fontSize: 22,
+    fontSize: 18,
     fontFamily: theme.typography.fontFamily.bold,
     color: '#000',
+  },
+  logoAndSpeed: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  logoIcon: {
+    width: 40,
+    height: 40,
+  },
+  headerDivider: {
+    width: 1,
+    height: 20,
+    backgroundColor: 'rgba(0,0,0,0.1)',
+    marginHorizontal: 10,
   },
   profileCircle: {
     width: 36,
