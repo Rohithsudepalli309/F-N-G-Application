@@ -24,7 +24,7 @@ interface Product {
 
 type PriceFlash = 'up' | 'down';
 
-// ── Animated Price Row ─────────────────────────────────────────────────────
+// --- Animated Price Row ------------------------------------------------------------------------------─
 const PriceCell = ({ item, flash }: { item: Product; flash?: PriceFlash }) => {
   const bgAnim = useRef(new Animated.Value(0)).current;
 
@@ -65,7 +65,7 @@ const PriceCell = ({ item, flash }: { item: Product; flash?: PriceFlash }) => {
   );
 };
 
-// ── Product Row ────────────────────────────────────────────────────────────
+// --- Product Row ------------------------------------------------------------------------------------------
 const ProductRow = ({
   item,
   flash,
@@ -111,7 +111,7 @@ const ProductRow = ({
   );
 };
 
-// ── Store Screen ───────────────────────────────────────────────────────────
+// --- Store Screen ---------------------------------------------------------------------------------------─
 export const StoreScreen = () => {
   const [products, setProducts]   = useState<Product[]>([]);
   const [highlights, setHighlights] = useState<Record<string, PriceFlash>>({});
@@ -224,7 +224,7 @@ export const StoreScreen = () => {
   );
 };
 
-// ── Styles ─────────────────────────────────────────────────────────────────
+// --- Styles ------------------------------------------------------------------------------------------------─
 const styles = StyleSheet.create({
   container: {
     flex: 1,

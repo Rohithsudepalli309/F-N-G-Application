@@ -51,8 +51,9 @@ app.use((err, req, res, next) => {
 
 // 7. Start
 if (require.main === module) {
-  httpServer.listen(env.PORT, () => {
-    logger.info(`Server + WebSocket running on port ${env.PORT} [${env.NODE_ENV}]`);
+  const BIND_IP = '0.0.0.0'; // Bind to all interfaces for LAN access 
+  httpServer.listen(env.PORT, BIND_IP, () => {
+    logger.info(`Server + WebSocket running on ${BIND_IP}:${env.PORT} [${env.NODE_ENV}]`);
   });
 }
 

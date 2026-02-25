@@ -1,7 +1,7 @@
 export const theme = {
   colors: {
     primary: '#FF5200',
-    secondary: '#222A33', // Zepto Dark Blue/Black
+    secondary: '#222A33', // Brand Dark Blue/Black
     background: '#FFFFFF',
     surface: '#F5F7FA',
     accentBackground: '#F0F8E8', // Light yellow/green for home
@@ -11,7 +11,7 @@ export const theme = {
       inverse: '#FFFFFF',
     },
     border: '#EAEAEA',
-    success: '#108D10', // Zepto Green
+    success: '#108D10', // Brand Green
     error: '#DC3545',
     warning: '#FFC107',
   },

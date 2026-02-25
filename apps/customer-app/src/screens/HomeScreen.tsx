@@ -23,7 +23,7 @@ import { ActivityIndicator } from 'react-native';
 
 const { width } = Dimensions.get('window');
 
-// ── Mock Data ─────────────────────────────────────────────────────────────
+// --- Mock Data ------------------------------------------------------------------------------------------─
 const BRAND_CHIPS = [
   { id: 'fng', name: 'F&G', color: '#2E7D32' },
   { id: 'off', name: '50% OFF ZONE', color: '#D32F2F' },
@@ -91,54 +91,93 @@ export const HomeScreen = () => {
 
   return (
     <SafeAreaView style={styles.root}>
-      <StatusBar barStyle="dark-content" backgroundColor={theme.colors.accentBackground} />
+      <StatusBar barStyle="dark-content" backgroundColor="#FFF" />
       
-      {/* ── 1. Header (Yellow/Green Background) ────────────────────────── */}
-      <View style={styles.header}>
-        <View style={styles.headerTop}>
-          <View style={styles.logoAndSpeed}>
-            <Image 
-              source={require('../assets/fg_logo_square.png')} 
-              style={styles.logoIcon} 
-              resizeMode="cover"
-            />
-            <View style={styles.headerDivider} />
-            <View style={styles.speedIndicator}>
-              <Text style={styles.boltEmoji}>⚡</Text>
-              <Text style={styles.speedText}>5 minutes</Text>
-            </View>
+      {/* --- 1. NO-GAP SPEEDY HEADER (F&G Premium) --- */}
+      <View style={styles.newHeader}>
+        <View style={styles.headerTopRow}>
+          <View style={styles.speedPill}>
+             <Text style={styles.speedBolt}>⚡</Text>
+             <Text style={styles.speedText}>5 minutes</Text>
           </View>
           <TouchableOpacity 
-            style={styles.profileCircle}
+            style={styles.profileIconBtn}
             onPress={() => (navigation as any).navigate('Settings')}
           >
-            <Text style={styles.profileIcon}>👤</Text>
+            <View style={styles.profileCircleInner}>
+               <Text style={styles.profileChar}>👤</Text>
+            </View>
           </TouchableOpacity>
         </View>
 
         <TouchableOpacity 
-          style={styles.addressBar}
+          style={styles.locationContainer}
           onPress={() => (navigation as any).navigate('LocationSelect')}
         >
-          <Text style={styles.addressText} numberOfLines={1}>
-            {user?.address || 'Bachupally - 70, Harithavanam Colo...'}
+          <Text style={styles.locationTopText} numberOfLines={1}>
+            {(user?.address?.split(',') || [])[0] || 'Bachupally - 70'}
           </Text>
-          <Text style={styles.downArrow}>▼</Text>
+          <View style={styles.locationBottomRow}>
+            <Text style={styles.locationBottomText} numberOfLines={1}>
+              {user?.address || 'Harithavanam Colony, Bachupally, Hyder...'}
+            </Text>
+            <Text style={styles.chevDown}>⌄</Text>
+          </View>
         </TouchableOpacity>
 
-        {/* ── 2. Brand swiper ────────────────────────────────────────── */}
-        <ScrollView 
-          horizontal 
-          showsHorizontalScrollIndicator={false}
-          style={styles.brandSwiper}
-          contentContainerStyle={styles.brandSwiperContent}
-        >
-          {BRAND_CHIPS.map(chip => (
-            <TouchableOpacity key={chip.id} style={[styles.brandChip, { backgroundColor: '#FFFFFF' }]}>
-               <Text style={[styles.brandChipText, { color: chip.color, fontWeight: '900' }]}>{chip.name.toUpperCase()}</Text>
-            </TouchableOpacity>
-          ))}
-        </ScrollView>
+        {/* --- 2. SERVICE GRID (4 Columns) --- */}
+        <View style={styles.serviceGrid}>
+           <TouchableOpacity style={styles.serviceCard}>
+              <View style={[styles.servicePill, { backgroundColor: '#F3E5F5' }]}>
+                 <Text style={[styles.servicePillText, { color: '#7B1FA2' }]}>F&G</Text>
+              </View>
+           </TouchableOpacity>
+           <TouchableOpacity 
+              style={styles.serviceCard}
+              onPress={() => (navigation as any).navigate('ProductList', { categoryName: 'Fruits & Vegetables' })}
+           >
+              <View style={[styles.servicePill, { backgroundColor: '#FFF3E0' }]}>
+                 <Text style={[styles.servicePillText, { color: '#E65100' }]}>50%</Text>
+                 <Text style={styles.servicePillSub}>OFF ZONE</Text>
+              </View>
+           </TouchableOpacity>
+           <TouchableOpacity style={styles.serviceCard}>
+              <View style={[styles.servicePill, { backgroundColor: '#E8EAF6' }]}>
+                 <Text style={[styles.servicePillText, { color: '#303F9F' }]}>Super</Text>
+                 <Text style={styles.servicePillSub}>Mall.</Text>
+              </View>
+           </TouchableOpacity>
+           <TouchableOpacity style={styles.serviceCard}>
+              <View style={[styles.servicePill, { backgroundColor: '#E0F2F1' }]}>
+                 <Text style={[styles.servicePillText, { color: '#00796B' }]}>Fresh</Text>
+              </View>
+           </TouchableOpacity>
+        </View>
+
+        {/* --- 3. SEARCH BAR REFINEMENT --- */}
+        <View style={styles.newSearchSection}>
+          <View style={styles.newSearchBar}>
+            <Text style={styles.newSearchIcon}>🔍</Text>
+            <TextInput 
+              style={styles.newSearchInput}
+              placeholder="Search for 'Milk'"
+              placeholderTextColor="#757575"
+              value={search}
+              onChangeText={setSearch}
+            />
+            <View style={styles.searchRightBadges}>
+               <View style={styles.searchSep} />
+               <View style={styles.specialsBadge}>
+                  <Text style={styles.specialsTitle}>Ramadan</Text>
+                  <Text style={styles.specialsSub}>Specials</Text>
+               </View>
+               <Image 
+                 source={{ uri: 'https://cdn-icons-png.flaticon.com/512/3050/3050161.png' }} 
+                 style={styles.badgeImg} 
+               />
+            </View>
+          </View>
+        </View>
       </View>
 
       <ScrollView 
@@ -148,25 +187,8 @@ export const HomeScreen = () => {
         onScroll={handleScroll}
         scrollEventThrottle={16}
       >
-        {/* ── 3. Search Bar ────────────────────────────────────────── */}
-        <View style={styles.searchSection}>
-          <View style={styles.searchBar}>
-            <Text style={styles.searchIcon}>🔍</Text>
-            <TextInput 
-              style={styles.searchInput}
-              placeholder="Search for 'Milk'"
-              placeholderTextColor="#999"
-              value={search}
-              onChangeText={setSearch}
-            />
-            <View style={styles.searchDivider} />
-            <View style={styles.ramadanBadge}>
-               <Text style={styles.ramadanText}>Daily Deals 🏷️</Text>
-            </View>
-          </View>
-        </View>
 
-        {/* ── 4. Horizontal Tags ────────────────────────────────────── */}
+        {/* --- 4. Horizontal Tags --- */}
         <ScrollView 
           horizontal 
           showsHorizontalScrollIndicator={false} 
@@ -179,7 +201,7 @@ export const HomeScreen = () => {
           ))}
         </ScrollView>
 
-        {/* ── 5. Back to Top Button (Dynamic) ────────────────────────── */}
+        {/* --- 5. Back to Top Button (Dynamic) --- */}
         {showBackToTop && (
           <View style={styles.backToTopSection}>
              <TouchableOpacity style={styles.backToTopBtn} onPress={scrollToTop}>
@@ -188,22 +210,67 @@ export const HomeScreen = () => {
           </View>
         )}
 
-        {/* ── 6. Amul Banner ────────────────────────────────────────── */}
-        <View style={styles.promoBanner}>
-           <View style={[styles.promoContent, { backgroundColor: '#108D10' }]}>
-              <View style={styles.promoTextCol}>
-                 <Text style={styles.promoBrand}>Amul</Text>
-                 <Text style={styles.promoTitle}>Cool, Creamy, Completely Amul</Text>
-                 <Text style={styles.promoTag}>BEST DEALS</Text>
-                 <TouchableOpacity style={styles.promoBtn}>
-                    <Text style={styles.promoBtnText}>ORDER NOW</Text>
-                 </TouchableOpacity>
+        {/* --- 4. ZERO FEES UTILITY BAR (Premium Style) --- */}
+        <View style={styles.zeroFeesBar}>
+           <Text style={styles.zeroFeesMain}>₹0 FEES</Text>
+           <View style={styles.zeroFeesDetails}>
+              <View style={styles.zeroFeesRow}>
+                 <Text style={styles.checkIcon}>✓</Text>
+                 <Text style={styles.zeroFeesText}>₹0 Handling Fee</Text>
               </View>
-              <Image source={{ uri: 'https://cdn-icons-png.flaticon.com/512/3050/3050161.png' }} style={styles.promoImg} />
+              <View style={styles.zeroFeesRow}>
+                 <Text style={styles.checkIcon}>✓</Text>
+                 <Text style={styles.zeroFeesText}>₹0 Rain & Surge Fee</Text>
+              </View>
            </View>
         </View>
 
-        {/* ── 7. Category Grid ──────────────────────────────────────── */}
+        {/* --- 5. FEATURED GRIDS (Organic, Healthy, etc.) --------------------- */}
+        <View style={styles.featuredGridWrapper}>
+           <View style={styles.featuredRow}>
+              <TouchableOpacity style={[styles.featuredCard, { backgroundColor: '#E8F5E9' }]}>
+                 <Text style={styles.featuredTopTitle}>Organic &</Text>
+                 <Text style={styles.featuredTopTitle}>Premium Picks</Text>
+                 <Image 
+                   source={{ uri: 'https://images.unsplash.com/photo-1553279768-865429fa0078?auto=format&fit=crop&q=80&w=200' }} 
+                   style={styles.featuredImg} 
+                 />
+                 <View style={styles.featuredPriceBadge}>
+                    <Text style={styles.oldPriceSmall}>₹1045</Text>
+                    <Text style={styles.newPriceSmall}>₹699</Text>
+                 </View>
+                 <Text style={styles.featuredBottomText}>Anveshan A2 Ghee</Text>
+              </TouchableOpacity>
+
+              <View style={styles.featuredCol}>
+                 <TouchableOpacity style={[styles.featuredSmallCard, { backgroundColor: '#F3E5F5' }]}>
+                    <Text style={styles.smallCardTitle}>Dry fruits & more</Text>
+                    <View style={styles.smallCardRow}>
+                       <Text style={styles.startsAt}>Starts at</Text>
+                       <Text style={styles.startsPrice}>₹99</Text>
+                    </View>
+                    <Image 
+                      source={{ uri: 'https://images.unsplash.com/photo-1596560548464-f010549b84d7?auto=format&fit=crop&q=80&w=150' }} 
+                      style={styles.smallCardImg} 
+                    />
+                 </TouchableOpacity>
+
+                 <TouchableOpacity style={[styles.featuredSmallCard, { backgroundColor: '#E1F5FE' }]}>
+                    <Text style={styles.smallCardTitle}>Health & Wellness</Text>
+                    <View style={styles.smallCardRow}>
+                       <Text style={styles.upTo}>UP TO</Text>
+                       <Text style={styles.offPerc}>70% OFF</Text>
+                    </View>
+                    <Image 
+                      source={{ uri: 'https://images.unsplash.com/photo-1584308666744-24d5c474f2ae?auto=format&fit=crop&q=80&w=150' }} 
+                      style={styles.smallCardImg} 
+                    />
+                 </TouchableOpacity>
+              </View>
+           </View>
+        </View>
+
+        {/* --- 6. Category Grid (Grocery & Kitchen) ---------------------------─ */}
         <View style={styles.gridSection}>
           <Text style={styles.sectionTitle}>Grocery & Kitchen</Text>
           <View style={styles.gridWrapper}>
@@ -213,7 +280,7 @@ export const HomeScreen = () => {
                 style={styles.gridCard}
                 onPress={() => (navigation as any).navigate('ProductList', { categoryName: category.title })}
               >
-                <Text style={[styles.gridTitle, { color: '#2E7D32' }]}>{category.title}</Text>
+                <Text style={styles.gridTitle} numberOfLines={2}>{category.title}</Text>
                 <Image source={{ uri: category.image }} style={styles.gridImage} />
                 <View style={styles.gridFooter}>
                   <Text style={styles.gridStarts}>Starts at</Text>
@@ -224,7 +291,7 @@ export const HomeScreen = () => {
           </View>
         </View>
 
-        {/* ── 8. 50% OFF ZONE ──────────────────────────────────────── */}
+        {/* --- 8. 50% OFF ZONE ------------------------------------------------------------ */}
         <View style={styles.offZoneSection}>
           <View style={styles.offZoneHeader}>
              <Text style={styles.offZoneTitle}>50% Off Zone</Text>
@@ -262,7 +329,7 @@ export const HomeScreen = () => {
           </ScrollView>
         </View>
 
-        {/* ── 9. Munchies Swiper ─────────────────────────────────────── */}
+        {/* --- 9. Munchies Swiper ---------------------------------------------------------─ */}
         <View style={styles.offZoneSection}>
           <View style={styles.offZoneHeader}>
              <Text style={styles.offZoneTitle}>Munchies & Snacks</Text>
@@ -305,7 +372,7 @@ export const HomeScreen = () => {
 
       <BottomTabs activeTab="Home" />
 
-      {/* ── 9. Back to Top Button (Floating) ────────────────────────── */}
+      {/* --- 9. Back to Top Button (Floating) --------------------------------------- */}
       {showBackToTop && (
         <TouchableOpacity 
           style={styles.floatingBackToTop} 
@@ -322,298 +389,204 @@ export const HomeScreen = () => {
 const styles = StyleSheet.create({
   root: {
     flex: 1,
-    backgroundColor: '#FFFFFF',
+    backgroundColor: '#FFF',
   },
-  header: {
-    backgroundColor: theme.colors.accentBackground,
-    paddingTop: theme.spacing.s,
-    paddingBottom: theme.spacing.m,
+  newHeader: {
+    backgroundColor: '#FFF',
+    paddingTop: 8,
+    borderBottomWidth: 1,
+    borderBottomColor: '#F5F5F5',
   },
-  headerTop: {
+  headerTopRow: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    paddingHorizontal: theme.spacing.l,
+    paddingHorizontal: 14,
   },
-  speedIndicator: {
+  speedPill: {
     flexDirection: 'row',
     alignItems: 'center',
+    backgroundColor: '#FFF',
   },
-  boltEmoji: {
-    fontSize: 22,
-    marginRight: 4,
+  speedBolt: {
+    fontSize: 24,
+    marginRight: 6,
   },
   speedText: {
-    fontSize: 18,
+    fontSize: 22,
     fontFamily: theme.typography.fontFamily.bold,
     color: '#000',
+    letterSpacing: -0.5,
   },
-  logoAndSpeed: {
-    flexDirection: 'row',
-    alignItems: 'center',
-  },
-  logoIcon: {
-    width: 40,
-    height: 40,
-    borderRadius: 20,
-    overflow: 'hidden',
-  },
-  headerDivider: {
-    width: 1,
-    height: 20,
-    backgroundColor: 'rgba(0,0,0,0.1)',
-    marginHorizontal: 10,
-  },
-  profileCircle: {
+  profileIconBtn: {
     width: 36,
     height: 36,
     borderRadius: 18,
-    backgroundColor: '#000',
+    backgroundColor: '#F5F5F5',
     alignItems: 'center',
     justifyContent: 'center',
   },
-  profileIcon: {
-    fontSize: 18,
-    color: '#FFF',
-  },
-  addressBar: {
-    flexDirection: 'row',
+  profileCircleInner: {
+    width: 32,
+    height: 32,
+    borderRadius: 16,
+    backgroundColor: '#FFF',
     alignItems: 'center',
-    paddingHorizontal: theme.spacing.l,
+    justifyContent: 'center',
+    borderWidth: 1,
+    borderColor: '#EEE',
+  },
+  profileChar: {
+    fontSize: 16,
+  },
+  locationContainer: {
+    paddingHorizontal: 14,
     marginTop: 4,
+    paddingBottom: 12,
   },
-  addressText: {
-    fontSize: theme.typography.size.s,
-    color: '#333',
-    fontFamily: theme.typography.fontFamily.medium,
-    marginRight: 4,
-    maxWidth: '85%',
-  },
-  downArrow: {
-    fontSize: 10,
-    color: '#333',
-  },
-  brandSwiper: {
-    marginTop: theme.spacing.m,
-  },
-  brandSwiperContent: {
-    paddingHorizontal: theme.spacing.l,
-  },
-  brandChip: {
-    paddingHorizontal: theme.spacing.m,
-    paddingVertical: 10,
-    borderRadius: 12,
-    marginRight: 10,
-    elevation: 2,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.1,
-    shadowRadius: 2,
-  },
-  brandChipText: {
+  locationTopText: {
     fontSize: 14,
     fontFamily: theme.typography.fontFamily.bold,
+    color: '#000',
+  },
+  locationBottomRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginTop: 1,
+  },
+  locationBottomText: {
+    fontSize: 12,
+    color: '#616161',
+    maxWidth: '90%',
+  },
+  chevDown: {
+    fontSize: 12,
+    color: '#000',
+    marginLeft: 4,
+    fontWeight: 'bold',
+  },
+  serviceGrid: {
+    flexDirection: 'row',
+    paddingHorizontal: 14,
+    justifyContent: 'space-between',
+    marginBottom: 16,
+  },
+  serviceCard: {
+    width: (width - 48) / 4,
+  },
+  servicePill: {
+    height: 48,
+    borderRadius: 12,
+    alignItems: 'center',
+    justifyContent: 'center',
+    padding: 4,
+  },
+  servicePillText: {
+    fontSize: 13,
+    fontWeight: '900',
+    textAlign: 'center',
+  },
+  servicePillSub: {
+    fontSize: 8,
+    fontWeight: 'bold',
+    color: '#000',
+    marginTop: -2,
+  },
+  newSearchSection: {
+    paddingHorizontal: 14,
+    paddingBottom: 14,
+  },
+  newSearchBar: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#F7F7F7',
+    borderRadius: 12,
+    height: 46,
+    paddingHorizontal: 12,
+    borderWidth: 1,
+    borderColor: '#F0F0F0',
+  },
+  newSearchIcon: {
+    fontSize: 16,
+    color: '#757575',
+    marginRight: 8,
+  },
+  newSearchInput: {
+    flex: 1,
+    fontSize: 14,
+    color: '#000',
+    fontFamily: theme.typography.fontFamily.medium,
+  },
+  searchRightBadges: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  searchSep: {
+    width: 1,
+    height: 20,
+    backgroundColor: '#E0E0E0',
+    marginHorizontal: 10,
+  },
+  specialsBadge: {
+    marginRight: 6,
+  },
+  specialsTitle: {
+    fontSize: 10,
+    fontWeight: 'bold',
+    color: '#1A237E',
+  },
+  specialsSub: {
+    fontSize: 10,
+    color: '#1A237E',
+    marginTop: -2,
+  },
+  badgeImg: {
+    width: 24,
+    height: 24,
+    resizeMode: 'contain',
   },
   content: {
     flex: 1,
-  },
-  searchSection: {
-    padding: theme.spacing.l,
-    marginTop: -10,
-  },
-  searchBar: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: '#FFF',
-    borderWidth: 1,
-    borderColor: '#EEE',
-    borderRadius: 12,
-    height: 54,
-    paddingHorizontal: theme.spacing.m,
-    elevation: 3,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
-  },
-  searchIcon: {
-    fontSize: 18,
-    marginRight: 10,
-  },
-  searchInput: {
-    flex: 1,
-    fontSize: 16,
-    color: '#000',
-  },
-  searchDivider: {
-    width: 1,
-    height: 24,
-    backgroundColor: '#EEE',
-    marginHorizontal: 10,
-  },
-  ramadanBadge: {
-    backgroundColor: '#F0F8E8',
-    paddingHorizontal: 8,
-    paddingVertical: 4,
-    borderRadius: 8,
-  },
-  ramadanText: {
-    fontSize: 11,
-    fontFamily: theme.typography.fontFamily.bold,
-    color: '#2E7D32',
+    backgroundColor: '#F8FAF5',
   },
   tagsContainer: {
-    paddingLeft: theme.spacing.l,
-    paddingBottom: theme.spacing.m,
+    paddingLeft: 14,
+    paddingVertical: 12,
+    backgroundColor: '#FFF',
   },
   tag: {
-    paddingHorizontal: theme.spacing.xl,
-    paddingVertical: 8,
-    marginRight: 10,
-    borderBottomWidth: 3,
-    borderBottomColor: 'transparent',
+    paddingHorizontal: 20,
+    paddingVertical: 6,
+    marginRight: 4,
+    alignItems: 'center',
   },
   activeTag: {
+    borderBottomWidth: 3,
     borderBottomColor: '#000',
   },
   tagText: {
-    fontSize: 15,
-    fontFamily: theme.typography.fontFamily.medium,
-    color: '#666',
+    fontSize: 14,
+    fontFamily: theme.typography.fontFamily.bold,
+    color: '#616161',
   },
   activeTagText: {
     color: '#000',
-    fontFamily: theme.typography.fontFamily.bold,
-  },
-  mainBanner: {
-    height: 180,
-    marginHorizontal: theme.spacing.l,
-    borderRadius: 20,
-    overflow: 'hidden',
-    marginBottom: theme.spacing.l,
-    position: 'relative',
-  },
-  bannerImg: {
-    width: '100%',
-    height: '100%',
-  },
-  bannerOverlay: {
-    position: 'absolute',
-    bottom: 20,
-    left: 20,
-  },
-  bannerTitle: {
-    fontSize: 28,
-    color: '#FFF',
-    fontFamily: theme.typography.fontFamily.bold,
-    textShadowColor: 'rgba(0,0,0,0.5)',
-    textShadowOffset: { width: 1, height: 1 },
-    textShadowRadius: 4,
-  },
-  bannerSubtitle: {
-    fontSize: 42,
-    color: '#FFF',
-    fontWeight: '900',
-    marginTop: -10,
-    textShadowColor: 'rgba(0,0,0,0.5)',
-    textShadowOffset: { width: 1, height: 1 },
-    textShadowRadius: 4,
-  },
-  zeroFeesBox: {
-    backgroundColor: '#F0F8E8',
-    marginHorizontal: theme.spacing.l,
-    borderRadius: 16,
-    padding: theme.spacing.l,
-    marginBottom: theme.spacing.xl,
-    borderWidth: 1,
-    borderColor: '#CFD8DC',
-  },
-  zeroFeesHeader: {
-    flexDirection: 'row',
-    alignItems: 'center',
-  },
-  zeroFeesPrice: {
-    fontSize: 32,
-    fontWeight: '900',
-    color: '#2E7D32',
-    marginRight: 20,
-    width: 100,
-  },
-  backToTopSection: {
-    alignItems: 'center',
-    marginBottom: 20,
-  },
-  backToTopBtn: {
-    backgroundColor: '#333',
-    paddingHorizontal: 20,
-    paddingVertical: 10,
-    borderRadius: 20,
-    flexDirection: 'row',
-    alignItems: 'center',
-  },
-  backToTopText: {
-    color: '#FFF',
-    fontSize: 14,
-    fontFamily: theme.typography.fontFamily.bold,
   },
   promoBanner: {
-    marginHorizontal: theme.spacing.l,
-    marginBottom: 32,
-  },
-  promoContent: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    borderRadius: 20,
-    padding: 24,
-    overflow: 'hidden',
-  },
-  promoTextCol: {
-    flex: 1,
-  },
-  promoBrand: {
-    fontSize: 14,
-    color: '#FFF',
-    fontFamily: theme.typography.fontFamily.bold,
-    opacity: 0.8,
-  },
-  promoTitle: {
-    fontSize: 22,
-    color: '#FFF',
-    fontFamily: theme.typography.fontFamily.bold,
-    marginVertical: 4,
-    lineHeight: 26,
-  },
-  promoTag: {
-    color: '#FFF',
-    fontSize: 12,
-    fontWeight: '900',
-    marginBottom: 16,
-  },
-  promoBtn: {
+    width: width,
+    height: 220,
     backgroundColor: '#FFF',
-    paddingHorizontal: 16,
     paddingVertical: 8,
-    borderRadius: 8,
-    alignSelf: 'flex-start',
-  },
-  promoBtnText: {
-    color: '#000',
-    fontSize: 12,
-    fontFamily: theme.typography.fontFamily.bold,
-  },
-  promoImg: {
-    width: 100,
-    height: 100,
-  },
-  sectionTitle: {
-    fontSize: 20,
-    fontFamily: theme.typography.fontFamily.bold,
-    color: '#333',
-    marginBottom: 16,
   },
   gridSection: {
-    paddingHorizontal: theme.spacing.l,
-    marginBottom: 32,
+    paddingHorizontal: 14,
+    marginTop: 16,
+  },
+  sectionTitle: {
+    fontSize: 18,
+    fontFamily: theme.typography.fontFamily.bold,
+    color: '#000',
+    marginBottom: 12,
   },
   gridWrapper: {
     flexDirection: 'row',
@@ -621,129 +594,251 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
   },
   gridCard: {
-    width: (width - 48) / 2,
-    backgroundColor: '#F5F7FA',
-    borderRadius: 16,
-    padding: theme.spacing.m,
-    marginBottom: 16,
-    alignItems: 'center',
-  },
-  offZoneSection: {
-    marginBottom: 32,
-  },
-  offZoneHeader: {
-    paddingHorizontal: theme.spacing.l,
-    marginBottom: 16,
-  },
-  offZoneTitle: {
-    fontSize: 20,
-    fontFamily: theme.typography.fontFamily.bold,
-    color: '#000',
-  },
-  offZoneSubtitle: {
-    fontSize: 14,
-    color: '#666',
-    marginTop: 2,
-  },
-  seeAllCard: {
-    width: (width - 48) / 3,
-    height: 200,
-    backgroundColor: '#E91E63',
-    borderRadius: 16,
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginRight: 24,
-  },
-  seeAllText: {
-    color: '#FFF',
-    fontSize: 20,
-    fontFamily: theme.typography.fontFamily.bold,
-    marginBottom: 16,
-  },
-  seeAllCircle: {
-    width: 40,
-    height: 40,
-    borderRadius: 20,
+    width: (width - 42) / 3,
     backgroundColor: '#FFF',
+    borderRadius: 16,
+    paddingVertical: 12,
+    paddingHorizontal: 8,
+    marginBottom: 12,
     alignItems: 'center',
-    justifyContent: 'center',
+    borderWidth: 1,
+    borderColor: '#F0F0F0',
   },
   gridTitle: {
-    fontSize: 13,
+    fontSize: 12,
     fontFamily: theme.typography.fontFamily.bold,
+    color: '#000',
     textAlign: 'center',
-    marginBottom: 10,
-    height: 40,
+    height: 32,
+    marginBottom: 4,
   },
   gridImage: {
-    width: 80,
-    height: 80,
-    marginBottom: 10,
+    width: 60,
+    height: 60,
+    resizeMode: 'contain',
+    marginBottom: 8,
   },
   gridFooter: {
     alignItems: 'center',
   },
   gridStarts: {
-    fontSize: 10,
-    color: '#666',
+    fontSize: 9,
+    color: '#757575',
   },
   gridPrice: {
-    fontSize: 16,
+    fontSize: 13,
     fontFamily: theme.typography.fontFamily.bold,
     color: '#000',
   },
-  stickyFooter: {
-    position: 'absolute',
-    bottom: 20,
-    left: theme.spacing.l,
-    right: theme.spacing.l,
-    backgroundColor: theme.colors.secondary,
-    borderRadius: 16,
-    height: 70,
-    padding: theme.spacing.m,
-    flexDirection: 'row',
-    alignItems: 'center',
-    elevation: 10,
+  offZoneSection: {
+    marginTop: 24,
+    backgroundColor: '#FFF',
+    paddingVertical: 16,
   },
-  freeDeliveryContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
+  offZoneHeader: {
+    paddingHorizontal: 14,
+    marginBottom: 12,
   },
-  scooterIcon: {
-    width: 44,
-    height: 44,
-    borderRadius: 22,
-    backgroundColor: 'rgba(255,255,255,0.1)',
+  offZoneTitle: {
+    fontSize: 18,
+    fontFamily: theme.typography.fontFamily.bold,
+    color: '#000',
+  },
+  offZoneSubtitle: {
+    fontSize: 12,
+    color: '#757575',
+    marginTop: 2,
+  },
+  seeAllCard: {
+    width: 100,
+    height: 150,
+    backgroundColor: '#F5F5F5',
+    borderRadius: 12,
     alignItems: 'center',
     justifyContent: 'center',
-    marginRight: 12,
+    marginRight: 20,
   },
-  freeDeliveryInfo: {
-    flex: 1,
-  },
-  freeTitle: {
-    fontSize: 16,
+  seeAllText: {
+    fontSize: 14,
     fontFamily: theme.typography.fontFamily.bold,
-    color: '#FFF',
+    color: '#D81B60',
   },
-  freeSubtitle: {
-    fontSize: 13,
-    color: 'rgba(255,255,255,0.7)',
+  seeAllCircle: {
+    width: 32,
+    height: 32,
+    borderRadius: 16,
+    backgroundColor: '#FFF',
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginTop: 8,
+    elevation: 2,
   },
-  floatingBackToTop: {
-    position: 'absolute',
-    bottom: 100, // Above bottom tabs
-    alignSelf: 'center',
-    backgroundColor: 'rgba(0,0,0,0.8)',
+  backToTopSection: {
+    alignItems: 'center',
+    marginVertical: 20,
+  },
+  backToTopBtn: {
+    backgroundColor: '#000',
     paddingHorizontal: 16,
     paddingVertical: 8,
     borderRadius: 20,
+  },
+  backToTopText: {
+    color: '#FFF',
+    fontSize: 12,
+    fontFamily: theme.typography.fontFamily.bold,
+  },
+  floatingBackToTop: {
+    position: 'absolute',
+    bottom: 80,
+    alignSelf: 'center',
+    backgroundColor: 'rgba(0,0,0,0.85)',
+    paddingHorizontal: 14,
+    paddingVertical: 8,
+    borderRadius: 20,
+    elevation: 5,
+  },
+  // --- ZEPTIFIED UTILITY STYLES ------------------------------------------
+  zeroFeesBar: {
     flexDirection: 'row',
     alignItems: 'center',
-    elevation: 5,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.25,
-    shadowRadius: 3.84,
+    backgroundColor: '#EEFBE8',
+    paddingVertical: 10,
+    paddingHorizontal: 14,
+    marginVertical: 12,
+  },
+  zeroFeesMain: {
+    fontSize: 24,
+    fontWeight: '900',
+    color: '#388E3C',
+    marginRight: 16,
+    width: 90,
+  },
+  zeroFeesDetails: {
+    flex: 1,
+  },
+  zeroFeesRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 2,
+  },
+  checkIcon: {
+    color: '#388E3C',
+    fontSize: 12,
+    fontWeight: 'bold',
+    marginRight: 4,
+  },
+  zeroFeesText: {
+    fontSize: 11,
+    color: '#2E7D32',
+    fontWeight: 'bold',
+  },
+  featuredGridWrapper: {
+    paddingHorizontal: 14,
+    marginBottom: 24,
+  },
+  featuredRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+  },
+  featuredCard: {
+    width: (width - 40) * 0.45,
+    borderRadius: 16,
+    padding: 12,
+    position: 'relative',
+    height: 180,
+  },
+  featuredTopTitle: {
+    fontSize: 14,
+    fontFamily: theme.typography.fontFamily.bold,
+    color: '#1B5E20',
+    lineHeight: 18,
+  },
+  featuredImg: {
+    width: 90,
+    height: 90,
+    position: 'absolute',
+    bottom: 30,
+    alignSelf: 'center',
+    resizeMode: 'contain',
+  },
+  featuredPriceBadge: {
+    position: 'absolute',
+    bottom: 80,
+    left: 12,
+    backgroundColor: '#FFF',
+    paddingHorizontal: 6,
+    paddingVertical: 2,
+    borderRadius: 4,
+    elevation: 2,
+  },
+  oldPriceSmall: {
+    fontSize: 9,
+    color: '#9E9E9E',
+    textDecorationLine: 'line-through',
+  },
+  newPriceSmall: {
+    fontSize: 12,
+    fontWeight: 'bold',
+    color: '#000',
+  },
+  featuredBottomText: {
+    position: 'absolute',
+    bottom: 12,
+    left: 12,
+    right: 12,
+    fontSize: 11,
+    color: '#2E7D32',
+    fontWeight: 'bold',
+    textAlign: 'center',
+  },
+  featuredCol: {
+    width: (width - 40) * 0.52,
+    justifyContent: 'space-between',
+  },
+  featuredSmallCard: {
+    height: 85,
+    borderRadius: 16,
+    padding: 10,
+    position: 'relative',
+  },
+  smallCardTitle: {
+    fontSize: 12,
+    fontWeight: 'bold',
+    color: '#000',
+    width: '60%',
+  },
+  smallCardRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginTop: 2,
+  },
+  startsAt: {
+    fontSize: 8,
+    color: '#757575',
+    marginRight: 2,
+  },
+  startsPrice: {
+    fontSize: 12,
+    fontWeight: 'bold',
+    color: '#000',
+  },
+  upTo: {
+     fontSize: 8,
+     color: '#0277BD',
+     fontWeight: 'bold',
+  },
+  offPerc: {
+     fontSize: 12,
+     fontWeight: '900',
+     color: '#01579B',
+  },
+  smallCardImg: {
+    width: 60,
+    height: 60,
+    position: 'absolute',
+    bottom: 5,
+    right: 5,
+    resizeMode: 'contain',
   },
 });

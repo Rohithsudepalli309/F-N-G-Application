@@ -4,14 +4,18 @@ import { getToken } from '../utils/storage';
 
 import { Platform } from 'react-native';
 
-export const API_URL = 'http://localhost:3000/api/v1';
+// For Physical Devices via USB: Use 'localhost' with 'adb reverse'
+// For Emulators: use '10.0.2.2'
+const BASE_HOST = Platform.OS === 'android' ? 'localhost' : 'localhost'; 
+
+export const API_URL = `http://localhost:3000/api/v1`;
 
 export const api = axios.create({
-  baseURL: API_URL,
+  baseURL: API_URL, 
   headers: {
     'Content-Type': 'application/json',
   },
-  timeout: 10000,
+  timeout: 30000, 
 });
 
 // 1. Request Interceptor: Attach Token

@@ -111,7 +111,7 @@ export const CartScreen = () => {
           ))}
         </View>
 
-        {/* Delivery Instruction (Zepto Style) */}
+        {/* Delivery Instruction (Premium Style) */}
         <View style={styles.instrSection}>
             <Text style={styles.sectionTitle}>Delivery Instructions</Text>
             <ScrollView horizontal showsHorizontalScrollIndicator={false}>

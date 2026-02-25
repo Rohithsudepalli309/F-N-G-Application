@@ -24,21 +24,22 @@ interface Section {
   items: CategoryItem[];
 }
 
-const SECTIONS: Section[] = [
+const SECTIONS = [
   {
     title: 'Grocery & Kitchen',
+    layout: 'grid-2', // Large cards
     items: [
-      { id: '1', name: 'Fruits & Vegetables', image: 'https://cdn-icons-png.flaticon.com/512/2329/2329865.png' },
-      { id: '2', name: 'Dairy, Bread & Eggs', image: 'https://cdn-icons-png.flaticon.com/512/3050/3050161.png' },
-      { id: '3', name: 'Atta, Rice, Oil & Dals', image: 'https://cdn-icons-png.flaticon.com/512/2621/2621814.png' },
-      { id: '4', name: 'Meat, Fish & Eggs', image: 'https://cdn-icons-png.flaticon.com/512/1046/1046769.png' },
-      { id: '5', name: 'Masala & Dry Fruits', image: 'https://cdn-icons-png.flaticon.com/512/2403/2403334.png' },
-      { id: '6', name: 'Breakfast & Sauces', image: 'https://cdn-icons-png.flaticon.com/512/2821/2821811.png' },
-      { id: '7', name: 'Packaged Food', image: 'https://cdn-icons-png.flaticon.com/512/2769/2769578.png' },
+      { id: '1', name: 'Fruits & Vegetables', image: 'https://images.unsplash.com/photo-1610832958506-aa56368176cf?auto=format&fit=crop&q=80&w=300' },
+      { id: '2', name: 'Dairy, Bread & Eggs', image: 'https://images.unsplash.com/photo-1550583724-b2692b85b150?auto=format&fit=crop&q=80&w=300' },
+      { id: '3', name: 'Atta, Rice, Oil & Dals', image: 'https://images.unsplash.com/photo-1586201375761-83865001e31c?auto=format&fit=crop&q=80&w=300' },
+      { id: '6', name: 'Breakfast & Sauces', image: 'https://images.unsplash.com/photo-1525351484163-7529414344d8?auto=format&fit=crop&q=80&w=300' },
+      { id: '7', name: 'Packaged Food', image: 'https://images.unsplash.com/photo-1612170153139-6f881ff067e0?auto=format&fit=crop&q=80&w=300' },
+      { id: '4', name: 'Meat, Fish & Eggs', image: 'https://images.unsplash.com/photo-1607623273573-74c43fb38883?auto=format&fit=crop&q=80&w=300' },
     ],
   },
   {
     title: 'Snacks & Drinks',
+    layout: 'grid-4', // Small icons
     items: [
       { id: '8', name: 'Tea, Coffee & More', image: 'https://cdn-icons-png.flaticon.com/512/3504/3504787.png' },
       { id: '9', name: 'Ice Creams & More', image: 'https://cdn-icons-png.flaticon.com/512/938/938063.png' },
@@ -50,12 +51,23 @@ const SECTIONS: Section[] = [
     ],
   },
   {
-    title: 'Beauty & Personal Care',
+    title: 'Household Essentials',
+    layout: 'grid-4',
     items: [
-      { id: '15', name: 'Skincare', image: 'https://cdn-icons-png.flaticon.com/512/3163/3163195.png' },
-      { id: '16', name: 'Makeup & Beauty', image: 'https://cdn-icons-png.flaticon.com/512/1940/1940922.png' },
-      { id: '17', name: 'Bath & Body', image: 'https://cdn-icons-png.flaticon.com/512/3163/3163155.png' },
-      { id: '18', name: 'Haircare', image: 'https://cdn-icons-png.flaticon.com/512/3163/3163229.png' },
+      { id: '15', name: 'Home Needs', image: 'https://cdn-icons-png.flaticon.com/512/3163/3163195.png' },
+      { id: '16', name: 'Cleaning Essentials', image: 'https://cdn-icons-png.flaticon.com/512/1940/1940922.png' },
+      { id: '17', name: 'Pet Care', image: 'https://cdn-icons-png.flaticon.com/512/3163/3163155.png' },
+      { id: '18', name: 'Stationery', image: 'https://cdn-icons-png.flaticon.com/512/3163/3163229.png' },
+    ],
+  },
+  {
+    title: 'Shop by Store',
+    layout: 'store-grid', // 3D elevated look
+    items: [
+      { id: 'st1', name: 'Gift Store', image: 'https://cdn-icons-png.flaticon.com/512/1041/1041355.png' },
+      { id: 'st2', name: 'Ayush Store', image: 'https://cdn-icons-png.flaticon.com/512/862/862839.png' },
+      { id: 'st3', name: 'Vitamin Store', image: 'https://cdn-icons-png.flaticon.com/512/2954/2954848.png' },
+      { id: 'st4', name: 'Pooja Store', image: 'https://cdn-icons-png.flaticon.com/512/2769/2769578.png' },
     ],
   },
 ];
@@ -64,42 +76,74 @@ export const CategoriesScreen = () => {
   const navigation = useNavigation();
   return (
     <SafeAreaView style={styles.root}>
-      <StatusBar barStyle="dark-content" />
+      <StatusBar barStyle="dark-content" backgroundColor="#FFF" />
       
-      {/* ── Header ──────────────────────────────────────────────────── */}
-      <View style={styles.header}>
-        <Text style={styles.headerTitle}>All Categories</Text>
-        <View style={styles.headerIcons}>
-          <TouchableOpacity style={styles.iconBtn}>
-            <Text style={styles.icon}>🤍</Text>
-          </TouchableOpacity>
-          <TouchableOpacity style={styles.iconBtn}>
-            <Text style={styles.icon}>🔍</Text>
-          </TouchableOpacity>
+      {/* --- 1. Header (High-Fidelity Style) ------------------------------------─ */}
+      <View style={styles.newHeader}>
+        <View style={styles.headerTop}>
+          <Text style={styles.headerText}>All Categories</Text>
+          <View style={styles.headerIcons}>
+            <TouchableOpacity style={styles.headerIconBtn}>
+               <Text style={styles.headerIconEmoji}>🤍</Text>
+            </TouchableOpacity>
+            <TouchableOpacity style={styles.headerIconBtn}>
+               <Text style={styles.headerIconEmoji}>🔍</Text>
+            </TouchableOpacity>
+          </View>
         </View>
+
+        {/* --- 2. Horizontal Sub-Header ------------------------------------------─ */}
+        <ScrollView 
+          horizontal 
+          showsHorizontalScrollIndicator={false}
+          style={styles.subHeader}
+          contentContainerStyle={styles.subHeaderContent}
+        >
+          {['Care', 'Sports', 'Books', 'Corner', 'Kitchen', 'Beauty', 'Fresh'].map((tag, i) => (
+            <TouchableOpacity key={tag} style={[styles.subTag, i === 0 && styles.subTagActive]}>
+              <Text style={[styles.subTagText, i === 0 && styles.subTagTextActive]}>{tag}</Text>
+            </TouchableOpacity>
+          ))}
+        </ScrollView>
       </View>
 
-      <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={styles.content}>
+      <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={styles.mainContent}>
         {SECTIONS.map((section) => (
-          <View key={section.title} style={styles.section}>
-            <Text style={styles.sectionTitle}>{section.title}</Text>
-            <View style={styles.grid}>
-              {section.items.map((item) => (
-                <TouchableOpacity 
-                  key={item.id} 
-                  style={styles.gridItem}
-                  onPress={() => (navigation as any).navigate('ProductList', { categoryName: item.name })}
-                >
-                  <View style={styles.iconContainer}>
-                    <Image source={{ uri: item.image }} style={styles.categoryImg} />
-                  </View>
-                  <Text style={styles.categoryName} numberOfLines={2}>{item.name}</Text>
-                </TouchableOpacity>
-              ))}
+          <View key={section.title} style={styles.sectionContainer}>
+            <Text style={styles.sectionHeading}>{section.title}</Text>
+            
+            <View style={styles.sectionGrid}>
+              {section.items.map((item) => {
+                const isTwoCol = section.layout === 'grid-2';
+                const isStore = section.layout === 'store-grid';
+
+                return (
+                  <TouchableOpacity 
+                    key={item.id} 
+                    style={[
+                      styles.itemCard, 
+                      isTwoCol && styles.itemCardWide,
+                      isStore && styles.storeCard
+                    ]}
+                    onPress={() => (navigation as any).navigate('ProductList', { categoryName: item.name })}
+                  >
+                    <View style={[
+                      styles.imgWrapper, 
+                      isTwoCol && styles.imgWrapperWide,
+                      isStore && styles.storeImgWrapper
+                    ]}>
+                      <Image source={{ uri: item.image }} style={styles.itemImg} resizeMode="contain" />
+                    </View>
+                    <Text style={[styles.itemName, isTwoCol && styles.itemNameWide]} numberOfLines={2}>
+                      {item.name}
+                    </Text>
+                  </TouchableOpacity>
+                );
+              })}
             </View>
           </View>
         ))}
-        <View style={{ height: 100 }} />
+        <View style={{ height: 120 }} />
       </ScrollView>
 
       <BottomTabs activeTab="Categories" />
@@ -110,18 +154,22 @@ export const CategoriesScreen = () => {
 const styles = StyleSheet.create({
   root: {
     flex: 1,
-    backgroundColor: '#FFFFFF',
+    backgroundColor: '#FFF',
   },
-  header: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    paddingHorizontal: theme.spacing.l,
-    paddingVertical: theme.spacing.m,
+  newHeader: {
+    backgroundColor: '#FFF',
     borderBottomWidth: 1,
-    borderBottomColor: '#F0F0F0',
+    borderBottomColor: '#F5F5F5',
   },
-  headerTitle: {
+  headerTop: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    paddingHorizontal: 14,
+    paddingTop: 8,
+    paddingBottom: 4,
+  },
+  headerText: {
     fontSize: 20,
     fontFamily: theme.typography.fontFamily.bold,
     color: '#000',
@@ -129,53 +177,108 @@ const styles = StyleSheet.create({
   headerIcons: {
     flexDirection: 'row',
   },
-  iconBtn: {
-    marginLeft: 20,
+  headerIconBtn: {
+    marginLeft: 16,
   },
-  icon: {
+  headerIconEmoji: {
     fontSize: 22,
   },
-  content: {
-    padding: theme.spacing.l,
+  subHeader: {
+    backgroundColor: '#FFF',
+    paddingVertical: 10,
   },
-  section: {
-    marginBottom: 32,
+  subHeaderContent: {
+    paddingHorizontal: 14,
   },
-  sectionTitle: {
+  subTag: {
+    paddingHorizontal: 16,
+    paddingVertical: 6,
+    borderRadius: 20,
+    marginRight: 8,
+    backgroundColor: '#F5F5F5',
+  },
+  subTagActive: {
+    backgroundColor: '#E8F5E9',
+    borderWidth: 1,
+    borderColor: '#4CAF50',
+  },
+  subTagText: {
+    fontSize: 13,
+    color: '#616161',
+    fontWeight: 'bold',
+  },
+  subTagTextActive: {
+    color: '#2E7D32',
+  },
+  mainContent: {
+    paddingHorizontal: 14,
+    paddingTop: 16,
+    backgroundColor: '#F8FAF5',
+  },
+  sectionContainer: {
+    marginBottom: 24,
+  },
+  sectionHeading: {
     fontSize: 18,
     fontFamily: theme.typography.fontFamily.bold,
-    color: '#333',
-    marginBottom: 16,
+    color: '#000',
+    marginBottom: 12,
   },
-  grid: {
+  sectionGrid: {
     flexDirection: 'row',
     flexWrap: 'wrap',
-    marginHorizontal: -8,
+    marginHorizontal: -6,
   },
-  gridItem: {
+  itemCard: {
     width: '25%',
-    paddingHorizontal: 8,
+    paddingHorizontal: 6,
     alignItems: 'center',
     marginBottom: 20,
   },
-  iconContainer: {
-    width: 70,
-    height: 70,
-    borderRadius: 16,
-    backgroundColor: '#F5F7FA',
+  itemCardWide: {
+    width: '50%',
+  },
+  storeCard: {
+    width: '25%',
+  },
+  imgWrapper: {
+    width: '100%',
+    aspectRatio: 1,
+    borderRadius: 12,
+    backgroundColor: '#FFF',
     alignItems: 'center',
     justifyContent: 'center',
-    marginBottom: 8,
+    marginBottom: 6,
+    borderWidth: 1,
+    borderColor: '#F0F0F0',
   },
-  categoryImg: {
-    width: 45,
-    height: 45,
+  imgWrapperWide: {
+    borderRadius: 16,
+    padding: 10,
   },
-  categoryName: {
-    fontSize: 11,
+  storeImgWrapper: {
+    backgroundColor: '#FFF',
+    elevation: 3,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 3,
+  },
+  itemImg: {
+    width: '80%',
+    height: '80%',
+  },
+  itemName: {
+    fontSize: 10,
     fontFamily: theme.typography.fontFamily.medium,
-    color: '#333',
+    color: '#424242',
     textAlign: 'center',
-    lineHeight: 14,
+    lineHeight: 13,
+  },
+  itemNameWide: {
+    fontSize: 13,
+    fontFamily: theme.typography.fontFamily.bold,
+    color: '#000',
+    marginTop: 4,
   },
 });
