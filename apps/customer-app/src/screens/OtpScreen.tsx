@@ -5,17 +5,32 @@ import { api } from '../services/api';
 import { useAuthStore } from '../store/useAuthStore';
 import { theme } from '../theme';
 import { socketService } from '../services/socket';
-import { OtpNotification } from '../components/OtpNotification';
 
 export const OtpScreen = () => {
   const [otp, setOtp] = useState('');
   const [loading, setLoading] = useState(false);
   const route = useRoute();
   const { phone } = route.params as { phone: string };
-  const login = useAuthStore((state) => state.login);
+  const { login, lastOtp, setLastOtp } = useAuthStore((state) => ({
+    login: state.login,
+    lastOtp: state.lastOtp,
+    setLastOtp: state.setLastOtp,
+  }));
 
   const [timer, setTimer] = useState(30);
-  const [notification, setNotification] = useState({ visible: false, code: '' });
+
+  // Auto-fill when global lastOtp changes
+  React.useEffect(() => {
+    if (lastOtp) {
+      console.log('[DEBUG] Auto-filling OTP from store:', lastOtp);
+      setOtp(lastOtp);
+    }
+  }, [lastOtp]);
+
+  // Cleanup lastOtp on mount
+  React.useEffect(() => {
+    setLastOtp(null);
+  }, []);
 
   React.useEffect(() => {
     let interval: NodeJS.Timeout;
@@ -24,23 +39,6 @@ export const OtpScreen = () => {
     }
     return () => clearInterval(interval);
   }, [timer]);
-
-  React.useEffect(() => {
-    // Connect socket to hear real-time events (dev only or all)
-    socketService.connect();
-    
-    // Listen for development OTPs
-    socketService.on('dev:otp', (data: any) => {
-      const formattedPhone = (`+91${phone}` || phone);
-      if (data.phone === formattedPhone) {
-        // Show premium notification instead of alert
-        setNotification({ visible: true, code: data.otp });
-        setOtp(data.otp); // Auto-fill for convenience
-      }
-    });
-
-    return () => socketService.off('dev:otp');
-  }, [phone]);
 
   const handleResend = async () => {
     if (timer > 0) return;
@@ -103,13 +101,6 @@ export const OtpScreen = () => {
           <Text style={styles.buttonText}>Login</Text>
         )}
       </TouchableOpacity>
-
-      <OtpNotification 
-        visible={notification.visible}
-        code={notification.code}
-        phone={phone}
-        onClose={() => setNotification({ ...notification, visible: false })}
-      />
     </View>
   );
 };

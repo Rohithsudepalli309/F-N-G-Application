@@ -34,9 +34,6 @@ export const LoginScreen = () => {
   const logoFloat = useRef(new Animated.Value(0)).current;
 
   useEffect(() => {
-    // Connect socket early to be ready for OTP events
-    socketService.connect();
-
     // Entrance animation
     Animated.parallel([
       Animated.timing(fadeIn,  { toValue: 1, duration: 600, easing: Easing.out(Easing.quad), useNativeDriver: true }),

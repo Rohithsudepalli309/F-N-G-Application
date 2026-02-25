@@ -7,9 +7,11 @@ interface AuthState {
   user: { id: string; name: string; role: string; address?: string } | null;
   token: string | null;
   isAuthenticated: boolean;
+  lastOtp: string | null;
   login: (token: string, user: any) => void;
   updateUser: (user: any) => void;
   logout: () => void;
+  setLastOtp: (otp: string | null) => void;
 }
 
 export const useAuthStore = create<AuthState>()(
@@ -18,6 +20,7 @@ export const useAuthStore = create<AuthState>()(
       user: null,
       token: null,
       isAuthenticated: false,
+      lastOtp: null,
       login: (token, user) => {
         saveToken(token);
         set({ token, user, isAuthenticated: true });
@@ -27,10 +30,16 @@ export const useAuthStore = create<AuthState>()(
         removeToken();
         set({ token: null, user: null, isAuthenticated: false });
       },
+      setLastOtp: (otp) => set({ lastOtp: otp }),
     }),
     {
       name: 'auth-storage',
       storage: createJSONStorage(() => AsyncStorage),
+      partialize: (state) => ({
+        user: state.user,
+        token: state.token,
+        isAuthenticated: state.isAuthenticated,
+      }), // Exclude lastOtp from persistence
     }
   )
 );

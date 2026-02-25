@@ -5,11 +5,20 @@ class SocketService {
   private socket: Socket | null = null;
 
   connect(token?: string) {
-    if (this.socket?.connected) return;
+    if (this.socket?.connected) {
+      console.log('[SOCKET] Already connected.');
+      return;
+    }
 
-    this.socket = io(API_URL.replace('/api/v1', ''), {
+    const socketUrl = API_URL.replace('/api/v1', '');
+    console.log('[SOCKET] Connecting to:', socketUrl);
+
+    this.socket = io(socketUrl, {
       auth: { token },
-      transports: ['websocket'],
+      transports: ['websocket', 'polling'],
+      reconnection: true,
+      reconnectionAttempts: Infinity,
+      reconnectionDelay: 1000,
     });
 
     this.socket.on('connect', () => {
