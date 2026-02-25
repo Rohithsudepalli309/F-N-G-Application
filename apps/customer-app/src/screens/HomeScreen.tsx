@@ -18,6 +18,9 @@ import { ProductCard } from '../components/ProductCard';
 import { useAuthStore } from '../store/useAuthStore';
 import { BottomTabs } from '../components/BottomTabs';
 
+import { api } from '../services/api';
+import { ActivityIndicator } from 'react-native';
+
 const { width } = Dimensions.get('window');
 
 // ── Mock Data ─────────────────────────────────────────────────────────────
@@ -31,19 +34,10 @@ const BRAND_CHIPS = [
 const CATEGORY_TAGS = ['All', 'Snacks', 'Drinks', 'Fashion', 'Electronics', 'Beauty', 'Kitchen', 'Care'];
 
 const HOME_CATEGORIES = [
-  { id: '1', title: 'Organic & Premium Picks', image: 'https://cdn-icons-png.flaticon.com/512/1531/1531391.png', price: '₹99' },
-  { id: '2', title: 'Dry fruits & more', image: 'https://cdn-icons-png.flaticon.com/512/6143/6143467.png', price: '₹99' },
-  { id: '3', title: 'Health & Wellness', image: 'https://cdn-icons-png.flaticon.com/512/3144/3144565.png', price: '₹70' },
-  { id: '4', title: 'Clean & Care', image: 'https://cdn-icons-png.flaticon.com/512/2554/2554031.png', price: '₹89' },
-];
-
-const OFF_ZONE_PRODUCTS = [
-  { id: 'p1', name: 'Heritage Total Curd Pouch', weight: '1 pack (450 g)', price: 47, originalPrice: 50, discountTag: '₹3', image: 'https://cdn-icons-png.flaticon.com/512/2674/2674486.png', deliveryTime: '5 mins' },
-  { id: 'p2', name: 'Onion', weight: '1 Pack (900 - 1000 g)', price: 28, originalPrice: 47, discountTag: '₹19', image: 'https://cdn-icons-png.flaticon.com/512/7292/7292911.png', deliveryTime: '5 mins' },
-  { id: 'p3', name: 'Paper Boat Tender Coconut', weight: '1 pc (1.2 L)', price: 66, originalPrice: 140, discountTag: '₹74', image: 'https://cdn-icons-png.flaticon.com/512/3075/3075908.png', deliveryTime: '5 mins' },
-  { id: 'p4', name: 'Kellogg\'s Millet Muesli', weight: '1 pack (1 kg)', price: 334, originalPrice: 690, discountTag: '₹356', image: 'https://cdn-icons-png.flaticon.com/512/2821/2821811.png', deliveryTime: '5 mins' },
-  { id: 'p5', name: 'Amul Taaza Milk', weight: '1 L', price: 54, originalPrice: 56, discountTag: '₹2', image: 'https://cdn-icons-png.flaticon.com/512/3050/3050161.png', deliveryTime: '7 mins' },
-  { id: 'p6', name: 'Fortune Sunflower Oil', weight: '1 L', price: 125, originalPrice: 160, discountTag: '₹35', image: 'https://cdn-icons-png.flaticon.com/512/2405/2405479.png', deliveryTime: '10 mins' },
+  { id: '1', title: 'Fruits & Vegetables', image: 'https://cdn-icons-png.flaticon.com/512/2329/2329865.png', price: '₹35' },
+  { id: '2', title: 'Dairy, Bread & Eggs', image: 'https://cdn-icons-png.flaticon.com/512/3050/3050161.png', price: '₹33' },
+  { id: '3', title: 'Atta, Rice, Oil & Dals', image: 'https://cdn-icons-png.flaticon.com/512/2621/2621814.png', price: '₹145' },
+  { id: '4', title: 'Munchies', image: 'https://cdn-icons-png.flaticon.com/512/2553/2553691.png', price: '₹20' },
 ];
 
 export const HomeScreen = () => {
@@ -51,7 +45,31 @@ export const HomeScreen = () => {
   const user = useAuthStore((state) => state.user);
   const [search, setSearch] = useState('');
   const [showBackToTop, setShowBackToTop] = useState(false);
+  const [offZoneProducts, setOffZoneProducts] = useState<any[]>([]);
+  const [munchiesProducts, setMunchiesProducts] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
   const scrollRef = useRef<ScrollView>(null);
+
+  const fetchHomeData = async () => {
+    try {
+      // 1. Fetch 50% Off Zone (using 'Fruits & Vegetables' as a high-discount category for now)
+      const offZoneRes = await api.get('/products', { params: { category: 'Fruits & Vegetables' } });
+      setOffZoneProducts(offZoneRes.data.slice(0, 6));
+
+      // 2. Fetch Munchies
+      const munchiesRes = await api.get('/products', { params: { category: 'Munchies' } });
+      setMunchiesProducts(munchiesRes.data.slice(0, 6));
+
+    } catch (err) {
+      console.error('Failed to fetch home data:', err);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchHomeData();
+  }, []);
 
   // Auto-redirect to Location if missing
   useEffect(() => {
@@ -213,14 +231,70 @@ export const HomeScreen = () => {
              <Text style={styles.offZoneSubtitle}>Half the price, double the joy!</Text>
           </View>
           <ScrollView horizontal showsHorizontalScrollIndicator={false} style={{ paddingLeft: 16 }}>
-             {OFF_ZONE_PRODUCTS.map(p => <ProductCard key={p.id} product={p} />)}
+             {loading ? (
+               <ActivityIndicator size="small" color={theme.colors.primary} style={{ marginRight: 20 }} />
+             ) : (
+               offZoneProducts.map(p => (
+                 <ProductCard 
+                   key={p.id} 
+                   product={{
+                     id: p.id,
+                     name: p.name,
+                     weight: p.unit || '1 pack',
+                     price: p.price / 100,
+                     originalPrice: p.original_price ? p.original_price / 100 : undefined,
+                     image: p.image_url,
+                     deliveryTime: '5 mins',
+                     discountTag: p.original_price ? `₹${(p.original_price - p.price)/100}` : undefined
+                   }} 
+                 />
+               ))
+             )}
              <TouchableOpacity 
                style={styles.seeAllCard}
-               onPress={() => (navigation as any).navigate('ProductList', { categoryName: 'Special Offers' })}
+               onPress={() => (navigation as any).navigate('ProductList', { categoryName: 'Fruits & Vegetables' })}
              >
                 <Text style={styles.seeAllText}>See All</Text>
                 <View style={styles.seeAllCircle}>
                    <Text style={{ fontSize: 18, color: '#E91E63' }}>→</Text>
+                </View>
+             </TouchableOpacity>
+          </ScrollView>
+        </View>
+
+        {/* ── 9. Munchies Swiper ─────────────────────────────────────── */}
+        <View style={styles.offZoneSection}>
+          <View style={styles.offZoneHeader}>
+             <Text style={styles.offZoneTitle}>Munchies & Snacks</Text>
+             <Text style={styles.offZoneSubtitle}>Crispy, crunchy, and yum!</Text>
+          </View>
+          <ScrollView horizontal showsHorizontalScrollIndicator={false} style={{ paddingLeft: 16 }}>
+             {loading ? (
+               <ActivityIndicator size="small" color={theme.colors.primary} style={{ marginRight: 20 }} />
+             ) : (
+               munchiesProducts.map(p => (
+                 <ProductCard 
+                   key={p.id} 
+                   product={{
+                     id: p.id,
+                     name: p.name,
+                     weight: p.unit || '1 pack',
+                     price: p.price / 100,
+                     originalPrice: p.original_price ? p.original_price / 100 : undefined,
+                     image: p.image_url,
+                     deliveryTime: '7 mins',
+                     discountTag: p.original_price ? `₹${(p.original_price - p.price)/100}` : undefined
+                   }} 
+                 />
+               ))
+             )}
+             <TouchableOpacity 
+               style={[styles.seeAllCard, { backgroundColor: '#43A047' }]}
+               onPress={() => (navigation as any).navigate('ProductList', { categoryName: 'Munchies' })}
+             >
+                <Text style={styles.seeAllText}>See All</Text>
+                <View style={styles.seeAllCircle}>
+                   <Text style={{ fontSize: 18, color: '#43A047' }}>→</Text>
                 </View>
              </TouchableOpacity>
           </ScrollView>

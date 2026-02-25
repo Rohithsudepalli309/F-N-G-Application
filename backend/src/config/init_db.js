@@ -41,8 +41,12 @@ const initDb = async () => {
         id VARCHAR(50) PRIMARY KEY,
         store_id VARCHAR(50) REFERENCES stores(id),
         name VARCHAR(100) NOT NULL,
-        price INTEGER NOT NULL, -- Price in Paisa
+        description TEXT,
+        price INTEGER NOT NULL, -- Current Price in Paisa
+        original_price INTEGER, -- Original Price in Paisa (for discounts)
+        unit VARCHAR(20), -- e.g. '500g', '1kg', 'Pack of 1'
         category VARCHAR(50),
+        image_url TEXT,
         created_at TIMESTAMP DEFAULT NOW()
       );
     `);
@@ -55,6 +59,31 @@ const initDb = async () => {
         code VARCHAR(10) NOT NULL,
         expires_at TIMESTAMP NOT NULL,
         created_at TIMESTAMP DEFAULT NOW()
+      );
+    `);
+
+    // 5. Create Orders Table
+    await db.query(`
+      CREATE TABLE IF NOT EXISTS orders (
+        id VARCHAR(50) PRIMARY KEY,
+        customer_id INTEGER REFERENCES users(id),
+        store_id VARCHAR(50) REFERENCES stores(id),
+        status VARCHAR(20) NOT NULL DEFAULT 'Placed' CHECK (status IN ('Placed', 'Preparing', 'PickedUp', 'Delivered', 'Cancelled')),
+        total_amount INTEGER NOT NULL,
+        address TEXT,
+        created_at TIMESTAMP DEFAULT NOW()
+      );
+    `);
+
+    // 6. Create Order Items Table
+    await db.query(`
+      CREATE TABLE IF NOT EXISTS order_items (
+        id SERIAL PRIMARY KEY,
+        order_id VARCHAR(50) REFERENCES orders(id) ON DELETE CASCADE,
+        product_id VARCHAR(50) REFERENCES products(id),
+        name VARCHAR(100) NOT NULL,
+        price INTEGER NOT NULL,
+        quantity INTEGER NOT NULL
       );
     `);
 

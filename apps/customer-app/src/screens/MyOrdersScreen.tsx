@@ -9,38 +9,59 @@ import {
   TouchableOpacity,
   Image,
 } from 'react-native';
-import { useNavigation } from '@react-navigation/native';
+import { useNavigation, useIsFocused } from '@react-navigation/native';
 import { theme } from '../theme';
-
-const MOCK_ORDERS = [
-  {
-    id: 'FNG-8829-1X',
-    status: 'Delivered',
-    date: '24 Feb, 6:42 PM',
-    items: 'Amul Gold Milk, Bread, Eggs',
-    amount: 242,
-    image: 'https://cdn-icons-png.flaticon.com/512/3523/3523887.png',
-  },
-  {
-    id: 'FNG-7712-0B',
-    status: 'Cancelled',
-    date: '22 Feb, 10:15 AM',
-    items: 'Coca Cola 2L, Lay\'s Magic Masala',
-    amount: 145,
-    image: 'https://cdn-icons-png.flaticon.com/512/2405/2405479.png',
-  },
-  {
-    id: 'FNG-1102-4Z',
-    status: 'Delivered',
-    date: '18 Feb, 9:30 AM',
-    items: 'Aashirvaad Atta 5kg, Maggi 12pk',
-    amount: 890,
-    image: 'https://cdn-icons-png.flaticon.com/512/3081/3081840.png',
-  },
-];
+import { api } from '../services/api';
+import { RefreshControl, ActivityIndicator } from 'react-native';
 
 export const MyOrdersScreen = () => {
   const navigation = useNavigation();
+  const isFocused = useIsFocused();
+  const [orders, setOrders] = React.useState<any[]>([]);
+  const [loading, setLoading] = React.useState(true);
+  const [refreshing, setRefreshing] = React.useState(false);
+
+  const fetchOrders = async () => {
+    try {
+      const { data } = await api.get('/orders');
+      setOrders(data);
+    } catch (err) {
+      console.error('Failed to fetch orders:', err);
+    } finally {
+      setLoading(false);
+      setRefreshing(false);
+    }
+  };
+
+  React.useEffect(() => {
+    if (isFocused) {
+      fetchOrders();
+    }
+  }, [isFocused]);
+
+  const onRefresh = () => {
+    setRefreshing(true);
+    fetchOrders();
+  };
+
+  const EmptyState = () => (
+    <View style={styles.emptyContainer}>
+      <View style={styles.emptyIconBox}>
+        <Image 
+          source={{ uri: 'https://cdn-icons-png.flaticon.com/512/4555/4555971.png' }} 
+          style={styles.emptyIcon} 
+        />
+      </View>
+      <Text style={styles.emptyTitle}>No Previous Order</Text>
+      <Text style={styles.emptySubtitle}>You haven't placed any orders yet. Start shopping to fill this space!</Text>
+      <TouchableOpacity 
+        style={styles.browseBtn}
+        onPress={() => navigation.navigate('Home' as never)}
+      >
+        <Text style={styles.browseBtnText}>Browse Products</Text>
+      </TouchableOpacity>
+    </View>
+  );
 
   return (
     <SafeAreaView style={styles.root}>
@@ -54,46 +75,68 @@ export const MyOrdersScreen = () => {
         <Text style={styles.headerTitle}>My Orders</Text>
       </View>
 
-      <ScrollView contentContainerStyle={styles.scrollContent}>
-        {MOCK_ORDERS.map((order) => (
-          <TouchableOpacity 
-            key={order.id} 
-            style={styles.orderCard}
-            onPress={() => (navigation as any).navigate('OrderTracking', { orderId: order.id })}
-          >
-            <View style={styles.orderTop}>
-              <View style={styles.orderIconBox}>
-                 <Image source={{ uri: order.image }} style={styles.orderIcon} />
-              </View>
-              <View style={styles.orderMeta}>
-                <View style={styles.statusRow}>
-                   <Text style={[styles.statusText, order.status === 'Cancelled' && styles.statusCancelled]}>
-                     {order.status}
-                   </Text>
-                   <Text style={styles.orderId}>#{order.id}</Text>
+      {loading && !refreshing ? (
+        <View style={styles.loaderContainer}>
+          <ActivityIndicator size="large" color={theme.colors.primary} />
+        </View>
+      ) : (
+        <ScrollView 
+          contentContainerStyle={[styles.scrollContent, orders.length === 0 && { flex: 1, justifyContent: 'center' }]}
+          refreshControl={
+            <RefreshControl refreshing={refreshing} onRefresh={onRefresh} colors={[theme.colors.primary]} />
+          }
+        >
+          {orders.length === 0 ? (
+            <EmptyState />
+          ) : (
+            orders.map((order) => (
+              <TouchableOpacity 
+                key={order.id} 
+                style={styles.orderCard}
+                onPress={() => (navigation as any).navigate('OrderTracking', { orderId: order.id })}
+              >
+                <View style={styles.orderTop}>
+                  <View style={styles.orderIconBox}>
+                    <Image 
+                      source={{ uri: 'https://cdn-icons-png.flaticon.com/512/3523/3523887.png' }} 
+                      style={styles.orderIcon} 
+                    />
+                  </View>
+                  <View style={styles.orderMeta}>
+                    <View style={styles.statusRow}>
+                       <Text style={[styles.statusText, (order.status === 'Cancelled' || order.status === 'Refusal') && styles.statusCancelled]}>
+                         {order.status}
+                       </Text>
+                       <Text style={styles.orderId}>#{order.id.slice(-8).toUpperCase()}</Text>
+                    </View>
+                    <Text style={styles.orderDate}>
+                      {new Date(order.created_at).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' })}
+                    </Text>
+                  </View>
                 </View>
-                <Text style={styles.orderDate}>{order.date}</Text>
-              </View>
-            </View>
-            
-            <View style={styles.orderDivider} />
-            
-            <View style={styles.orderBottom}>
-              <Text style={styles.orderItems} numberOfLines={1}>{order.items}</Text>
-              <Text style={styles.orderAmount}>₹{order.amount}</Text>
-            </View>
+                
+                <View style={styles.orderDivider} />
+                
+                <View style={styles.orderBottom}>
+                  <Text style={styles.orderItems} numberOfLines={1}>
+                    {order.items?.map((i: any) => i.name).join(', ') || 'Items details...'}
+                  </Text>
+                  <Text style={styles.orderAmount}>₹{order.total_amount}</Text>
+                </View>
 
-            <View style={styles.orderActions}>
-               <TouchableOpacity style={styles.actionBtn}>
-                  <Text style={styles.actionText}>Reorder</Text>
-               </TouchableOpacity>
-               <TouchableOpacity style={[styles.actionBtn, styles.actionBtnOutline]}>
-                  <Text style={styles.actionTextOutline}>Need Help?</Text>
-               </TouchableOpacity>
-            </View>
-          </TouchableOpacity>
-        ))}
-      </ScrollView>
+                <View style={styles.orderActions}>
+                   <TouchableOpacity style={styles.actionBtn}>
+                      <Text style={styles.actionText}>Reorder</Text>
+                   </TouchableOpacity>
+                   <TouchableOpacity style={[styles.actionBtn, styles.actionBtnOutline]}>
+                      <Text style={styles.actionTextOutline}>Need Help?</Text>
+                   </TouchableOpacity>
+                </View>
+              </TouchableOpacity>
+            ))
+          )}
+        </ScrollView>
+      )}
     </SafeAreaView>
   );
 };
@@ -234,5 +277,55 @@ const styles = StyleSheet.create({
      color: '#666',
      fontSize: 13,
      fontFamily: theme.typography.fontFamily.bold,
-  }
+  },
+  loaderContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  emptyContainer: {
+    flex: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingHorizontal: 32,
+  },
+  emptyIconBox: {
+    width: 80,
+    height: 80,
+    borderRadius: 40,
+    backgroundColor: '#F0F0F0',
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginBottom: 20,
+  },
+  emptyIcon: {
+    width: 48,
+    height: 48,
+    opacity: 0.5,
+  },
+  emptyTitle: {
+    fontSize: 18,
+    fontFamily: theme.typography.fontFamily.bold,
+    color: '#000',
+    marginBottom: 8,
+  },
+  emptySubtitle: {
+    fontSize: 14,
+    fontFamily: theme.typography.fontFamily.regular,
+    color: '#666',
+    textAlign: 'center',
+    marginBottom: 24,
+    lineHeight: 20,
+  },
+  browseBtn: {
+    backgroundColor: theme.colors.primary,
+    paddingHorizontal: 24,
+    paddingVertical: 12,
+    borderRadius: 12,
+  },
+  browseBtnText: {
+    color: '#FFF',
+    fontFamily: theme.typography.fontFamily.bold,
+    fontSize: 14,
+  },
 });

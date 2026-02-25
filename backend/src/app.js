@@ -5,6 +5,7 @@ const authRoutes = require('./routes/auth.routes');
 const paymentRoutes = require('./routes/payment.routes');
 const driverRoutes = require('./routes/driver.routes');
 const catalogRoutes = require('./routes/catalog.routes');
+const orderRoutes = require('./routes/order.routes');
 const { initSocketServer } = require('./services/socket.service');
 const priceEngine = require('./services/priceEngine.service');
 const { initDb } = require('./config/init_db');
@@ -27,6 +28,7 @@ app.use(express.json());
 app.use('/api/v1/auth', authRoutes);
 app.use('/api/v1/payments', paymentRoutes);
 app.use('/api/v1/driver', driverRoutes);
+app.use('/api/v1/orders', orderRoutes);
 app.use('/api/v1', catalogRoutes); // Mounted as /api/v1/stores and /api/v1/products
 
 // 3. Health Check

@@ -9,27 +9,46 @@ import {
   StatusBar,
   FlatList,
 } from 'react-native';
-import { useRoute, useNavigation } from '@react-navigation/native';
+import { useRoute, useNavigation, useIsFocused } from '@react-navigation/native';
 import { theme } from '../theme';
 import { ProductCard } from '../components/ProductCard';
-
-// Generic Mock Data generator for specific categories
-const getProductsForCategory = (categoryName: string) => {
-  return [
-    { id: 'p1', name: `${categoryName} Item 1`, weight: '500g', price: 120, originalPrice: 150, discountTag: '20% OFF', image: 'https://cdn-icons-png.flaticon.com/512/2329/2329864.png', deliveryTime: '8 mins' },
-    { id: 'p2', name: `${categoryName} Item 2`, weight: '1kg', price: 45, originalPrice: 60, discountTag: '₹15 OFF', image: 'https://cdn-icons-png.flaticon.com/512/2329/2329865.png', deliveryTime: '8 mins' },
-    { id: 'p3', name: `${categoryName} Item 3`, weight: '250g', price: 85, originalPrice: 100, discountTag: '15% OFF', image: 'https://cdn-icons-png.flaticon.com/512/2329/2329866.png', deliveryTime: '8 mins' },
-    { id: 'p4', name: `${categoryName} Item 4`, weight: '400g', price: 210, originalPrice: 250, discountTag: '₹40 OFF', image: 'https://cdn-icons-png.flaticon.com/512/2329/2329867.png', deliveryTime: '8 mins' },
-    { id: 'p5', name: `${categoryName} Item 5`, weight: '1 Pack', price: 55, originalPrice: 75, discountTag: '₹20 OFF', image: 'https://cdn-icons-png.flaticon.com/512/2329/2329868.png', deliveryTime: '8 mins' },
-    { id: 'p6', name: `${categoryName} Item 6`, weight: '1 pc', price: 19, originalPrice: 25, discountTag: '24% OFF', image: 'https://cdn-icons-png.flaticon.com/512/2329/2329869.png', deliveryTime: '8 mins' },
-  ];
-};
+import { api } from '../services/api';
+import { ActivityIndicator, RefreshControl } from 'react-native';
 
 export const ProductListScreen = () => {
   const route = useRoute();
   const navigation = useNavigation();
+  const isFocused = useIsFocused();
   const { categoryName } = route.params as { categoryName: string };
-  const products = getProductsForCategory(categoryName);
+  
+  const [products, setProducts] = React.useState<any[]>([]);
+  const [loading, setLoading] = React.useState(true);
+  const [refreshing, setRefreshing] = React.useState(false);
+
+  const fetchProducts = async () => {
+    try {
+      const { data } = await api.get('/products', {
+        params: { category: categoryName }
+      });
+      setProducts(data);
+    } catch (err) {
+      console.error('Failed to fetch products:', err);
+    } finally {
+      setLoading(false);
+      setRefreshing(false);
+    }
+  };
+
+  React.useEffect(() => {
+    if (isFocused) {
+      fetchProducts();
+    }
+  }, [isFocused, categoryName]);
+
+  const onRefresh = () => {
+    setRefreshing(true);
+    fetchProducts();
+  };
 
   return (
     <SafeAreaView style={styles.root}>
@@ -59,18 +78,41 @@ export const ProductListScreen = () => {
       </ScrollView>
 
       {/* Product Grid */}
-      <FlatList
-        data={products}
-        keyExtractor={(item) => item.id}
-        numColumns={2}
-        contentContainerStyle={styles.listContent}
-        renderItem={({ item }) => (
-          <View style={styles.cardContainer}>
-             <ProductCard product={item} />
-          </View>
-        )}
-        showsVerticalScrollIndicator={false}
-      />
+      {loading && !refreshing ? (
+        <View style={styles.loaderContainer}>
+          <ActivityIndicator size="large" color={theme.colors.primary} />
+        </View>
+      ) : (
+        <FlatList
+          data={products}
+          keyExtractor={(item) => item.id}
+          numColumns={2}
+          contentContainerStyle={[styles.listContent, products.length === 0 && { flex: 1, justifyContent: 'center' }]}
+          refreshControl={
+            <RefreshControl refreshing={refreshing} onRefresh={onRefresh} colors={[theme.colors.primary]} />
+          }
+          ListEmptyComponent={
+            <View style={styles.emptyContainer}>
+                <Text style={styles.emptyText}>No products found in this category.</Text>
+            </View>
+          }
+          renderItem={({ item }) => (
+            <View style={styles.cardContainer}>
+               <ProductCard product={{
+                 id: item.id,
+                 name: item.name,
+                 weight: item.unit || '1 Pack',
+                 price: item.price / 100,
+                 originalPrice: item.original_price ? item.original_price / 100 : undefined,
+                 image: item.image_url,
+                 deliveryTime: '8 mins',
+                 discountTag: item.original_price ? `${Math.round((1 - (item.price / item.original_price)) * 100)}%` : undefined
+               }} />
+            </View>
+          )}
+          showsVerticalScrollIndicator={false}
+        />
+      )}
     </SafeAreaView>
   );
 };
@@ -153,5 +195,21 @@ const styles = StyleSheet.create({
   cardContainer: {
     flex: 1,
     padding: 8,
+  },
+  loaderContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  emptyContainer: {
+    flex: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingVertical: 50,
+  },
+  emptyText: {
+    fontSize: 14,
+    color: '#666',
+    fontFamily: theme.typography.fontFamily.medium,
   },
 });
