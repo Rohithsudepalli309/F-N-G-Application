@@ -5,6 +5,7 @@ import { api } from '../services/api';
 import { useAuthStore } from '../store/useAuthStore';
 import { theme } from '../theme';
 import { socketService } from '../services/socket';
+import { OtpNotification } from '../components/OtpNotification';
 
 export const OtpScreen = () => {
   const [otp, setOtp] = useState('');
@@ -14,6 +15,7 @@ export const OtpScreen = () => {
   const login = useAuthStore((state) => state.login);
 
   const [timer, setTimer] = useState(30);
+  const [notification, setNotification] = useState({ visible: false, code: '' });
 
   React.useEffect(() => {
     let interval: NodeJS.Timeout;
@@ -29,9 +31,11 @@ export const OtpScreen = () => {
     
     // Listen for development OTPs
     socketService.on('dev:otp', (data: any) => {
-      if (data.phone === (`+91${phone}` || phone)) {
-        Alert.alert('Developer Mode', `Real-time OTP received via Socket: ${data.otp}`);
-        setOtp(data.otp);
+      const formattedPhone = (`+91${phone}` || phone);
+      if (data.phone === formattedPhone) {
+        // Show premium notification instead of alert
+        setNotification({ visible: true, code: data.otp });
+        setOtp(data.otp); // Auto-fill for convenience
       }
     });
 
@@ -99,6 +103,13 @@ export const OtpScreen = () => {
           <Text style={styles.buttonText}>Login</Text>
         )}
       </TouchableOpacity>
+
+      <OtpNotification 
+        visible={notification.visible}
+        code={notification.code}
+        phone={phone}
+        onClose={() => setNotification({ ...notification, visible: false })}
+      />
     </View>
   );
 };

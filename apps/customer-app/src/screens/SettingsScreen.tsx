@@ -19,6 +19,7 @@ interface MenuItem {
 }
 
 const PRIMARY_MENU: MenuItem[] = [
+  { id: 'orders', label: 'My Orders', icon: '🛍️' },
   { id: 'gift', label: 'E-Gift Cards', icon: '🎫' },
   { id: 'support', label: 'Help & Support', icon: '💬' },
   { id: 'addresses', label: 'Saved Addresses', icon: '📍' },
@@ -46,9 +47,10 @@ export const SettingsScreen = () => {
       key={item.id} 
       style={styles.menuItem}
       onPress={() => {
-        if (item.id === 'profile') navigation.navigate('ProfileSetup' as never);
-        else if (item.id === 'addresses') navigation.navigate('LocationSelect' as never);
-        else navigation.navigate('ProductList' as never, { categoryName: item.label } as never);
+        if (item.id === 'orders') (navigation as any).navigate('MyOrders');
+        else if (item.id === 'profile') (navigation as any).navigate('ProfileSetup');
+        else if (item.id === 'addresses') (navigation as any).navigate('LocationSelect');
+        else (navigation as any).navigate('ProductList', { categoryName: item.label });
       }}
     >
       <View style={styles.menuLeft}>

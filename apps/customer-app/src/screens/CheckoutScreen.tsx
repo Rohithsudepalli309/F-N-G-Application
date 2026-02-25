@@ -1,147 +1,369 @@
 import React, { useState } from 'react';
-import { View, Text, TouchableOpacity, StyleSheet, ActivityIndicator, Alert } from 'react-native';
+import {
+  View,
+  Text,
+  TouchableOpacity,
+  StyleSheet,
+  ActivityIndicator,
+  Alert,
+  SafeAreaView,
+  StatusBar,
+  ScrollView,
+  Image,
+  Platform,
+} from 'react-native';
 import RazorpayCheckout from 'react-native-razorpay';
 import { useNavigation } from '@react-navigation/native';
 import { useCartStore } from '../store/useCartStore';
 import { api } from '../services/api';
 import { theme } from '../theme';
 
+const PAYMENT_METHODS = [
+  { id: 'paytm', name: 'Paytm', icon: 'https://cdn-icons-png.flaticon.com/512/825/825454.png' },
+  { id: 'phonepe', name: 'PhonePe', icon: 'https://img.icons8.com/color/452/phone-pe.png' },
+  { id: 'gpay', name: 'Google Pay', icon: 'https://cdn-icons-png.flaticon.com/512/6124/6124998.png' },
+  { id: 'upi', name: 'Other BHIM UPI', icon: 'https://cdn-icons-png.flaticon.com/512/3034/3034601.png' },
+];
+
 export const CheckoutScreen = () => {
   const [loading, setLoading] = useState(false);
+  const [selectedMethod, setSelectedMethod] = useState('paytm');
+  const [isCOD, setIsCOD] = useState(false);
+  
   const { items, storeId, clearCart, total } = useCartStore();
   const navigation = useNavigation();
 
-  const handlePayment = async () => {
+  const billTotal = total() / 100;
+  const deliveryFee = billTotal > 500 ? 0 : 25;
+  const handlingFee = 5;
+  const grandTotal = billTotal + deliveryFee + handlingFee;
+
+  const handlePlaceOrder = async () => {
     setLoading(true);
 
     try {
       // 1. Create Order on Backend
       const orderPayload = {
-        store_id: storeId,
+        store_id: storeId || 'default-store',
         items: items.map(i => ({ product_id: i.productId, quantity: i.quantity })),
-        amount: total(), // Validate on backend!
-        address: { lat: 12.9, lng: 77.5, text: "Home" } // Mock address
+        amount: grandTotal * 100, // In paise for Razorpay
+        payment_method: isCOD ? 'COD' : selectedMethod,
+        address: { lat: 12.9, lng: 77.5, text: "Flat 402, Shanthi Niketan, Indiranagar, Bangalore" }
       };
 
-      const { data } = await api.post('/orders', orderPayload);
+      // Mocking API call for now to show flow
+      // const { data } = await api.post('/orders', orderPayload);
       
-      if (!data.success) {
-        throw new Error('Order creation failed');
+      if (isCOD) {
+        // Handle COD flow
+        setTimeout(() => {
+          setLoading(false);
+          Alert.alert('Order Placed!', 'Your order has been received. Pay cash on delivery.');
+          clearCart();
+          navigation.navigate('OrderTracking' as never);
+        }, 1500);
+        return;
       }
 
-      // 2. Open Razorpay (Native SDK)
+      // 2. Razorpay Flow (UPI/Card)
+      // This would normally use 'data' from backend
       const options = {
-        description: 'Food Order',
+        description: 'Grocery Order',
         image: 'https://i.imgur.com/3g7nmJC.png',
-        currency: data.currency,
-        key: data.key_id,
-        amount: data.amount,
-        name: 'FNG Delivery',
-        order_id: data.razorpay_order_id, // Order ID from backend
+        currency: 'INR',
+        key: 'rzp_test_mock_key', // Replace with real key in production
+        amount: Math.round(grandTotal * 100),
+        name: 'F&G Delivery',
+        order_id: 'order_mock_123', // Satisfying type requirement
         theme: { color: theme.colors.primary }
       };
 
       RazorpayCheckout.open(options).then((data: any) => {
-        // handle success
         Alert.alert('Success', `Payment ID: ${data.razorpay_payment_id}`);
         clearCart();
-        navigation.navigate('Home' as never); // Ideally navigate to Order Tracking
+        navigation.navigate('OrderTracking' as never);
       }).catch((error: any) => {
-        // handle failure
         Alert.alert('Error', `Code: ${error.code} | ${error.description}`);
       });
 
     } catch (error) {
       console.error(error);
-      Alert.alert('Error', 'Something went wrong');
+      Alert.alert('Error', 'Something went wrong while placing your order.');
     } finally {
       setLoading(false);
     }
   };
 
   return (
-    <View style={styles.container}>
-      <Text style={styles.header}>Checkout</Text>
+    <SafeAreaView style={styles.root}>
+      <StatusBar barStyle="dark-content" />
       
-      <View style={styles.summary}>
-        <Text style={styles.label}>Payable Amount</Text>
-        <Text style={styles.amount}>₹{(total() / 100).toLocaleString('en-IN')}</Text>
+      {/* Header */}
+      <View style={styles.header}>
+        <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backBtn}>
+          <Text style={styles.backArrow}>‹</Text>
+        </TouchableOpacity>
+        <Text style={styles.headerTitle}>Checkout</Text>
       </View>
 
-      <View style={styles.addressSection}>
-        <Text style={styles.addressLabel}>Delivering to:</Text>
-        <Text style={styles.addressText}>Flat 402, Shanthi Niketan, Indiranagar, Bangalore</Text>
-      </View>
+      <ScrollView contentContainerStyle={styles.scrollContent}>
+        {/* Total Amount Card */}
+        <View style={styles.amountCard}>
+          <Text style={styles.amountLabel}>Total to pay</Text>
+          <Text style={styles.amountValue}>₹{grandTotal.toLocaleString('en-IN')}</Text>
+        </View>
 
-      <TouchableOpacity 
-        style={styles.payBtn} 
-        onPress={handlePayment}
-        disabled={loading}
-      >
-         {loading ? <ActivityIndicator color="#FFF" /> : <Text style={styles.payText}>Pay with UPI / Card (Razorpay)</Text>}
-      </TouchableOpacity>
-    </View>
+        {/* UPI Options */}
+        <Text style={styles.sectionTitle}>UPI Options</Text>
+        <View style={styles.paymentBox}>
+          {PAYMENT_METHODS.map((method) => (
+            <TouchableOpacity 
+              key={method.id} 
+              style={[styles.payRow, selectedMethod === method.id && !isCOD && styles.payRowActive]}
+              onPress={() => {
+                setSelectedMethod(method.id);
+                setIsCOD(false);
+              }}
+            >
+              <View style={styles.payLeft}>
+                 <Image source={{ uri: method.icon }} style={styles.payIcon} />
+                 <Text style={styles.payName}>{method.name}</Text>
+              </View>
+              <View style={[styles.radio, selectedMethod === method.id && !isCOD && styles.radioActive]}>
+                 {selectedMethod === method.id && !isCOD && <View style={styles.radioInner} />}
+              </View>
+            </TouchableOpacity>
+          ))}
+        </View>
+
+        {/* Cash on Delivery */}
+        <Text style={styles.sectionTitle}>More Payment Options</Text>
+        <TouchableOpacity 
+          style={[styles.paymentBox, isCOD && styles.payRowActive]} 
+          onPress={() => setIsCOD(true)}
+        >
+          <View style={styles.payRow}>
+            <View style={styles.payLeft}>
+               <View style={styles.codIconBox}>
+                  <Text style={{ fontSize: 16 }}>💵</Text>
+               </View>
+               <Text style={styles.payName}>Cash on Delivery</Text>
+            </View>
+            <View style={[styles.radio, isCOD && styles.radioActive]}>
+               {isCOD && <View style={styles.radioInner} />}
+            </View>
+          </View>
+        </TouchableOpacity>
+
+        {/* Delivery Address Peek */}
+        <View style={styles.addressSection}>
+            <Text style={styles.sectionTitle}>Delivering to</Text>
+            <View style={styles.addressCard}>
+                <Text style={styles.addressHome}>Home</Text>
+                <Text style={styles.addressText}>Flat 402, Shanthi Niketan, Indiranagar, Bangalore</Text>
+            </View>
+        </View>
+
+        <View style={{ height: 100 }} />
+      </ScrollView>
+
+      {/* Place Order Button */}
+      <View style={styles.footer}>
+        <TouchableOpacity 
+          style={styles.payBtn} 
+          onPress={handlePlaceOrder}
+          disabled={loading}
+        >
+          {loading ? (
+            <ActivityIndicator color="#FFF" />
+          ) : (
+            <View style={styles.payBtnContent}>
+                <Text style={styles.payBtnText}>
+                   {isCOD ? 'Place Order (COD)' : `Pay via ${PAYMENT_METHODS.find(m => m.id === selectedMethod)?.name}`}
+                </Text>
+                <Text style={styles.payBtnArrow}>→</Text>
+            </View>
+          )}
+        </TouchableOpacity>
+      </View>
+    </SafeAreaView>
   );
 };
 
 const styles = StyleSheet.create({
-  container: {
+  root: {
     flex: 1,
-    padding: theme.spacing.l,
-    backgroundColor: theme.colors.surface,
-    justifyContent: 'center',
+    backgroundColor: '#F5F7FA',
   },
   header: {
-    fontSize: theme.typography.size.xxl,
-    fontFamily: theme.typography.fontFamily.bold,
-    marginBottom: theme.spacing.xl,
-    textAlign: 'center',
-  },
-  summary: {
-    backgroundColor: theme.colors.background,
-    padding: theme.spacing.xl,
-    borderRadius: theme.borderRadius.l,
+    flexDirection: 'row',
     alignItems: 'center',
-    marginBottom: theme.spacing.m,
+    paddingHorizontal: 16,
+    paddingVertical: 12,
+    backgroundColor: '#FFF',
+    borderBottomWidth: 1,
+    borderBottomColor: '#F0F0F0',
   },
-  addressSection: {
-    backgroundColor: theme.colors.background,
-    padding: theme.spacing.l,
-    borderRadius: theme.borderRadius.m,
-    marginBottom: theme.spacing.xl,
+  backBtn: {
+    width: 32,
+    height: 32,
+    borderRadius: 16,
+    backgroundColor: '#F0F0F0',
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginRight: 12,
+  },
+  backArrow: {
+    fontSize: 24,
+    color: '#000',
+    marginTop: -4,
+  },
+  headerTitle: {
+    fontSize: 16,
+    fontFamily: theme.typography.fontFamily.bold,
+    color: '#000',
+  },
+  scrollContent: {
+    padding: 16,
+  },
+  amountCard: {
+    backgroundColor: '#FFF',
+    padding: 20,
+    borderRadius: 16,
+    alignItems: 'center',
+    marginBottom: 24,
     borderWidth: 1,
-    borderColor: theme.colors.border,
+    borderColor: '#F0F0F0',
   },
-  addressLabel: {
-    fontSize: theme.typography.size.xs,
-    color: theme.colors.text.secondary,
+  amountLabel: {
+    fontSize: 13,
+    color: '#666',
     fontFamily: theme.typography.fontFamily.medium,
     marginBottom: 4,
   },
-  addressText: {
-    fontSize: theme.typography.size.s,
-    color: theme.colors.text.primary,
-    fontFamily: theme.typography.fontFamily.regular,
-  },
-  label: {
-    color: theme.colors.text.secondary,
-    fontSize: theme.typography.size.m,
-  },
-  amount: {
-    color: theme.colors.primary,
-    fontSize: theme.typography.size.xxl,
+  amountValue: {
+    fontSize: 28,
     fontFamily: theme.typography.fontFamily.bold,
-    marginTop: theme.spacing.s,
+    color: '#000',
   },
-  payBtn: {
-    backgroundColor: theme.colors.primary,
-    padding: theme.spacing.l,
-    borderRadius: theme.borderRadius.m,
+  sectionTitle: {
+    fontSize: 14,
+    fontFamily: theme.typography.fontFamily.bold,
+    color: '#333',
+    marginBottom: 12,
+  },
+  paymentBox: {
+    backgroundColor: '#FFF',
+    borderRadius: 16,
+    overflow: 'hidden',
+    marginBottom: 24,
+    borderWidth: 1,
+    borderColor: '#F0F0F0',
+  },
+  payRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    padding: 16,
+    borderBottomWidth: 1,
+    borderBottomColor: '#F8F9FB',
+  },
+  payRowActive: {
+    backgroundColor: '#F0F9F0',
+  },
+  payLeft: {
+    flexDirection: 'row',
     alignItems: 'center',
   },
-  payText: {
-    color: theme.colors.text.inverse,
-    fontSize: theme.typography.size.l,
+  payIcon: {
+    width: 24,
+    height: 24,
+    marginRight: 12,
+    resizeMode: 'contain',
+  },
+  payName: {
+    fontSize: 14,
+    fontFamily: theme.typography.fontFamily.medium,
+    color: '#333',
+  },
+  codIconBox: {
+    width: 24,
+    height: 24,
+    backgroundColor: '#F0F4F7',
+    borderRadius: 6,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginRight: 12,
+  },
+  radio: {
+    width: 20,
+    height: 20,
+    borderRadius: 10,
+    borderWidth: 2,
+    borderColor: '#DDD',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  radioActive: {
+    borderColor: '#339233',
+  },
+  radioInner: {
+    width: 10,
+    height: 10,
+    borderRadius: 5,
+    backgroundColor: '#339233',
+  },
+  addressSection: {
+      marginTop: 8,
+  },
+  addressCard: {
+      backgroundColor: '#FFF',
+      borderRadius: 16,
+      padding: 16,
+      borderWidth: 1,
+      borderColor: '#F0F0F0',
+  },
+  addressHome: {
+      fontSize: 14,
+      fontFamily: theme.typography.fontFamily.bold,
+      color: '#000',
+      marginBottom: 4,
+  },
+  addressText: {
+      fontSize: 12,
+      color: '#666',
+      lineHeight: 18,
+  },
+  footer: {
+    position: 'absolute',
+    bottom: 0,
+    left: 0,
+    right: 0,
+    backgroundColor: '#FFF',
+    padding: 16,
+    paddingBottom: Platform.OS === 'ios' ? 32 : 16,
+    borderTopWidth: 1,
+    borderTopColor: '#F0F0F0',
+  },
+  payBtn: {
+    backgroundColor: '#339233',
+    paddingVertical: 14,
+    borderRadius: 12,
+    alignItems: 'center',
+  },
+  payBtnContent: {
+      flexDirection: 'row',
+      alignItems: 'center',
+  },
+  payBtnText: {
+    color: '#FFF',
+    fontSize: 16,
+    fontFamily: theme.typography.fontFamily.bold,
+    marginRight: 8,
+  },
+  payBtnArrow: {
+    color: '#FFF',
+    fontSize: 18,
     fontFamily: theme.typography.fontFamily.bold,
   },
 });

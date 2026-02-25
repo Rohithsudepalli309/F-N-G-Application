@@ -17,6 +17,7 @@ import {
 import { useNavigation } from '@react-navigation/native';
 import { api } from '../services/api';
 import { theme } from '../theme';
+import { socketService } from '../services/socket';
 
 const { height: SCREEN_HEIGHT } = Dimensions.get('window');
 const HERO_HEIGHT = SCREEN_HEIGHT * 0.38;
@@ -33,6 +34,9 @@ export const LoginScreen = () => {
   const logoFloat = useRef(new Animated.Value(0)).current;
 
   useEffect(() => {
+    // Connect socket early to be ready for OTP events
+    socketService.connect();
+
     // Entrance animation
     Animated.parallel([
       Animated.timing(fadeIn,  { toValue: 1, duration: 600, easing: Easing.out(Easing.quad), useNativeDriver: true }),

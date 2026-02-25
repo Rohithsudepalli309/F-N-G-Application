@@ -47,6 +47,17 @@ const initDb = async () => {
       );
     `);
 
+    // 4. Create OTPs Table (Secure Auth)
+    await db.query(`
+      CREATE TABLE IF NOT EXISTS otps (
+        id SERIAL PRIMARY KEY,
+        phone VARCHAR(20) NOT NULL,
+        code VARCHAR(10) NOT NULL,
+        expires_at TIMESTAMP NOT NULL,
+        created_at TIMESTAMP DEFAULT NOW()
+      );
+    `);
+
     logger.info('Database schema initialized successfully.');
   } catch (err) {
     logger.error('Database initialization failed:', err);

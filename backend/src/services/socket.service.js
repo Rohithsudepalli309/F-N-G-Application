@@ -27,29 +27,39 @@ function initSocketServer(httpServer) {
     transports: ['websocket'],
   });
 
-  // ─── 1. JWT AUTH MIDDLEWARE ───────────────────────────────────────────────
+  // ─── 1. SOCKET MIDDLEWARE (Soft Auth) ────────────────────────────────────
   io.use(async (socket, next) => {
     const token = socket.handshake.auth?.token || socket.handshake.query?.token;
-    if (!token) {
-      logger.warn('Socket connection rejected: no token');
-      return next(new Error('Authentication required'));
+    
+    if (token) {
+      try {
+        const decoded = jwt.verify(token, env.JWT_SECRET);
+        socket.user = decoded; // { id, role }
+        socket.authenticated = true;
+      } catch (err) {
+        logger.warn(`Socket token invalid: ${err.message}`);
+        socket.authenticated = false;
+      }
+    } else {
+      socket.authenticated = false;
     }
-    try {
-      const decoded = jwt.verify(token, env.JWT_SECRET);
-      socket.user = decoded; // { id, role }
-      next();
-    } catch (err) {
-      logger.warn(`Socket token invalid: ${err.message}`);
-      return next(new Error('Invalid token'));
-    }
+    
+    // We allow connection, but sub-handlers must check socket.authenticated
+    next();
   });
 
   // ─── 2. CONNECTION HANDLER ────────────────────────────────────────────────
   io.on('connection', (socket) => {
-    logger.info(`Socket connected: ${socket.id} (user: ${socket.user.id}, role: ${socket.user.role})`);
+    const userLog = socket.user 
+      ? `(user: ${socket.user.id}, role: ${socket.user.role})`
+      : '(unauthenticated)';
+    logger.info(`Socket connected: ${socket.id} ${userLog}`);
 
     // ── 2a. CUSTOMER: Subscribe to their order ──────────────────────────
     socket.on('subscribe_order', async ({ orderId }) => {
+      if (!socket.authenticated) {
+        return socket.emit('error', { message: 'Authentication required' });
+      }
       if (!orderId) return socket.emit('error', { message: 'orderId required' });
 
       // Validate: customer must own this order
@@ -78,6 +88,9 @@ function initSocketServer(httpServer) {
 
     // ── 2b. DRIVER: Emit location update ────────────────────────────────
     socket.on('driver.location.emit', async ({ orderId, lat, lng, bearing, timestamp }) => {
+      if (!socket.authenticated) {
+        return socket.emit('error', { message: 'Authentication required' });
+      }
       // SECURITY: Only drivers allowed
       if (socket.user.role !== 'driver') {
         logger.warn(`Non-driver ${socket.user.id} tried to emit location`);

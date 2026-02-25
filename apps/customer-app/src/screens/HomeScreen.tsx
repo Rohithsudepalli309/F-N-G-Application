@@ -39,9 +39,11 @@ const HOME_CATEGORIES = [
 
 const OFF_ZONE_PRODUCTS = [
   { id: 'p1', name: 'Heritage Total Curd Pouch', weight: '1 pack (450 g)', price: 47, originalPrice: 50, discountTag: '₹3', image: 'https://cdn-icons-png.flaticon.com/512/2674/2674486.png', deliveryTime: '5 mins' },
-  { id: 'p2', name: 'Onion', weight: '1 Pack (900 - 100...', price: 28, originalPrice: 47, discountTag: '₹19', image: 'https://cdn-icons-png.flaticon.com/512/7292/7292911.png', deliveryTime: '5 mins' },
-  { id: 'p3', name: 'Paper Boat Tender Coco...', weight: '1 pc (1.2 L)', price: 66, originalPrice: 140, discountTag: '₹74', image: 'https://cdn-icons-png.flaticon.com/512/3075/3075908.png', deliveryTime: '5 mins' },
+  { id: 'p2', name: 'Onion', weight: '1 Pack (900 - 1000 g)', price: 28, originalPrice: 47, discountTag: '₹19', image: 'https://cdn-icons-png.flaticon.com/512/7292/7292911.png', deliveryTime: '5 mins' },
+  { id: 'p3', name: 'Paper Boat Tender Coconut', weight: '1 pc (1.2 L)', price: 66, originalPrice: 140, discountTag: '₹74', image: 'https://cdn-icons-png.flaticon.com/512/3075/3075908.png', deliveryTime: '5 mins' },
   { id: 'p4', name: 'Kellogg\'s Millet Muesli', weight: '1 pack (1 kg)', price: 334, originalPrice: 690, discountTag: '₹356', image: 'https://cdn-icons-png.flaticon.com/512/2821/2821811.png', deliveryTime: '5 mins' },
+  { id: 'p5', name: 'Amul Taaza Milk', weight: '1 L', price: 54, originalPrice: 56, discountTag: '₹2', image: 'https://cdn-icons-png.flaticon.com/512/3050/3050161.png', deliveryTime: '7 mins' },
+  { id: 'p6', name: 'Fortune Sunflower Oil', weight: '1 L', price: 125, originalPrice: 160, discountTag: '₹35', image: 'https://cdn-icons-png.flaticon.com/512/2405/2405479.png', deliveryTime: '10 mins' },
 ];
 
 export const HomeScreen = () => {

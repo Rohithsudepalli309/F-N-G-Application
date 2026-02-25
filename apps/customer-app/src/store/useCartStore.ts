@@ -14,6 +14,7 @@ interface CartState {
   items: CartItem[];
   addToCart: (storeId: string, item: CartItem) => void;
   removeFromCart: (productId: string) => void;
+  decrementFromCart: (productId: string) => void;
   clearCart: () => void;
   total: () => number;
 }
@@ -28,7 +29,7 @@ export const useCartStore = create<CartState>()(
         
         // Reset cart if adding from different store
         if (currentStore && currentStore !== storeId) {
-           set({ storeId, items: [newItem] });
+           set({ storeId, items: [newItem.quantity > 0 ? newItem : []] as any });
            return;
         }
 
@@ -49,6 +50,24 @@ export const useCartStore = create<CartState>()(
       removeFromCart: (productId) => set((state) => ({
         items: state.items.filter(i => i.productId !== productId)
       })),
+      decrementFromCart: (productId) => {
+        const { items } = get();
+        const existingItem = items.find(i => i.productId === productId);
+        
+        if (existingItem && existingItem.quantity > 1) {
+          set({
+            items: items.map(i => 
+              i.productId === productId 
+                ? { ...i, quantity: i.quantity - 1 }
+                : i
+            )
+          });
+        } else {
+          set({
+            items: items.filter(i => i.productId !== productId)
+          });
+        }
+      },
       clearCart: () => set({ items: [], storeId: null }),
       total: () => get().items.reduce((sum, item) => sum + (item.price * item.quantity), 0),
     }),

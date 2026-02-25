@@ -1,6 +1,7 @@
 import React from 'react';
 import { View, Text, StyleSheet, Image, TouchableOpacity, Dimensions } from 'react-native';
 import { theme } from '../theme';
+import { useCartStore } from '../store/useCartStore';
 
 const { width } = Dimensions.get('window');
 
@@ -16,6 +17,35 @@ interface Product {
 }
 
 export const ProductCard = ({ product }: { product: Product }) => {
+  const addToCart = useCartStore((state) => state.addToCart);
+  const removeFromCart = useCartStore((state) => state.removeFromCart);
+  const decrementFromCart = useCartStore((state) => state.decrementFromCart);
+  const cartItems = useCartStore((state) => state.items);
+
+  const qty = cartItems.find((i: any) => i.productId === product.id)?.quantity || 0;
+
+  const handleAdd = () => {
+    addToCart('default-store', {
+      productId: product.id,
+      name: product.name,
+      price: product.price,
+      quantity: 1,
+    });
+  };
+
+  const handleIncrement = () => {
+    addToCart('default-store', {
+      productId: product.id,
+      name: product.name,
+      price: product.price,
+      quantity: 1,
+    });
+  };
+
+  const handleDecrement = () => {
+    decrementFromCart(product.id);
+  };
+
   return (
     <View style={styles.card}>
       {/* 1. Image Container */}
@@ -25,10 +55,22 @@ export const ProductCard = ({ product }: { product: Product }) => {
            <Text style={styles.favIcon}>❤️</Text>
         </TouchableOpacity>
         
-        {/* ADD Button (Overlay) */}
-        <TouchableOpacity style={styles.addBtn}>
-          <Text style={styles.addText}>ADD</Text>
-        </TouchableOpacity>
+        {/* ADD Button or Quantity Selector */}
+        {qty === 0 ? (
+          <TouchableOpacity style={styles.addBtn} onPress={handleAdd}>
+            <Text style={styles.addText}>ADD</Text>
+          </TouchableOpacity>
+        ) : (
+          <View style={styles.qtyContainer}>
+            <TouchableOpacity style={styles.qtyBtn} onPress={handleDecrement}>
+              <Text style={styles.qtyBtnText}>-</Text>
+            </TouchableOpacity>
+            <Text style={styles.qtyText}>{qty}</Text>
+            <TouchableOpacity style={styles.qtyBtn} onPress={handleIncrement}>
+              <Text style={styles.qtyBtnText}>+</Text>
+            </TouchableOpacity>
+          </View>
+        )}
       </View>
 
       {/* 2. Price Section */}
@@ -59,7 +101,7 @@ export const ProductCard = ({ product }: { product: Product }) => {
 
 const styles = StyleSheet.create({
   card: {
-    width: (width - 48) / 3, // 3 columns for horizontal/compact grids
+    width: (width - 48) / 3,
     marginRight: 12,
     marginBottom: 20,
   },
@@ -90,7 +132,7 @@ const styles = StyleSheet.create({
     bottom: -15,
     backgroundColor: '#FFFFFF',
     borderWidth: 1,
-    borderColor: '#E91E63', // Zepto Pink/Magenta
+    borderColor: '#339233', // Green like Zepto secondary ADD
     borderRadius: 8,
     paddingHorizontal: 20,
     paddingVertical: 6,
@@ -101,9 +143,39 @@ const styles = StyleSheet.create({
     shadowRadius: 2,
   },
   addText: {
-    color: '#E91E63',
+    color: '#339233',
     fontFamily: theme.typography.fontFamily.bold,
     fontSize: 13,
+  },
+  qtyContainer: {
+    position: 'absolute',
+    bottom: -15,
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#339233',
+    borderRadius: 8,
+    elevation: 4,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.2,
+    shadowRadius: 2,
+    overflow: 'hidden',
+  },
+  qtyBtn: {
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+  },
+  qtyBtnText: {
+    color: '#FFF',
+    fontSize: 16,
+    fontFamily: theme.typography.fontFamily.bold,
+  },
+  qtyText: {
+    color: '#FFF',
+    fontSize: 14,
+    fontFamily: theme.typography.fontFamily.bold,
+    minWidth: 20,
+    textAlign: 'center',
   },
   priceRow: {
     marginTop: 22,
@@ -122,7 +194,7 @@ const styles = StyleSheet.create({
     fontFamily: theme.typography.fontFamily.bold,
     color: '#000',
     marginRight: 4,
-    backgroundColor: '#F0F4F7', // Rounded price background
+    backgroundColor: '#F0F4F7',
     paddingHorizontal: 4,
     borderRadius: 4,
   },
@@ -133,7 +205,7 @@ const styles = StyleSheet.create({
   },
   discountTag: {
     fontSize: 11,
-    color: '#108D10', // Zepto Green
+    color: '#108D10',
     fontFamily: theme.typography.fontFamily.bold,
   },
   name: {
@@ -142,7 +214,7 @@ const styles = StyleSheet.create({
     color: '#333',
     marginTop: 4,
     paddingHorizontal: 4,
-    height: 36, // Fixed height for alignment
+    height: 36,
   },
   weight: {
     fontSize: 11,
