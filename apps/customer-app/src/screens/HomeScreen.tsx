@@ -78,9 +78,9 @@ export const HomeScreen = () => {
         <View style={styles.headerTop}>
           <View style={styles.logoAndSpeed}>
             <Image 
-              source={require('../assets/fg_logo.png')} 
+              source={require('../assets/fg_logo_square.png')} 
               style={styles.logoIcon} 
-              resizeMode="contain"
+              resizeMode="cover"
             />
             <View style={styles.headerDivider} />
             <View style={styles.speedIndicator}>
@@ -279,6 +279,8 @@ const styles = StyleSheet.create({
   logoIcon: {
     width: 40,
     height: 40,
+    borderRadius: 20,
+    overflow: 'hidden',
   },
   headerDivider: {
     width: 1,
