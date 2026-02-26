@@ -31,7 +31,7 @@ export const CheckoutScreen = () => {
   const [isCOD, setIsCOD] = useState(false);
   
   const { items, storeId, clearCart, total } = useCartStore();
-  const navigation = useNavigation();
+  const navigation = useNavigation<any>();
 
   const billTotal = total() / 100;
   const deliveryFee = billTotal > 500 ? 0 : 25;
@@ -42,53 +42,62 @@ export const CheckoutScreen = () => {
     setLoading(true);
 
     try {
-      // 1. Create Order on Backend
+      // 1. Create Internal Order on Backend (Status: Pending, Stock Deducted)
       const orderPayload = {
-        store_id: storeId || 'default-store',
-        items: items.map(i => ({ product_id: i.productId, quantity: i.quantity })),
-        amount: grandTotal * 100, // In paise for Razorpay
-        payment_method: isCOD ? 'COD' : selectedMethod,
-        address: { lat: 12.9, lng: 77.5, text: "Flat 402, Shanthi Niketan, Indiranagar, Bangalore" }
+        id: `ORD-${Date.now()}`, // Client-side generated ID for quick correlation
+        storeId: storeId || 'default-store',
+        items: items.map(i => ({ 
+          id: i.productId, 
+          name: i.name,
+          price: i.price,
+          quantity: i.quantity 
+        })),
+        totalAmount: Math.round(grandTotal * 100), // In paise
+        address: "Flat 402, Shanthi Niketan, Indiranagar, Bangalore" // Demo address
       };
 
-      // Mocking API call for now to show flow
-      // const { data } = await api.post('/orders', orderPayload);
+      const { data: internalOrder } = await api.post('/orders', orderPayload);
       
       if (isCOD) {
-        // Handle COD flow
-        setTimeout(() => {
-          setLoading(false);
-          Alert.alert('Order Placed!', 'Your order has been received. Pay cash on delivery.');
-          clearCart();
-          navigation.navigate('OrderTracking' as never);
-        }, 1500);
+        // Handle COD flow (Status would likely be 'Placed' directly in a real COD flow)
+        // But for this demo, we'll just navigate
+        Alert.alert('Order Placed!', 'Your order has been received. Pay cash on delivery.');
+        clearCart();
+        navigation.navigate('OrderTracking', { orderId: internalOrder.id });
         return;
       }
 
-      // 2. Razorpay Flow (UPI/Card)
-      // This would normally use 'data' from backend
-      const options = {
-        description: 'Grocery Order',
-        image: 'https://i.imgur.com/3g7nmJC.png',
-        currency: 'INR',
-        key: 'rzp_test_mock_key', // Replace with real key in production
+      // 2. Create Razorpay Order on Backend (Linked to internal ID)
+      const { data: paymentOrder } = await api.post('/payments/orders', {
         amount: Math.round(grandTotal * 100),
+        orderId: internalOrder.id
+      });
+
+      // 3. Trigger Razorpay Checkout
+      const options = {
+        description: 'F&G Grocery Order',
+        image: 'https://i.imgur.com/3g7nmJC.png',
+        currency: paymentOrder.currency,
+        key: paymentOrder.key_id,
+        amount: paymentOrder.amount,
         name: 'F&G Delivery',
-        order_id: 'order_mock_123', // Satisfying type requirement
+        order_id: paymentOrder.order_id,
         theme: { color: theme.colors.primary }
       };
 
       RazorpayCheckout.open(options).then((data: any) => {
-        Alert.alert('Success', `Payment ID: ${data.razorpay_payment_id}`);
+        // Clear cart and go to tracking
+        // Note: The UI will also be updated via WebSocket 'order.paid' in a real scenario
         clearCart();
-        navigation.navigate('OrderTracking' as never);
+        navigation.navigate('OrderTracking', { orderId: internalOrder.id });
       }).catch((error: any) => {
-        Alert.alert('Error', `Code: ${error.code} | ${error.description}`);
+        Alert.alert('Payment Cancelled', 'You can try paying again from My Orders if needed.');
       });
 
-    } catch (error) {
+    } catch (error: any) {
       console.error(error);
-      Alert.alert('Error', 'Something went wrong while placing your order.');
+      const msg = error.response?.data?.error || 'Something went wrong while placing your order.';
+      Alert.alert('Order Failed', msg);
     } finally {
       setLoading(false);
     }

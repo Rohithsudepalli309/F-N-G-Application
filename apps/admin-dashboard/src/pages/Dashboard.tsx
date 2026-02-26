@@ -80,6 +80,8 @@ const CustomTooltip = ({ active, payload, label }: any) => {
   return null;
 };
 
+import { DashboardMap } from '../components/DashboardMap';
+
 export const Dashboard = () => {
   const [stats, setStats] = useState(DEMO_STATS);
   const [loaded, setLoaded] = useState(false);
@@ -87,7 +89,7 @@ export const Dashboard = () => {
   useEffect(() => {
     const fetchStats = async () => {
       try {
-        const { data } = await api.get('/admin/stats');
+        const { data } = await api.get('/analytics/stats');
         setStats(data);
       } catch {
         // Use demo data — backend not connected yet
@@ -99,7 +101,7 @@ export const Dashboard = () => {
   }, []);
 
   return (
-    <div className="space-y-8">
+    <div className="space-y-8 pb-12">
       {/* Page Title */}
       <div className={`animate-fade-in ${loaded ? 'opacity-100' : ''}`}>
         <h2 className="text-2xl font-bold text-slate-800">Dashboard</h2>
@@ -133,6 +135,11 @@ export const Dashboard = () => {
             </div>
           );
         })}
+      </div>
+
+      {/* Live Command Center (Map) */}
+      <div className="animate-slide-up delay-150">
+        <DashboardMap />
       </div>
 
       {/* Charts */}

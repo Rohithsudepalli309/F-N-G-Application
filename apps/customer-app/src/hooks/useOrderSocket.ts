@@ -10,7 +10,7 @@ import { useEffect, useRef, useCallback } from 'react';
 import { io, Socket } from 'socket.io-client';
 import { useAuthStore } from '../store/useAuthStore';
 
-const SOCKET_URL = 'http://localhost:3000'; // Replace with real server IP
+const SOCKET_URL = 'http://localhost:3000'; // Optimized for adb reverse tunnel
 const POLL_INTERVAL_MS = 15_000;
 
 export type OrderStatus =
@@ -75,6 +75,10 @@ export function useOrderSocket({
     });
 
     // ── Listen-only events (customer may NOT emit) ────────────────────────
+    socket.on('order.paid', ({ status }: { orderId: string; status: OrderStatus }) => {
+      onStatusUpdate({ status });
+    });
+
     socket.on('order.status.updated', ({ payload }: { orderId: string; timestamp: number; payload: StatusPayload }) => {
       onStatusUpdate(payload);
     });

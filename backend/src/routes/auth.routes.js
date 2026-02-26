@@ -51,4 +51,15 @@ router.put('/profile', authenticate, async (req, res, next) => {
   }
 });
 
+// 5. Register FCM Token (Authenticated)
+router.post('/fcm-token', authenticate, async (req, res, next) => {
+  try {
+    const { token } = req.body;
+    await authService.updateFcmToken(req.user.id, token);
+    res.json({ success: true });
+  } catch (err) {
+    next(err);
+  }
+});
+
 module.exports = router;

@@ -4,6 +4,7 @@ const { authenticate, authorize } = require('../middleware/auth');
 const db = require('../config/db');
 const { notifyOrderStatus, notifyOrderCompleted } = require('../services/socket.service');
 const logger = require('../config/logger');
+const notificationService = require('../services/notification.service');
 
 /**
  * GET /api/v1/driver/orders
@@ -89,6 +90,7 @@ router.post('/accept', authenticate, authorize(['driver']), async (req, res, nex
 
     const io = req.app.get('io');
     notifyOrderStatus(io, orderId, 'pickup');
+    await notificationService.notifyOrderStatus(orderId, 'pickup');
 
     res.json({ success: true });
   } catch (err) {
@@ -127,6 +129,7 @@ router.post('/complete', authenticate, authorize(['driver']), async (req, res, n
 
     const io = req.app.get('io');
     notifyOrderCompleted(io, orderId);
+    await notificationService.notifyOrderStatus(orderId, 'delivered');
 
     res.json({ success: true });
   } catch (err) {

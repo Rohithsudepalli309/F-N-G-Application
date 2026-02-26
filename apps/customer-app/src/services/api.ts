@@ -4,11 +4,10 @@ import { getToken } from '../utils/storage';
 
 import { Platform } from 'react-native';
 
-// For Physical Devices via USB: Use 'localhost' with 'adb reverse'
-// For Emulators: use '10.0.2.2'
-const BASE_HOST = Platform.OS === 'android' ? 'localhost' : 'localhost'; 
+// For Physical Devices via USB: Use 'localhost' with 'adb reverse' (the most reliable method)
+const BASE_HOST = 'localhost'; 
 
-export const API_URL = `http://localhost:3000/api/v1`;
+export const API_URL = `http://${BASE_HOST}:3000/api/v1`;
 
 export const api = axios.create({
   baseURL: API_URL, 

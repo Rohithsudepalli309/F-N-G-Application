@@ -224,6 +224,18 @@ class AuthService {
       debugNote: isDev ? 'Check server logs or in-app notification' : undefined
     };
   }
+
+  // 6. Register FCM Token
+  async updateFcmToken(userId, token) {
+    if (!token) return;
+    try {
+      await db.query('UPDATE users SET fcm_token = $1 WHERE id = $2', [token, userId]);
+      logger.info(`FCM Token registered for user ${userId}`);
+    } catch (err) {
+      logger.error('Error updating FCM token:', err);
+      throw err;
+    }
+  }
 }
 
 module.exports = new AuthService();

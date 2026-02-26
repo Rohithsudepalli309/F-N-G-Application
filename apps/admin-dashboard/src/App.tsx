@@ -5,6 +5,7 @@ import { ProtectedRoute, AdminLayout } from './components/Layout';
 import { Dashboard } from './pages/Dashboard';
 import { OrdersMonitor } from './pages/OrdersMonitor';
 import { ManagementPage } from './pages/ManagementPage';
+import { FleetManagement } from './pages/FleetManagement';
 
 function App() {
   return (
@@ -18,7 +19,7 @@ function App() {
             <Route path="/orders" element={<OrdersMonitor />} />
             <Route path="/users" element={<ManagementPage type="users" />} />
             <Route path="/stores" element={<ManagementPage type="stores" />} />
-            <Route path="/drivers" element={<ManagementPage type="drivers" />} />
+            <Route path="/drivers" element={<FleetManagement />} />
             {/* Catch all */}
             <Route path="*" element={<Navigate to="/" replace />} />
           </Route>

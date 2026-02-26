@@ -4,8 +4,10 @@ import { AppNavigator } from './src/navigation/AppNavigator';
 import { socketService } from './src/services/socket';
 import { OtpNotification } from './src/components/OtpNotification';
 import { useAuthStore } from './src/store/useAuthStore';
+import { usePushNotifications } from './src/hooks/usePushNotifications';
 
 const App = () => {
+  usePushNotifications();
   const [notification, setNotification] = React.useState({ visible: false, phone: '', code: '' });
   const setLastOtp = useAuthStore((state) => state.setLastOtp);
 

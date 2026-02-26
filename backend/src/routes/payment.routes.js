@@ -3,12 +3,16 @@ const router = express.Router();
 const paymentService = require('../services/payment.service');
 const { authenticate } = require('../middleware/auth');
 
-// 1. Create Order (Protected)
+// 1. Create Razorpay Order (Protected)
 router.post('/orders', authenticate, async (req, res, next) => {
   try {
-    // In a real app, calculate amount from Cart/Inventory
-    const { amount } = req.body; 
-    const order = await paymentService.createOrder(req.user.id, amount);
+    const { amount, orderId } = req.body; 
+    
+    if (!orderId) {
+       return res.status(400).json({ error: 'Internal orderId is required' });
+    }
+
+    const order = await paymentService.createOrder(req.user.id, amount, orderId);
     
     res.json({
       success: true,
@@ -34,8 +38,9 @@ router.post('/webhook', express.raw({ type: 'application/json' }), async (req, r
 
   // Process
   try {
-    const event = JSON.parse(body.toString());
-    await paymentService.handleWebhook(event);
+    const io = req.app.get('io');
+    const event = JSON.parse(req.body.toString());
+    await paymentService.handleWebhook(event, io);
     res.json({ status: 'ok' });
   } catch (err) {
     // Log but usually return 200 to Razorpay to prevent retries if logic fails

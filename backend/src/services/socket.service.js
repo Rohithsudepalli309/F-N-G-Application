@@ -86,7 +86,7 @@ function initSocketServer(httpServer) {
       socket.emit('subscribed', { room, orderId });
     });
 
-    // ── 2b. DRIVER: Emit location update ────────────────────────────────
+      // ── 2b. DRIVER: Emit location update ────────────────────────────────
     socket.on('driver.location.emit', async ({ orderId, lat, lng, bearing, timestamp }) => {
       if (!socket.authenticated) {
         return socket.emit('error', { message: 'Authentication required' });
@@ -124,14 +124,26 @@ function initSocketServer(httpServer) {
 
       // Broadcast sanitized update to order room (customers listening)
       const room = `order:${orderId}`;
-      io.to(room).emit('driver.location.updated', {
-        orderId,
+      const payload = { 
+        orderId, 
+        driverId: socket.user.id,
         timestamp: timestamp || Date.now(),
-        payload: { lat, lng, bearing: bearing || 0 },
-      });
+        payload: { lat, lng, bearing: bearing || 0 }
+      };
+
+      io.to(room).emit('driver.location.updated', payload);
+      
+      // Also broadcast to admin room for fleet tracking
+      io.to('admin').emit('fleet.location.updated', payload);
     });
 
-    // ── 2c. Disconnect ───────────────────────────────────────────────────
+    // ── 2c. ADMIN: Join admin room ──────────────────────────────────────
+    if (socket.authenticated && socket.user.role === 'admin') {
+      socket.join('admin');
+      logger.info(`Admin ${socket.user.id} joined admin management room`);
+    }
+
+    // ── 2d. Disconnect ───────────────────────────────────────────────────
     socket.on('disconnect', (reason) => {
       logger.info(`Socket disconnected: ${socket.id} reason: ${reason}`);
     });

@@ -100,6 +100,9 @@ class OrderService {
         });
       }
       
+      const notificationService = require('./notification.service');
+      await notificationService.notifyOrderStatus(orderId, 'placed');
+      
       logger.info(`Order ${orderId} marked as placed/paid.`);
       return true;
     } catch (err) {

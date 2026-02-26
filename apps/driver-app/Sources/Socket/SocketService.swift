@@ -14,8 +14,8 @@ final class SocketService: ObservableObject {
 
     // MARK: - Connect (called after driver logs in and goes Online)
     func connect(token: String) {
-        // Use 127.0.0.1 for iOS simulator, or replace with your machine's local IP for physical devices
-        let serverURLString = "http://127.0.0.1:3000" 
+        // Using host IP for physical device connectivity
+        let serverURLString = "http://192.168.221.78:3000" 
         
         let manager = SocketManager(
             socketURL: URL(string: serverURLString)!,

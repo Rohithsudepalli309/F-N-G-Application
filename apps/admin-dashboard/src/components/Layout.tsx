@@ -24,7 +24,7 @@ export const AdminLayout = () => {
     { label: 'Live Orders', path: '/orders',   icon: ShoppingBag },
     { label: 'Users',       path: '/users',    icon: Users },
     { label: 'Stores',      path: '/stores',   icon: Store },
-    { label: 'Drivers',     path: '/drivers',  icon: Truck },
+    { label: 'Fleet',       path: '/drivers',  icon: Truck },
   ];
 
   return (
