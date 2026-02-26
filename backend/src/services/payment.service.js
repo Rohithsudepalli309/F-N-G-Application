@@ -11,29 +11,29 @@ const razorpay = new Razorpay({
 
 class PaymentService {
   // 1. Create Razorpay Order
-  async createOrder(userId, amountInPaisa, currency = 'INR') {
+  async createOrder(userId, amountInPaisa, orderId) {
     if (!amountInPaisa || amountInPaisa < 100) {
       throw new Error('Invalid amount');
     }
 
     const options = {
       amount: amountInPaisa,
-      currency,
-      receipt: `receipt_${Date.now()}`,
-      notes: { user_id: userId }
+      currency: 'INR',
+      receipt: `rcpt_${orderId}`,
+      notes: { user_id: userId, order_id: orderId }
     };
 
     try {
-      const order = await razorpay.orders.create(options);
+      const rpOrder = await razorpay.orders.create(options);
       
-      // Persist Pending Payment
+      // Persist Transaction Ledger
       await db.query(
-        `INSERT INTO payments (razorpay_order_id, amount, status, user_id) VALUES ($1, $2, 'pending', $3)`,
-        [order.id, amountInPaisa, userId]
+        `INSERT INTO transactions (order_id, razorpay_order_id, amount, status) VALUES ($1, $2, $3, 'pending')`,
+        [orderId, rpOrder.id, amountInPaisa]
       );
 
-      logger.info(`Payment order created: ${order.id}`);
-      return order;
+      logger.info(`Razorpay order ${rpOrder.id} created for F&G Order ${orderId}`);
+      return rpOrder;
     } catch (err) {
       logger.error('Razorpay Order Creation Failed', err);
       throw new Error('Payment initialization failed');
@@ -41,38 +41,42 @@ class PaymentService {
   }
 
   // 2. Verify Webhook Signature
-  verifyWebhook(body, signature) {
-    const generatedSignature = crypto
+  verifyWebhook(rawBody, signature) {
+    const expectedSignature = crypto
       .createHmac('sha256', env.RAZORPAY_WEBHOOK_SECRET)
-      .update(JSON.stringify(body))
+      .update(rawBody)
       .digest('hex');
 
-    return generatedSignature === signature;
+    return expectedSignature === signature;
   }
 
   // 3. Handle Webhook Event
-  async handleWebhook(event) {
+  async handleWebhook(event, io) {
     logger.info(`Processing Webhook: ${event.event}`);
 
     if (event.event === 'payment.captured') {
-      const { order_id, id: payment_id } = event.payload.payment.entity;
+      const { order_id: rpOrderId, id: paymentId, notes } = event.payload.payment.entity;
+      const internalOrderId = notes.order_id;
       
-      // Update Payment Status
+      // Update Transaction
       await db.query(
-        `UPDATE payments SET status = 'success', razorpay_payment_id = $1 WHERE razorpay_order_id = $2`,
-        [payment_id, order_id]
+        `UPDATE transactions SET status = 'success', razorpay_payment_id = $1, razorpay_signature = $2 
+         WHERE razorpay_order_id = $3`,
+        [paymentId, 'webhook_verified', rpOrderId]
       );
 
-      // Trigger Order Service Update (Mocked for now)
-      // await orderService.markPaid(order_id);
-      logger.info(`Payment Success: ${order_id}`);
+      // Trigger Order Update
+      const orderService = require('./order.service');
+      await orderService.markPaid(internalOrderId, io);
+      
+      logger.info(`Payment Success: Internal Order ${internalOrderId}`);
     } else if (event.event === 'payment.failed') {
-       const { order_id } = event.payload.payment.entity;
+       const { order_id: rpOrderId } = event.payload.payment.entity;
        await db.query(
-        `UPDATE payments SET status = 'failed' WHERE razorpay_order_id = $1`,
-        [order_id]
+        `UPDATE transactions SET status = 'failed' WHERE razorpay_order_id = $1`,
+        [rpOrderId]
       );
-      logger.warn(`Payment Failed: ${order_id}`);
+      logger.warn(`Payment Failed for Razorpay Order: ${rpOrderId}`);
     }
   }
 }
