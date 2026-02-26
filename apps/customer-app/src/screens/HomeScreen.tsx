@@ -34,10 +34,10 @@ const BRAND_CHIPS = [
 const CATEGORY_TAGS = ['All', 'Snacks', 'Drinks', 'Fashion', 'Electronics', 'Beauty', 'Kitchen', 'Care'];
 
 const HOME_CATEGORIES = [
-  { id: '1', title: 'Fruits & Vegetables', image: 'https://cdn-icons-png.flaticon.com/512/2329/2329865.png', price: '₹35' },
-  { id: '2', title: 'Dairy, Bread & Eggs', image: 'https://cdn-icons-png.flaticon.com/512/3050/3050161.png', price: '₹33' },
-  { id: '3', title: 'Atta, Rice, Oil & Dals', image: 'https://cdn-icons-png.flaticon.com/512/2621/2621814.png', price: '₹145' },
-  { id: '4', title: 'Munchies', image: 'https://cdn-icons-png.flaticon.com/512/2553/2553691.png', price: '₹20' },
+  { id: '1', title: 'Fruits & Vegetables', image: 'https://images.unsplash.com/photo-1610832958506-aa56368176cf?auto=format&fit=crop&q=80&w=300', price: '₹35' },
+  { id: '2', title: 'Dairy, Bread & Eggs', image: 'https://images.unsplash.com/photo-1628088062854-d1870b4553da?auto=format&fit=crop&q=80&w=300', price: '₹33' },
+  { id: '3', title: 'Atta, Rice, Oil & Dals', image: 'https://images.unsplash.com/photo-1586201375761-83865001e31c?auto=format&fit=crop&q=80&w=300', price: '₹145' },
+  { id: '4', title: 'Munchies', image: 'https://images.unsplash.com/photo-1599490659213-e2b9527bd087?auto=format&fit=crop&q=80&w=300', price: '₹20' },
 ];
 
 export const HomeScreen = () => {
@@ -47,6 +47,8 @@ export const HomeScreen = () => {
   const [showBackToTop, setShowBackToTop] = useState(false);
   const [offZoneProducts, setOffZoneProducts] = useState<any[]>([]);
   const [munchiesProducts, setMunchiesProducts] = useState<any[]>([]);
+  const [dairyProducts, setDairyProducts] = useState<any[]>([]);
+  const [cleaningProducts, setCleaningProducts] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [activeOrder, setActiveOrder] = useState<any>(null);
   const scrollRef = useRef<ScrollView>(null);
@@ -63,6 +65,18 @@ export const HomeScreen = () => {
       const munchiesRes = await api.get('/products', { params: { category: 'Munchies' } });
       if (munchiesRes.data && Array.isArray(munchiesRes.data)) {
         setMunchiesProducts(munchiesRes.data.slice(0, 6));
+      }
+
+      // 3. Fetch Dairy
+      const dairyRes = await api.get('/products', { params: { category: 'Dairy, Bread & Eggs' } });
+      if (dairyRes.data && Array.isArray(dairyRes.data)) {
+        setDairyProducts(dairyRes.data.slice(0, 6));
+      }
+
+      // 4. Fetch Cleaning
+      const cleaningRes = await api.get('/products', { params: { category: 'Cleaning Essentials' } });
+      if (cleaningRes.data && Array.isArray(cleaningRes.data)) {
+        setCleaningProducts(cleaningRes.data.slice(0, 6));
       }
 
       // REALISM: Poll for active order to show status bar
@@ -211,9 +225,15 @@ export const HomeScreen = () => {
             <View style={styles.liveOrderContent}>
                <View style={styles.liveOrderInfo}>
                   <Text style={styles.liveOrderTitle}>
-                    {activeOrder.status === 'pickup' ? '🛵 Driver is on the way!' : 'Preparing your order...'}
+                    {activeOrder.status === 'pickup' ? '🛵 Driver is on the way!' : 
+                     activeOrder.status === 'ready' ? '📦 Order is ready for pickup!' :
+                     '🥘 Preparing your order...'}
                   </Text>
-                  <Text style={styles.liveOrderSub}>Arriving in 4-8 mins</Text>
+                  <Text style={styles.liveOrderSub}>
+                    {activeOrder.status === 'pickup' ? 'Arriving in 4-8 mins' : 
+                     activeOrder.status === 'ready' ? 'Store is waiting for driver' :
+                     'Expected in 12 mins'}
+                  </Text>
                </View>
                <View style={styles.trackBtnPill}>
                   <Text style={styles.trackText}>TRACK</Text>
@@ -318,7 +338,7 @@ export const HomeScreen = () => {
                 onPress={() => (navigation as any).navigate('ProductList', { categoryName: category.title })}
               >
                 <Text style={styles.gridTitle} numberOfLines={2}>{category.title}</Text>
-                <Image source={{ uri: category.image }} style={styles.gridImage} />
+                <Image source={{ uri: category.image }} style={styles.gridImage} resizeMode="cover" />
                 <View style={styles.gridFooter}>
                   <Text style={styles.gridStarts}>Starts at</Text>
                   <Text style={styles.gridPrice}>{category.price}</Text>
@@ -404,6 +424,82 @@ export const HomeScreen = () => {
           </ScrollView>
         </View>
 
+        {/* --- 10. Dairy & Breakfast Swiper -----------------------------------------------─ */}
+        <View style={styles.offZoneSection}>
+          <View style={styles.offZoneHeader}>
+             <Text style={styles.offZoneTitle}>Dairy & Breakfast</Text>
+             <Text style={styles.offZoneSubtitle}>Fresh milk, eggs, bread & more</Text>
+          </View>
+          <ScrollView horizontal showsHorizontalScrollIndicator={false} style={{ paddingLeft: 16 }}>
+             {loading ? (
+               <ActivityIndicator size="small" color={theme.colors.primary} style={{ marginRight: 20 }} />
+             ) : (
+               dairyProducts.map(p => (
+                 <ProductCard 
+                   key={p.id} 
+                   product={{
+                     id: p.id,
+                     name: p.name,
+                     weight: p.unit || '1 pack',
+                     price: p.price / 100,
+                     originalPrice: p.original_price ? p.original_price / 100 : undefined,
+                     image: p.image_url,
+                     deliveryTime: '7 mins',
+                     discountTag: p.original_price ? `₹${(p.original_price - p.price)/100}` : undefined
+                   }} 
+                 />
+               ))
+             )}
+             <TouchableOpacity 
+               style={[styles.seeAllCard, { backgroundColor: '#1E88E5' }]}
+               onPress={() => (navigation as any).navigate('ProductList', { categoryName: 'Dairy, Bread & Eggs' })}
+             >
+                <Text style={styles.seeAllText}>See All</Text>
+                <View style={styles.seeAllCircle}>
+                   <Text style={{ fontSize: 18, color: '#1E88E5' }}>→</Text>
+                </View>
+             </TouchableOpacity>
+          </ScrollView>
+        </View>
+
+        {/* --- 11. Home & Cleaning Swiper -------------------------------------------------─ */}
+        <View style={styles.offZoneSection}>
+          <View style={styles.offZoneHeader}>
+             <Text style={styles.offZoneTitle}>Home & Cleaning</Text>
+             <Text style={styles.offZoneSubtitle}>Dirt doesn't stand a chance</Text>
+          </View>
+          <ScrollView horizontal showsHorizontalScrollIndicator={false} style={{ paddingLeft: 16 }}>
+             {loading ? (
+               <ActivityIndicator size="small" color={theme.colors.primary} style={{ marginRight: 20 }} />
+             ) : (
+               cleaningProducts.map(p => (
+                 <ProductCard 
+                   key={p.id} 
+                   product={{
+                     id: p.id,
+                     name: p.name,
+                     weight: p.unit || '1 pack',
+                     price: p.price / 100,
+                     originalPrice: p.original_price ? p.original_price / 100 : undefined,
+                     image: p.image_url,
+                     deliveryTime: '10 mins',
+                     discountTag: p.original_price ? `₹${(p.original_price - p.price)/100}` : undefined
+                   }} 
+                 />
+               ))
+             )}
+             <TouchableOpacity 
+               style={[styles.seeAllCard, { backgroundColor: '#00BCD4' }]}
+               onPress={() => (navigation as any).navigate('ProductList', { categoryName: 'Cleaning Essentials' })}
+             >
+                <Text style={styles.seeAllText}>See All</Text>
+                <View style={styles.seeAllCircle}>
+                   <Text style={{ fontSize: 18, color: '#00BCD4' }}>→</Text>
+                </View>
+             </TouchableOpacity>
+          </ScrollView>
+        </View>
+
         <View style={{ height: 180 }} />
       </ScrollView>
 
@@ -443,55 +539,20 @@ const styles = StyleSheet.create({
   speedPill: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#FFF',
+    backgroundColor: '#FBC02D',
+    paddingHorizontal: 8,
+    paddingVertical: 4,
+    borderRadius: 20,
   },
   speedBolt: {
-    fontSize: 24,
+    fontSize: 22,
     marginRight: 6,
   },
   speedText: {
-    fontSize: 22,
+    fontSize: 20,
     fontFamily: theme.typography.fontFamily.bold,
     color: '#000',
     letterSpacing: -0.5,
-  },
-  phaseBadges: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginRight: 8,
-  },
-  phasePill: {
-    paddingHorizontal: 8,
-    paddingVertical: 4,
-    borderRadius: 8,
-    marginLeft: 6,
-    borderWidth: 1,
-    borderColor: 'rgba(0,0,0,0.05)',
-  },
-  phasePillText: {
-    fontSize: 10,
-    fontWeight: 'bold',
-  },
-  profileIconBtn: {
-    width: 36,
-    height: 36,
-    borderRadius: 18,
-    backgroundColor: '#F5F5F5',
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  profileCircleInner: {
-    width: 32,
-    height: 32,
-    borderRadius: 16,
-    backgroundColor: '#FFF',
-    alignItems: 'center',
-    justifyContent: 'center',
-    borderWidth: 1,
-    borderColor: '#EEE',
-  },
-  profileChar: {
-    fontSize: 16,
   },
   locationContainer: {
     paddingHorizontal: 14,
@@ -499,7 +560,7 @@ const styles = StyleSheet.create({
     paddingBottom: 12,
   },
   locationTopText: {
-    fontSize: 14,
+    fontSize: 16,
     fontFamily: theme.typography.fontFamily.bold,
     color: '#000',
   },
@@ -524,6 +585,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 14,
     justifyContent: 'space-between',
     marginBottom: 16,
+    marginTop: 8,
   },
   serviceCard: {
     width: (width - 48) / 4,
@@ -546,58 +608,26 @@ const styles = StyleSheet.create({
     color: '#000',
     marginTop: -2,
   },
-  newSearchSection: {
-    paddingHorizontal: 14,
-    paddingBottom: 14,
-  },
-  newSearchBar: {
-    flexDirection: 'row',
+  profileIconBtn: {
+    width: 36,
+    height: 36,
+    borderRadius: 18,
+    backgroundColor: '#F5F5F5',
     alignItems: 'center',
-    backgroundColor: '#F7F7F7',
-    borderRadius: 12,
-    height: 46,
-    paddingHorizontal: 12,
+    justifyContent: 'center',
+  },
+  profileCircleInner: {
+    width: 32,
+    height: 32,
+    borderRadius: 16,
+    backgroundColor: '#FFF',
+    alignItems: 'center',
+    justifyContent: 'center',
     borderWidth: 1,
-    borderColor: '#F0F0F0',
+    borderColor: '#EEE',
   },
-  newSearchIcon: {
+  profileChar: {
     fontSize: 16,
-    color: '#757575',
-    marginRight: 8,
-  },
-  newSearchInput: {
-    flex: 1,
-    fontSize: 14,
-    color: '#000',
-    fontFamily: theme.typography.fontFamily.medium,
-  },
-  searchRightBadges: {
-    flexDirection: 'row',
-    alignItems: 'center',
-  },
-  searchSep: {
-    width: 1,
-    height: 20,
-    backgroundColor: '#E0E0E0',
-    marginHorizontal: 10,
-  },
-  specialsBadge: {
-    marginRight: 6,
-  },
-  specialsTitle: {
-    fontSize: 10,
-    fontWeight: 'bold',
-    color: '#1A237E',
-  },
-  specialsSub: {
-    fontSize: 10,
-    color: '#1A237E',
-    marginTop: -2,
-  },
-  badgeImg: {
-    width: 24,
-    height: 24,
-    resizeMode: 'contain',
   },
   content: {
     flex: 1,
@@ -667,9 +697,9 @@ const styles = StyleSheet.create({
     marginBottom: 4,
   },
   gridImage: {
-    width: 60,
-    height: 60,
-    resizeMode: 'contain',
+    width: 65,
+    height: 65,
+    borderRadius: 8,
     marginBottom: 8,
   },
   gridFooter: {
@@ -893,6 +923,59 @@ const styles = StyleSheet.create({
     position: 'absolute',
     bottom: 5,
     right: 5,
+    resizeMode: 'contain',
+  },
+  newSearchSection: {
+    paddingHorizontal: 14,
+    paddingBottom: 14,
+  },
+  newSearchBar: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#F7F7F7',
+    borderRadius: 12,
+    height: 46,
+    paddingHorizontal: 12,
+    borderWidth: 1,
+    borderColor: '#F0F0F0',
+  },
+  newSearchIcon: {
+    fontSize: 16,
+    color: '#757575',
+    marginRight: 8,
+  },
+  newSearchInput: {
+    flex: 1,
+    fontSize: 14,
+    color: '#000',
+    fontFamily: theme.typography.fontFamily.medium,
+  },
+  searchRightBadges: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  searchSep: {
+    width: 1,
+    height: 20,
+    backgroundColor: '#E0E0E0',
+    marginHorizontal: 10,
+  },
+  specialsBadge: {
+    marginRight: 6,
+  },
+  specialsTitle: {
+    fontSize: 10,
+    fontWeight: 'bold',
+    color: '#1A237E',
+  },
+  specialsSub: {
+    fontSize: 10,
+    color: '#1A237E',
+    marginTop: -2,
+  },
+  badgeImg: {
+    width: 24,
+    height: 24,
     resizeMode: 'contain',
   },
   liveOrderCard: {

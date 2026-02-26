@@ -52,43 +52,47 @@ export const ProductCard = ({ product }: { product: Product }) => {
       <View style={styles.imageContainer}>
         <Image source={{ uri: product.image }} style={styles.image} resizeMode="contain" />
         <TouchableOpacity style={styles.favBtn}>
-           <Text style={styles.favIcon}>❤️</Text>
+           <Text style={styles.favIcon}>🤍</Text>
         </TouchableOpacity>
         
         {/* ADD Button or Quantity Selector */}
-        {qty === 0 ? (
-          <TouchableOpacity style={styles.addBtn} onPress={handleAdd}>
-            <Text style={styles.addText}>ADD</Text>
-          </TouchableOpacity>
-        ) : (
-          <View style={styles.qtyContainer}>
-            <TouchableOpacity style={styles.qtyBtn} onPress={handleDecrement}>
-              <Text style={styles.qtyBtnText}>-</Text>
+        <View style={styles.addButtonWrapper}>
+          {qty === 0 ? (
+            <TouchableOpacity style={styles.addBtn} onPress={handleAdd}>
+              <Text style={styles.addText}>ADD</Text>
             </TouchableOpacity>
-            <Text style={styles.qtyText}>{qty}</Text>
-            <TouchableOpacity style={styles.qtyBtn} onPress={handleIncrement}>
-              <Text style={styles.qtyBtnText}>+</Text>
-            </TouchableOpacity>
-          </View>
-        )}
-      </View>
-
-      {/* 2. Price Section */}
-      <View style={styles.priceRow}>
-        <View style={styles.priceTags}>
-          <View style={styles.priceContainer}>
-             <Text style={styles.currPrice}>₹{product.price}</Text>
-             {product.originalPrice && <Text style={styles.oldPrice}>₹{product.originalPrice}</Text>}
-          </View>
-          {product.discountTag && (
-            <Text style={styles.discountTag}>{product.discountTag} OFF</Text>
+          ) : (
+            <View style={styles.qtyContainer}>
+              <TouchableOpacity style={styles.qtyBtn} onPress={handleDecrement}>
+                <Text style={styles.qtyBtnText}>-</Text>
+              </TouchableOpacity>
+              <Text style={styles.qtyText}>{qty}</Text>
+              <TouchableOpacity style={styles.qtyBtn} onPress={handleIncrement}>
+                <Text style={styles.qtyBtnText}>+</Text>
+              </TouchableOpacity>
+            </View>
           )}
         </View>
       </View>
 
+      {/* 2. Price Section */}
+      <View style={styles.priceSection}>
+        <View style={styles.priceRow}>
+          <View style={styles.currPricePill}>
+             <Text style={styles.currPriceText}>₹{product.price}</Text>
+          </View>
+          {product.originalPrice && <Text style={styles.oldPrice}>₹{product.originalPrice}</Text>}
+        </View>
+        {product.discountTag && (
+          <Text style={styles.discountTag}>{product.discountTag} OFF</Text>
+        )}
+      </View>
+
+      <View style={styles.dashedSeparator} />
+
       {/* 3. Product Info */}
       <Text style={styles.name} numberOfLines={2}>{product.name}</Text>
-      <Text style={styles.weight}>{product.weight}</Text>
+      <Text style={styles.weight} numberOfLines={1}>{product.weight}</Text>
 
       {/* 4. Delivery Speed */}
       <View style={styles.deliveryRow}>
@@ -108,122 +112,130 @@ const styles = StyleSheet.create({
   },
   imageContainer: {
     width: '100%',
-    aspectRatio: 1,
-    backgroundColor: '#FFF',
+    aspectRatio: 0.85,
+    backgroundColor: '#F8F9FA',
     borderRadius: 12,
     alignItems: 'center',
     justifyContent: 'center',
-    position: 'relative',
-    padding: 6,
-    borderWidth: 1,
-    borderColor: '#EEEEEE',
+    marginBottom: 10,
   },
   image: {
-    width: '90%',
-    height: '90%',
+    width: '80%',
+    height: '80%',
   },
   favBtn: {
     position: 'absolute',
     top: 6,
-    right: 6,
+    right: 8,
     zIndex: 10,
   },
   favIcon: {
-    fontSize: 12,
+    fontSize: 16,
+    color: '#E91E63',
+  },
+  addButtonWrapper: {
+    position: 'absolute',
+    bottom: -10,
+    right: 8,
+    zIndex: 10,
   },
   addBtn: {
-    position: 'absolute',
-    bottom: -12,
     backgroundColor: '#FFFFFF',
     borderWidth: 1,
-    borderColor: '#2E7D32',
-    borderRadius: 6,
+    borderColor: '#E91E63',
+    borderRadius: 8,
     paddingHorizontal: 16,
     paddingVertical: 5,
     elevation: 2,
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.15,
+    shadowOpacity: 0.1,
     shadowRadius: 1,
   },
   addText: {
-    color: '#2E7D32',
+    color: '#E91E63',
     fontFamily: theme.typography.fontFamily.bold,
     fontSize: 12,
     fontWeight: '900',
   },
   qtyContainer: {
-    position: 'absolute',
-    bottom: -12,
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#2E7D32', // F&G Brand Green
+    backgroundColor: '#E91E63',
     borderRadius: 6,
     elevation: 2,
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.15,
+    shadowOpacity: 0.1,
     shadowRadius: 1,
     overflow: 'hidden',
   },
   qtyBtn: {
-    paddingHorizontal: 10,
-    paddingVertical: 4,
+    paddingHorizontal: 8,
+    paddingVertical: 5,
   },
   qtyBtnText: {
     color: '#FFF',
-    fontSize: 16,
+    fontSize: 14,
     fontWeight: 'bold',
   },
   qtyText: {
     color: '#FFF',
-    fontSize: 13,
+    fontSize: 12,
     fontFamily: theme.typography.fontFamily.bold,
     minWidth: 16,
     textAlign: 'center',
   },
-  priceRow: {
-    marginTop: 16,
+  priceSection: {
     paddingHorizontal: 2,
+    marginTop: 2,
   },
-  priceTags: {
-    marginBottom: 0,
-  },
-  priceContainer: {
+  priceRow: {
     flexDirection: 'row',
     alignItems: 'center',
+    marginBottom: 2,
   },
-  currPrice: {
-    fontSize: 13,
+  currPricePill: {
+    backgroundColor: '#388E3C',
+    paddingHorizontal: 6,
+    paddingVertical: 2,
+    borderRadius: 4,
+    marginRight: 6,
+  },
+  currPriceText: {
+    fontSize: 12,
     fontFamily: theme.typography.fontFamily.bold,
-    color: '#000',
-    marginRight: 4,
+    color: '#FFF',
   },
   oldPrice: {
-    fontSize: 10,
-    color: '#757575',
+    fontSize: 12,
+    color: '#9E9E9E',
     textDecorationLine: 'line-through',
   },
   discountTag: {
-    fontSize: 9,
-    color: '#2E7D32',
-    fontWeight: 'bold',
+    fontSize: 10,
+    color: '#388E3C',
+    fontFamily: theme.typography.fontFamily.bold,
     marginTop: 1,
+  },
+  dashedSeparator: {
+    borderBottomWidth: 1,
+    borderStyle: 'dashed',
+    borderColor: '#E0E0E0',
+    marginVertical: 8,
   },
   name: {
     fontSize: 11,
     fontFamily: theme.typography.fontFamily.medium,
     color: '#212121',
-    marginTop: 2,
     paddingHorizontal: 2,
-    height: 28,
+    height: 32,
     lineHeight: 14,
   },
   weight: {
     fontSize: 10,
     color: '#757575',
     paddingHorizontal: 2,
-    marginTop: 0,
   },
   deliveryRow: {
     flexDirection: 'row',
@@ -232,13 +244,13 @@ const styles = StyleSheet.create({
     marginTop: 4,
   },
   bolt: {
-    fontSize: 9,
+    fontSize: 10,
+    color: '#757575',
     marginRight: 2,
   },
   deliveryTime: {
     fontSize: 9,
-    fontFamily: theme.typography.fontFamily.bold,
+    fontFamily: theme.typography.fontFamily.medium,
     color: '#757575',
-    fontWeight: 'bold',
   }
 });

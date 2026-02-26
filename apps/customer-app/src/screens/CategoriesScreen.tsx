@@ -39,35 +39,35 @@ const SECTIONS = [
   },
   {
     title: 'Snacks & Drinks',
-    layout: 'grid-4', // Small icons
+    layout: 'grid-4', // Small photos
     items: [
-      { id: '8', name: 'Tea, Coffee & More', image: 'https://cdn-icons-png.flaticon.com/512/3504/3504787.png' },
-      { id: '9', name: 'Ice Creams & More', image: 'https://cdn-icons-png.flaticon.com/512/938/938063.png' },
-      { id: '10', name: 'Frozen Food', image: 'https://cdn-icons-png.flaticon.com/512/2954/2954848.png' },
-      { id: '11', name: 'Sweet Cravings', image: 'https://cdn-icons-png.flaticon.com/512/3419/3419213.png' },
-      { id: '12', name: 'Cold Drinks & Juices', image: 'https://cdn-icons-png.flaticon.com/512/3075/3075908.png' },
-      { id: '13', name: 'Munchies', image: 'https://cdn-icons-png.flaticon.com/512/2553/2553691.png' },
-      { id: '14', name: 'Biscuits & Cookies', image: 'https://cdn-icons-png.flaticon.com/512/541/541732.png' },
+      { id: '8', name: 'Tea, Coffee & More', image: 'https://images.unsplash.com/photo-1544787219-7f47ccacb2e2?auto=format&fit=crop&q=80&w=300' },
+      { id: '9', name: 'Ice Creams & More', image: 'https://images.unsplash.com/photo-1559703248-dcaaec9fab78?auto=format&fit=crop&q=80&w=300' },
+      { id: '10', name: 'Frozen Food', image: 'https://images.unsplash.com/photo-1549488344-c1fbdbcfbe0d?auto=format&fit=crop&q=80&w=300' },
+      { id: '11', name: 'Sweet Cravings', image: 'https://images.unsplash.com/photo-1581486518428-f682531cd9a2?auto=format&fit=crop&q=80&w=300' },
+      { id: '12', name: 'Cold Drinks', image: 'https://images.unsplash.com/photo-1622483767028-3f66f32aef97?auto=format&fit=crop&q=80&w=300' },
+      { id: '13', name: 'Munchies', image: 'https://images.unsplash.com/photo-1599490659213-e2b9527bd087?auto=format&fit=crop&q=80&w=300' },
+      { id: '14', name: 'Biscuits', image: 'https://images.unsplash.com/photo-1558961363-fa8fdf82db35?auto=format&fit=crop&q=80&w=300' },
     ],
   },
   {
     title: 'Household Essentials',
     layout: 'grid-4',
     items: [
-      { id: '15', name: 'Home Needs', image: 'https://cdn-icons-png.flaticon.com/512/3163/3163195.png' },
-      { id: '16', name: 'Cleaning Essentials', image: 'https://cdn-icons-png.flaticon.com/512/1940/1940922.png' },
-      { id: '17', name: 'Pet Care', image: 'https://cdn-icons-png.flaticon.com/512/3163/3163155.png' },
-      { id: '18', name: 'Stationery', image: 'https://cdn-icons-png.flaticon.com/512/3163/3163229.png' },
+      { id: '15', name: 'Home Needs', image: 'https://images.unsplash.com/photo-1583907659441-2aef2a1e360f?auto=format&fit=crop&q=80&w=300' },
+      { id: '16', name: 'Cleaning', image: 'https://images.unsplash.com/photo-1584820927498-cafe2c1c7669?auto=format&fit=crop&q=80&w=300' },
+      { id: '17', name: 'Pet Care', image: 'https://images.unsplash.com/photo-1583337130417-3346a1be7dee?auto=format&fit=crop&q=80&w=300' },
+      { id: '18', name: 'Stationery', image: 'https://images.unsplash.com/photo-1503694978374-8a2fa686963a?auto=format&fit=crop&q=80&w=300' },
     ],
   },
   {
     title: 'Shop by Store',
-    layout: 'store-grid', // 3D elevated look
+    layout: 'store-grid', // Elevated photos
     items: [
-      { id: 'st1', name: 'Gift Store', image: 'https://cdn-icons-png.flaticon.com/512/1041/1041355.png' },
-      { id: 'st2', name: 'Ayush Store', image: 'https://cdn-icons-png.flaticon.com/512/862/862839.png' },
-      { id: 'st3', name: 'Vitamin Store', image: 'https://cdn-icons-png.flaticon.com/512/2954/2954848.png' },
-      { id: 'st4', name: 'Pooja Store', image: 'https://cdn-icons-png.flaticon.com/512/2769/2769578.png' },
+      { id: 'st1', name: 'Gift Store', image: 'https://images.unsplash.com/photo-1549465220-1a8b9238cd48?auto=format&fit=crop&q=80&w=300' },
+      { id: 'st2', name: 'Ayush Store', image: 'https://images.unsplash.com/photo-1611078566367-ad82fe9e3fa6?auto=format&fit=crop&q=80&w=300' },
+      { id: 'st3', name: 'Vitamin Store', image: 'https://images.unsplash.com/photo-1577401239170-897942555fb3?auto=format&fit=crop&q=80&w=300' },
+      { id: 'st4', name: 'Pooja Store', image: 'https://images.unsplash.com/photo-1605335150373-1bb3fa23bfe4?auto=format&fit=crop&q=80&w=300' },
     ],
   },
 ];
@@ -132,7 +132,7 @@ export const CategoriesScreen = () => {
                       isTwoCol && styles.imgWrapperWide,
                       isStore && styles.storeImgWrapper
                     ]}>
-                      <Image source={{ uri: item.image }} style={styles.itemImg} resizeMode="contain" />
+                      <Image source={{ uri: item.image }} style={styles.itemImg} resizeMode="cover" />
                     </View>
                     <Text style={[styles.itemName, isTwoCol && styles.itemNameWide]} numberOfLines={2}>
                       {item.name}
@@ -265,8 +265,9 @@ const styles = StyleSheet.create({
     shadowRadius: 3,
   },
   itemImg: {
-    width: '80%',
-    height: '80%',
+    width: '82%',
+    height: '82%',
+    borderRadius: 8,
   },
   itemName: {
     fontSize: 10,

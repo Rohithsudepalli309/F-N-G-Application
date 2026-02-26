@@ -34,14 +34,6 @@ export const BottomTabs = ({ activeTab }: { activeTab: string }) => {
           </TouchableOpacity>
         );
       })}
-
-      {/* --- BRAND PLACEMENT (As seen in your screenshot) --- */}
-      <TouchableOpacity style={styles.brandTab}>
-         <View style={styles.brandLogoBox}>
-            <Text style={styles.brandLogoText}>durex</Text>
-         </View>
-      </TouchableOpacity>
-      
     </View>
   );
 };

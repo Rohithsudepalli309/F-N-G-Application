@@ -12,27 +12,36 @@ const CATEGORIES = [
 
 const BASE_PRODUCTS = [
   // Fruits & Veg
-  { name: 'Alphonso Mango', cat: 'Fruits & Vegetables', p: 120000, op: 150000, u: '1 Dozen', img: 'https://images.unsplash.com/photo-1553279768-865429fa0078?auto=format&fit=crop&q=80&w=400' },
-  { name: 'Fresh Broccoli', cat: 'Fruits & Vegetables', p: 8500, op: 11000, u: '1 Unit', img: 'https://images.unsplash.com/photo-1459411621453-7b03977f4bfc?auto=format&fit=crop&q=80&w=400' },
-  { name: 'Washington Apples', cat: 'Fruits & Vegetables', p: 24000, op: 32000, u: '1kg', img: 'https://images.unsplash.com/photo-1560806887-1e4cd0b6cbd6?auto=format&fit=crop&q=80&w=400' },
+  { name: 'Onion (Pyaz)', cat: 'Fruits & Vegetables', p: 3500, op: 4500, u: '1 kg', img: 'https://www.bigbasket.com/media/uploads/p/l/10000148_30-fresho-onion.jpg' },
+  { name: 'Tomato (Hybrid)', cat: 'Fruits & Vegetables', p: 2500, op: 3000, u: '1 kg', img: 'https://www.bigbasket.com/media/uploads/p/l/10000200_17-fresho-tomato-hybrid.jpg' },
+  { name: 'Potato (Aloo)', cat: 'Fruits & Vegetables', p: 4000, op: 5500, u: '1 kg', img: 'https://www.bigbasket.com/media/uploads/p/l/10000159_27-fresho-potato.jpg' },
+  { name: 'Fresh Coriander', cat: 'Fruits & Vegetables', p: 1500, op: 2000, u: '100 g', img: 'https://www.bigbasket.com/media/uploads/p/l/10000097_19-fresho-coriander-leaves.jpg' },
   
   // Dairy
-  { name: 'Amul Gold Milk', cat: 'Dairy, Bread & Eggs', p: 3300, op: 3300, u: '500ml', img: 'https://images.unsplash.com/photo-1550583724-b2692b85b150?auto=format&fit=crop&q=80&w=400' },
-  { name: 'Mother Dairy Paneer', cat: 'Dairy, Bread & Eggs', p: 9500, op: 11000, u: '200g', img: 'https://images.unsplash.com/photo-1631452180519-c014fe946bc7?auto=format&fit=crop&q=80&w=400' },
-  { name: 'Britannia Cheese', cat: 'Dairy, Bread & Eggs', p: 16500, op: 19500, u: '10 Slices', img: 'https://images.unsplash.com/photo-1552767059-ce182ead6c1b?auto=format&fit=crop&q=80&w=400' },
+  { name: 'Amul Taaza Toned Milk', cat: 'Dairy, Bread & Eggs', p: 2700, op: 2700, u: '500 ml', img: 'https://www.bigbasket.com/media/uploads/p/l/104153_9-amul-taaza-toned-milk.jpg' },
+  { name: 'Amul Butter - Pasteurized', cat: 'Dairy, Bread & Eggs', p: 5800, op: 6000, u: '100 g', img: 'https://www.bigbasket.com/media/uploads/p/l/104152_8-amul-butter-pasteurized.jpg' },
+  { name: 'Britannia Good Day Cookies', cat: 'Dairy, Bread & Eggs', p: 3000, op: 3500, u: '218 g', img: 'https://www.bigbasket.com/media/uploads/p/l/1202888_2-britannia-good-day-cashew-cookies.jpg' },
+  { name: 'Farm Fresh Brown Eggs', cat: 'Dairy, Bread & Eggs', p: 8500, op: 10000, u: '6 pcs', img: 'https://www.bigbasket.com/media/uploads/p/l/40072320_5-fresho-farm-eggs-regular-medium-antibiotic-residue-free.jpg' },
 
   // Munchies
-  { name: 'Lays Magic Masala', cat: 'Munchies', p: 2000, op: 2000, u: '50g', img: 'https://images.unsplash.com/photo-1566478431375-71436a548624?auto=format&fit=crop&q=80&w=400' },
-  { name: 'Kurkure Masala', cat: 'Munchies', p: 2000, op: 2000, u: '90g', img: 'https://images.unsplash.com/photo-1599490659223-33306fa02930?auto=format&fit=crop&q=80&w=400' },
-  { name: 'Doritos Nachos', cat: 'Munchies', p: 5000, op: 6000, u: '75g', img: 'https://images.unsplash.com/photo-1599490659223-33306fa02930?auto=format&fit=crop&q=80&w=400' },
+  { name: 'Lays American Style', cat: 'Munchies', p: 2000, op: 2000, u: '50 g', img: 'https://www.bigbasket.com/media/uploads/p/l/1204018_2-lays-potato-chips-american-style-cream-onion-flavour.jpg' },
+  { name: 'Kurkure Masala Munch', cat: 'Munchies', p: 2000, op: 2000, u: '90 g', img: 'https://www.bigbasket.com/media/uploads/p/l/281026_10-kurkure-namkeen-masala-munch.jpg' },
+  { name: 'Haldirams Bhujia Sev', cat: 'Munchies', p: 5500, op: 6000, u: '200 g', img: 'https://www.bigbasket.com/media/uploads/p/l/264560_6-haldirams-namkeen-bhujia-sev.jpg' },
+
+  // Cold Drinks
+  { name: 'Coca Cola Soft Drink', cat: 'Cold Drinks & Juices', p: 4000, op: 4000, u: '750 ml', img: 'https://www.bigbasket.com/media/uploads/p/l/251006_11-coca-cola-diet-coke-soft-drink.jpg' },
+  { name: 'Thumbs Up Soft Drink', cat: 'Cold Drinks & Juices', p: 4000, op: 4000, u: '750 ml', img: 'https://www.bigbasket.com/media/uploads/p/l/251014_11-thumbs-up-soft-drink.jpg' },
+  { name: 'Red Bull Energy Drink', cat: 'Cold Drinks & Juices', p: 12500, op: 12500, u: '250 ml', img: 'https://www.bigbasket.com/media/uploads/p/l/104191_17-red-bull-energy-drink.jpg' },
 
   // Staples
-  { name: 'India Gate Rice', cat: 'Atta, Rice, Oil & Dals', p: 85000, op: 110000, u: '5kg', img: 'https://images.unsplash.com/photo-1586201375761-83865001e31c?auto=format&fit=crop&q=80&w=400' },
-  { name: 'Aashirvaad Atta', cat: 'Atta, Rice, Oil & Dals', p: 42000, op: 55000, u: '10kg', img: 'https://images.unsplash.com/photo-1509440159596-0249088772ff?auto=format&fit=crop&q=80&w=400' },
+  { name: 'Aashirvaad Whole Wheat Atta', cat: 'Atta, Rice, Oil & Dals', p: 42000, op: 55000, u: '10 kg', img: 'https://www.bigbasket.com/media/uploads/p/l/126906_8-aashirvaad-atta-whole-wheat.jpg' },
+  { name: 'India Gate Basmati Rice', cat: 'Atta, Rice, Oil & Dals', p: 85000, op: 110000, u: '5 kg', img: 'https://www.bigbasket.com/media/uploads/p/l/40058882_13-india-gate-basmati-rice-feast-rozzana.jpg' },
+  { name: 'Fortune Sunlite Refined Oil', cat: 'Atta, Rice, Oil & Dals', p: 13500, op: 15500, u: '1 Ltr', img: 'https://www.bigbasket.com/media/uploads/p/l/242671_1-fortune-sunlite-refined-sunflower-oil.jpg' },
 
-  // Personal Care
-  { name: 'Dove Soap', cat: 'Bath & Body', p: 16500, op: 19500, u: '3x100g', img: 'https://images.unsplash.com/photo-1600857062241-99e5adeec130?auto=format&fit=crop&q=80&w=400' },
-  { name: 'Nivea Body Lotion', cat: 'Skincare', p: 34500, op: 42000, u: '400ml', img: 'https://images.unsplash.com/photo-1611080626919-7cf5a9dbab5b?auto=format&fit=crop&q=80&w=400' },
+  // Personal/Home Care
+  { name: 'Surf Excel Easy Wash', cat: 'Cleaning Essentials', p: 16500, op: 19500, u: '1.5 kg', img: 'https://www.bigbasket.com/media/uploads/p/l/212684_16-surf-excel-easy-wash-detergent-powder.jpg' },
+  { name: 'Vim Dishwash Liquid', cat: 'Cleaning Essentials', p: 11000, op: 12500, u: '500 ml', img: 'https://www.bigbasket.com/media/uploads/p/l/10000940_26-vim-dishwash-gel-lemon.jpg' },
+  { name: 'Colgate Strong Teeth', cat: 'Bath & Body', p: 9500, op: 11000, u: '200 g', img: 'https://www.bigbasket.com/media/uploads/p/l/1206124_2-colgate-strong-teeth-anticavity-toothpaste-with-amino-shakti.jpg' },
 ];
 
 const VARIATIONS = [
