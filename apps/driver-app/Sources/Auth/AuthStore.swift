@@ -31,11 +31,20 @@ final class AuthStore: ObservableObject {
         KeychainManager.saveToken(token)
         self.driver = user
         self.isAuthenticated = true
+        
+        // 🚀 Connect Socket & Location
+        SocketService.shared.connect(token: token)
+        LocationManager.shared.socketService = SocketService.shared
+        LocationManager.shared.requestPermissions()
     }
 
     func logout() {
         KeychainManager.deleteToken()
         driver = nil
         isAuthenticated = false
+        
+        // 🛑 Stop Tracking & Disconnect
+        LocationManager.shared.stopTracking()
+        SocketService.shared.disconnect()
     }
 }

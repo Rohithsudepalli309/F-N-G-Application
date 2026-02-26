@@ -44,21 +44,39 @@ struct OrderDetailView: View {
         .navigationBarTitleDisplayMode(.inline)
     }
 
+    @State private var deliveryOTP = ""
+
     @ViewBuilder
     private var actionButtons: some View {
         let isActive = orderStore.activeOrder?.id == order.id
 
         if isActive {
-            // ── Deliver button
-            Button {
-                Task { await orderStore.completeOrder(order) }
-            } label: {
-                Label("Mark as Delivered", systemImage: "checkmark.seal.fill")
-                    .frame(maxWidth: .infinity)
+            // ── Secure Delivery OTP Input
+            VStack(spacing: 12) {
+                Text("Customer Delivery OTP")
+                    .font(.caption)
+                    .foregroundColor(.secondary)
+                    .frame(maxWidth: .infinity, alignment: .leading)
+                
+                TextField("Enter 6-digit OTP", text: $deliveryOTP)
+                    .keyboardType(.numberPad)
+                    .font(.title2.bold().monospaced())
                     .padding()
-                    .background(Color.green)
-                    .foregroundColor(.white)
+                    .background(Color(.systemGray6))
                     .cornerRadius(12)
+                
+                // ── Deliver button
+                Button {
+                    Task { await orderStore.completeOrder(order, otp: deliveryOTP) }
+                } label: {
+                    Label("Complete Delivery", systemImage: "checkmark.seal.fill")
+                        .frame(maxWidth: .infinity)
+                        .padding()
+                        .background(deliveryOTP.count == 6 ? Color.green : Color.gray)
+                        .foregroundColor(.white)
+                        .cornerRadius(12)
+                }
+                .disabled(deliveryOTP.count != 6)
             }
         } else if order.status == .ready || order.status == .placed {
             // ── Accept button (only if no active order)

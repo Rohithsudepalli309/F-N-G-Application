@@ -45,16 +45,17 @@ final class OrderStore: ObservableObject {
     }
 
     // MARK: - Complete / deliver an order
-    func completeOrder(_ order: AssignedOrder) async {
+    func completeOrder(_ order: AssignedOrder, otp: String) async {
         do {
-            struct Body: Encodable { let orderId: String }
+            struct Body: Encodable { let orderId: String; let otp: String }
             struct Resp: Decodable { let success: Bool }
-            let _: Resp = try await APIService.shared.post("/driver/complete", body: Body(orderId: order.id))
+            let _: Resp = try await APIService.shared.post("/driver/complete", body: Body(orderId: order.id, otp: otp))
             activeOrder = nil
             LocationManager.shared.stopTracking()
             await fetchOrders()
         } catch {
-            errorMessage = "Failed to complete order"
+            errorMessage = "Failed to complete order. Invalid OTP?"
         }
     }
+
 }

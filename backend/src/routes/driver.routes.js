@@ -6,6 +6,37 @@ const { notifyOrderStatus, notifyOrderCompleted } = require('../services/socket.
 const logger = require('../config/logger');
 
 /**
+ * GET /api/v1/driver/orders
+ * Returns active orders for this driver (assigned) OR ready orders waiting for pickup
+ */
+router.get('/orders', authenticate, authorize(['driver']), async (req, res, next) => {
+  try {
+    // Return orders specifically assigned to this driver, or any 'ready' orders that are unassigned
+    const result = await db.query(`
+      SELECT 
+        o.id, 
+        o.status, 
+        o.total_amount AS "totalAmount", 
+        json_build_object(
+          'text', o.delivery_address, 
+          'lat', o.delivery_lat, 
+          'lng', o.delivery_lng
+        ) as "deliveryAddress"
+      FROM orders o
+      LEFT JOIN deliveries d ON o.id = d.order_id
+      WHERE (d.driver_id = $1 AND o.status IN ('pickup', 'assigned'))
+         OR (o.status = 'ready' AND d.id IS NULL)
+      ORDER BY o.created_at DESC
+      LIMIT 20
+    `, [req.user.id]);
+    
+    res.json(result.rows);
+  } catch (err) {
+    next(err);
+  }
+});
+
+/**
  * POST /api/v1/driver/location
  * Driver emits location update via REST (alternative to WebSocket path).
  * Used as fallback; primary path is socket event `driver.location.emit`.
@@ -67,11 +98,27 @@ router.post('/accept', authenticate, authorize(['driver']), async (req, res, nex
 
 /**
  * POST /api/v1/driver/complete
- * Driver marks order as delivered.
+ * Driver marks order as delivered via OTP.
  */
 router.post('/complete', authenticate, authorize(['driver']), async (req, res, next) => {
-  const { orderId } = req.body;
+  const { orderId, otp } = req.body;
+  
+  if (!orderId || !otp) {
+     return res.status(400).json({ error: 'Order ID and OTP are required' });
+  }
+
   try {
+    // 1. Verify OTP matches the order
+    const orderCheck = await db.query('SELECT otp FROM orders WHERE id = $1', [orderId]);
+    if (orderCheck.rows.length === 0) {
+      return res.status(404).json({ error: 'Order not found' });
+    }
+    
+    if (orderCheck.rows[0].otp !== otp) {
+      return res.status(400).json({ error: 'Invalid OTP' });
+    }
+
+    // 2. Mark as delivered
     await db.query(
       "UPDATE deliveries SET status='delivered', delivery_time=NOW() WHERE order_id=$1 AND driver_id=$2",
       [orderId, req.user.id]
