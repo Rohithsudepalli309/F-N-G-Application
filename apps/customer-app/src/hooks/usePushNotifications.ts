@@ -1,4 +1,4 @@
-import { useEffect } from 'react';
+import { useEffect, useRef } from 'react';
 import { Platform, Alert } from 'react-native';
 import { useAuthStore } from '../store/useAuthStore';
 import { api } from '../services/api';
@@ -16,9 +16,10 @@ export const usePushNotifications = () => {
     isAuthenticated: state.isAuthenticated,
     user: state.user,
   }));
+  const isRegistered = useRef(false);
 
   useEffect(() => {
-    if (!isAuthenticated || !user) return;
+    if (!isAuthenticated || !user || isRegistered.current) return;
 
     const setupNotifications = async () => {
       try {
@@ -38,22 +39,14 @@ export const usePushNotifications = () => {
           console.log('[Push] Token generated:', mockToken);
 
           // 3. Register with Backend
-          await api.post('/auth/fcm-token', { token: mockToken });
+          await api.post('auth/fcm-token', { token: mockToken });
           console.log('[Push] Token registered successfully with F&G Backend');
-          
-          // EXPERT VERIFICATION: Show the user that Phase 17 IS EXECUTING
-          Alert.alert(
-            'Phase 17 Verified! 🔔',
-            'Your device has been registered for OS-level background notifications.',
-            [{ text: 'Great!' }]
-          );
+          isRegistered.current = true;
         }
       } catch (error) {
         console.warn('[Push] Setup failed:', error);
       }
     };
-
-    setupNotifications();
 
     setupNotifications();
 

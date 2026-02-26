@@ -5,8 +5,17 @@ import { socketService } from './src/services/socket';
 import { OtpNotification } from './src/components/OtpNotification';
 import { useAuthStore } from './src/store/useAuthStore';
 import { usePushNotifications } from './src/hooks/usePushNotifications';
+import { ErrorBoundary } from './src/components/ErrorBoundary';
 
 const App = () => {
+  return (
+    <ErrorBoundary>
+      <MainContent />
+    </ErrorBoundary>
+  );
+};
+
+const MainContent = () => {
   usePushNotifications();
   const [notification, setNotification] = React.useState({ visible: false, phone: '', code: '' });
   const setLastOtp = useAuthStore((state) => state.setLastOtp);

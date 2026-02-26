@@ -33,7 +33,9 @@ const STATUS_LABELS: Record<OrderStatus, string> = {
 
 export const OrderTrackingScreen = () => {
   const route = useRoute();
-  const { orderId } = route.params as { orderId: string };
+  // SAFE NAVIGATION: Ensure orderId defaults nicely and matches the expected format
+  const params = route.params as { orderId: string } | undefined;
+  const orderId = params?.orderId || 'DEMO-ORDER-000';
 
   const [status, setStatus] = useState<OrderStatus>('placed');
   const [driverLocation, setDriverLocation] = useState<LocationPayload | null>(null);
@@ -59,12 +61,15 @@ export const OrderTrackingScreen = () => {
     orderId,
     onStatusUpdate: ({ status }: StatusPayload) => setStatus(status),
     onLocationUpdate: (loc: LocationPayload) => {
+      if (!loc || typeof loc.lat !== 'number' || typeof loc.lng !== 'number') return;
       setDriverLocation(loc);
-      // Animate map camera to driver position
-      mapRef.current?.animateCamera(
-        { center: { latitude: loc.lat, longitude: loc.lng }, zoom: 16 },
-        { duration: 800 }
-      );
+      // Animate map camera to driver position (SAFE CHECK)
+      if (mapRef.current) {
+        mapRef.current.animateCamera(
+          { center: { latitude: loc.lat, longitude: loc.lng }, zoom: 16 },
+          { duration: 800 }
+        );
+      }
     },
     onCompleted: () => setCompleted(true),
     onFallbackPoll: pollOrder,

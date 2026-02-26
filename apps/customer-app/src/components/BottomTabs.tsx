@@ -9,7 +9,7 @@ const TABS = [
   { id: 'Home', label: 'Home', icon: '🏠', activeIcon: '🏠' },
   { id: 'Categories', label: 'Categories', icon: '⊞', activeIcon: '⊞' },
   { id: 'BuyAgain', label: 'Buy Again', icon: '👜', activeIcon: '👜' },
-  { id: 'Fresh', label: 'Fresh', icon: '🥦', activeIcon: '🥦' },
+  { id: 'Fresh', label: 'Fresh', icon: '🚚', activeIcon: '🚚' },
 ];
 
 export const BottomTabs = ({ activeTab }: { activeTab: string }) => {
@@ -34,6 +34,13 @@ export const BottomTabs = ({ activeTab }: { activeTab: string }) => {
           </TouchableOpacity>
         );
       })}
+
+      {/* --- BRAND PLACEMENT (As seen in your screenshot) --- */}
+      <TouchableOpacity style={styles.brandTab}>
+         <View style={styles.brandLogoBox}>
+            <Text style={styles.brandLogoText}>durex</Text>
+         </View>
+      </TouchableOpacity>
       
     </View>
   );

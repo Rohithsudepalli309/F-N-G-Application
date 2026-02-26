@@ -48,17 +48,29 @@ export const HomeScreen = () => {
   const [offZoneProducts, setOffZoneProducts] = useState<any[]>([]);
   const [munchiesProducts, setMunchiesProducts] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
+  const [activeOrder, setActiveOrder] = useState<any>(null);
   const scrollRef = useRef<ScrollView>(null);
 
   const fetchHomeData = async () => {
     try {
-      // 1. Fetch 50% Off Zone (using 'Fruits & Vegetables' as a high-discount category for now)
+      // 1. Fetch 50% Off Zone
       const offZoneRes = await api.get('/products', { params: { category: 'Fruits & Vegetables' } });
-      setOffZoneProducts(offZoneRes.data.slice(0, 6));
+      if (offZoneRes.data && Array.isArray(offZoneRes.data)) {
+        setOffZoneProducts(offZoneRes.data.slice(0, 6));
+      }
 
       // 2. Fetch Munchies
       const munchiesRes = await api.get('/products', { params: { category: 'Munchies' } });
-      setMunchiesProducts(munchiesRes.data.slice(0, 6));
+      if (munchiesRes.data && Array.isArray(munchiesRes.data)) {
+        setMunchiesProducts(munchiesRes.data.slice(0, 6));
+      }
+
+      // REALISM: Poll for active order to show status bar
+      const ordersRes = await api.get('/orders');
+      const active = ordersRes.data.find((o: any) => 
+        ['placed', 'preparing', 'ready', 'pickup'].includes(o.status)
+      );
+      setActiveOrder(active);
 
     } catch (err) {
       console.error('Failed to fetch home data:', err);
@@ -69,6 +81,8 @@ export const HomeScreen = () => {
 
   useEffect(() => {
     fetchHomeData();
+    const interval = setInterval(fetchHomeData, 10000); // Poll every 10s for realism
+    return () => clearInterval(interval);
   }, []);
 
   // Auto-redirect to Location if missing
@@ -100,6 +114,7 @@ export const HomeScreen = () => {
              <Text style={styles.speedBolt}>⚡</Text>
              <Text style={styles.speedText}>5 minutes</Text>
           </View>
+
           <TouchableOpacity 
             style={styles.profileIconBtn}
             onPress={() => (navigation as any).navigate('Settings')}
@@ -187,6 +202,28 @@ export const HomeScreen = () => {
         onScroll={handleScroll}
         scrollEventThrottle={16}
       >
+        {/* --- LIVE ORDER STATUS WIDGET (The "Genius" Touch) --- */}
+        {activeOrder && (
+          <TouchableOpacity 
+            style={styles.liveOrderCard}
+            onPress={() => (navigation as any).navigate('OrderTracking', { orderId: activeOrder.id })}
+          >
+            <View style={styles.liveOrderContent}>
+               <View style={styles.liveOrderInfo}>
+                  <Text style={styles.liveOrderTitle}>
+                    {activeOrder.status === 'pickup' ? '🛵 Driver is on the way!' : 'Preparing your order...'}
+                  </Text>
+                  <Text style={styles.liveOrderSub}>Arriving in 4-8 mins</Text>
+               </View>
+               <View style={styles.trackBtnPill}>
+                  <Text style={styles.trackText}>TRACK</Text>
+               </View>
+            </View>
+            <View style={styles.liveOrderProgress}>
+               <View style={[styles.progressBar, { width: activeOrder.status === 'pickup' ? '75%' : '40%' }]} />
+            </View>
+          </TouchableOpacity>
+        )}
 
         {/* --- 4. Horizontal Tags --- */}
         <ScrollView 
@@ -417,6 +454,23 @@ const styles = StyleSheet.create({
     fontFamily: theme.typography.fontFamily.bold,
     color: '#000',
     letterSpacing: -0.5,
+  },
+  phaseBadges: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginRight: 8,
+  },
+  phasePill: {
+    paddingHorizontal: 8,
+    paddingVertical: 4,
+    borderRadius: 8,
+    marginLeft: 6,
+    borderWidth: 1,
+    borderColor: 'rgba(0,0,0,0.05)',
+  },
+  phasePillText: {
+    fontSize: 10,
+    fontWeight: 'bold',
   },
   profileIconBtn: {
     width: 36,
@@ -840,5 +894,52 @@ const styles = StyleSheet.create({
     bottom: 5,
     right: 5,
     resizeMode: 'contain',
+  },
+  liveOrderCard: {
+    backgroundColor: '#323232',
+    margin: 14,
+    borderRadius: 12,
+    padding: 12,
+    elevation: 4,
+  },
+  liveOrderContent: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 10,
+  },
+  liveOrderInfo: {
+    flex: 1,
+  },
+  liveOrderTitle: {
+    color: '#FFF',
+    fontSize: 14,
+    fontFamily: theme.typography.fontFamily.bold,
+  },
+  liveOrderSub: {
+    color: '#AAA',
+    fontSize: 11,
+    marginTop: 2,
+  },
+  trackBtnPill: {
+    backgroundColor: theme.colors.primary,
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    borderRadius: 20,
+  },
+  trackText: {
+    color: '#FFF',
+    fontSize: 10,
+    fontWeight: '900',
+  },
+  liveOrderProgress: {
+    height: 4,
+    backgroundColor: 'rgba(255,255,255,0.1)',
+    borderRadius: 2,
+    overflow: 'hidden',
+  },
+  progressBar: {
+    height: '100%',
+    backgroundColor: theme.colors.primary,
   },
 });
