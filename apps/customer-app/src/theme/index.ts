@@ -51,6 +51,7 @@ export const theme = {
       display: 'Syne-ExtraBold',   // Titles, prices — fallback: System bold
       bold:    'Nunito-Bold',       // Subheadings
       semibold:'Nunito-SemiBold',   // Labels, descriptions
+      medium:  'Nunito-Medium',     // Medium weight body
       regular: 'Nunito-Regular',    // Body
     },
     size: {

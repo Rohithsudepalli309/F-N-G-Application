@@ -17,6 +17,7 @@ const initDb = async () => {
         fcm_token TEXT,
         fng_coins INTEGER DEFAULT 0,
         is_active BOOLEAN DEFAULT TRUE,
+        is_online BOOLEAN DEFAULT FALSE,
         created_at TIMESTAMP DEFAULT NOW(),
         updated_at TIMESTAMP DEFAULT NOW()
       );
@@ -220,7 +221,21 @@ const initDb = async () => {
       );
     `);
 
-    // 14. Notifications
+    // 14. Deliveries (delivery lifecycle — driver assignments)
+    await db.query(`
+      CREATE TABLE IF NOT EXISTS deliveries (
+        id SERIAL PRIMARY KEY,
+        order_id VARCHAR(50) REFERENCES orders(id) ON DELETE CASCADE,
+        driver_id INTEGER REFERENCES users(id),
+        status VARCHAR(20) NOT NULL DEFAULT 'assigned'
+          CHECK (status IN ('assigned','picked_up','delivered','cancelled')),
+        pickup_time TIMESTAMP,
+        delivery_time TIMESTAMP,
+        created_at TIMESTAMP DEFAULT NOW()
+      );
+    `);
+
+    // 15. Notifications
     await db.query(`
       CREATE TABLE IF NOT EXISTS notifications (
         id SERIAL PRIMARY KEY,

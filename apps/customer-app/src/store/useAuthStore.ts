@@ -2,6 +2,7 @@ import { create } from 'zustand';
 import { persist, createJSONStorage } from 'zustand/middleware';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { saveToken, removeToken } from '../utils/storage';
+import { registerFcmToken } from '../utils/notifications';
 
 interface AuthState {
   user: { id: string; name: string; role: string; address?: string } | null;
@@ -24,6 +25,8 @@ export const useAuthStore = create<AuthState>()(
       login: (token, user) => {
         saveToken(token);
         set({ token, user, isAuthenticated: true });
+        // Register FCM token asynchronously — non-blocking, degrades gracefully
+        registerFcmToken();
       },
       updateUser: (user) => set((state) => ({ user: { ...state.user, ...user } })),
       logout: () => {

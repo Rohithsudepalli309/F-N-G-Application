@@ -83,6 +83,18 @@ router.patch('/orders/:id/status', ...isAdmin, async (req, res) => {
       [status, req.params.id]
     );
     if (!rows.length) return res.status(404).json({ error: 'Order not found' });
+
+    // Emit real-time socket event to order room
+    const io = req.app.get('io');
+    if (io) {
+      io.to(`order_${req.params.id}`).emit('order_status_update', { orderId: req.params.id, status });
+      io.to('admin').emit('order.platform.update', rows[0]);
+    }
+
+    // Push notification to customer
+    const notificationService = require('../services/notification.service');
+    notificationService.notifyOrderStatus(req.params.id, status).catch(() => {});
+
     res.json({ order: rows[0] });
   } catch (err) {
     res.status(500).json({ error: 'Failed to update order status' });
@@ -209,6 +221,36 @@ router.delete('/coupons/:id', ...isAdmin, async (req, res) => {
     res.json({ message: 'Coupon deactivated' });
   } catch (err) {
     res.status(500).json({ error: 'Failed to deactivate coupon' });
+  }
+});
+
+// GET /api/v1/admin/payouts?period=week|month
+router.get('/payouts', ...isAdmin, async (req, res) => {
+  const { period = 'week' } = req.query;
+  // Whitelist-validate period to prevent SQL injection
+  const cutoff = period === 'month' ? 'NOW() - INTERVAL \'30 days\'' : 'NOW() - INTERVAL \'7 days\'';
+
+  try {
+    const { rows } = await db.query(
+      `SELECT
+         u.id            AS driver_id,
+         u.name          AS driver_name,
+         u.phone,
+         COUNT(d.id)::int                                    AS total_deliveries,
+         COALESCE(SUM(o.total_amount), 0)::int               AS gross_earnings,
+         ROUND(COALESCE(SUM(o.total_amount), 0) * 0.10)::int AS platform_commission,
+         ROUND(COALESCE(SUM(o.total_amount), 0) * 0.90)::int AS net_payout
+       FROM deliveries d
+       JOIN orders  o ON d.order_id  = o.id
+       JOIN users   u ON d.driver_id = u.id
+       WHERE d.status = 'delivered'
+         AND d.delivery_time > ${cutoff}
+       GROUP BY u.id, u.name, u.phone
+       ORDER BY net_payout DESC`
+    );
+    res.json({ payouts: rows, period });
+  } catch (err) {
+    res.status(500).json({ error: 'Failed to fetch payouts' });
   }
 });
 

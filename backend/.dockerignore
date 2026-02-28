@@ -14,3 +14,4 @@ migrate*.js
 test_node.js
 bundle_test.js
 README.md
+pnpm-lock.yaml

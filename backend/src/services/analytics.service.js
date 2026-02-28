@@ -36,8 +36,8 @@ class AnalyticsService {
           u.is_online as "isOnline",
           d.status as "deliveryStatus",
           o.id as "activeOrderId",
-          o.delivery_lat as "lastLat",
-          o.delivery_lng as "lastLng"
+          o.address_lat as "lastLat",
+          o.address_lng as "lastLng"
         FROM users u
         LEFT JOIN deliveries d ON u.id = d.driver_id AND d.status NOT IN ('delivered', 'cancelled')
         LEFT JOIN orders o ON d.order_id = o.id

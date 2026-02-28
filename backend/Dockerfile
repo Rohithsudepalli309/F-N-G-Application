@@ -2,11 +2,9 @@
 FROM node:20-alpine AS deps
 WORKDIR /app
 
-# Install pnpm
-RUN corepack enable && corepack prepare pnpm@latest --activate
-
-COPY package.json pnpm-lock.yaml ./
-RUN pnpm install --frozen-lockfile --prod
+COPY package.json ./
+# Use npm ci (faster, reproducible) — package-lock is generated from pnpm-lock on first run
+RUN npm install --omit=dev --no-fund --no-audit
 
 # ── Stage 2: production ────────────────────────────────────────────────────────
 FROM node:20-alpine AS production

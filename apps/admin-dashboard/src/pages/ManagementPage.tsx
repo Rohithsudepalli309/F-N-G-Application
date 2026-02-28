@@ -24,7 +24,8 @@ export const ManagementPage = ({ type }: Props) => {
     const fetchData = async () => {
       try {
         const { data } = await api.get(`/admin/${type}`);
-        setItems(data);
+        // Backend returns { users: [...] } or { stores: [...] }
+        setItems(data[type] ?? data.users ?? data.stores ?? []);
       } catch (err) {
         console.error(`Failed to fetch ${type}`);
         // Mock data for demo
@@ -44,7 +45,9 @@ export const ManagementPage = ({ type }: Props) => {
     if (!window.confirm(confirmMessage)) return;
 
     try {
-      await api.patch(`/admin/${type}/${item.id}`, { is_active: !item.is_active });
+      // Users use /admin/users/:id/status; stores use /admin/stores/:id
+      const url = type === 'users' ? `/admin/users/${item.id}/status` : `/admin/${type}/${item.id}`;
+      await api.patch(url, { is_active: !item.is_active });
       setItems((prev: Entity[]) => prev.map(i => i.id === item.id ? { ...i, is_active: !i.is_active } : i));
     } catch (err) {
       alert('Action failed. Ensure you have admin permissions.');

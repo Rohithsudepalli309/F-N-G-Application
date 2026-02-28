@@ -6,14 +6,11 @@ WORKDIR /app
 ARG VITE_API_URL=http://localhost:3000/api/v1
 ENV VITE_API_URL=$VITE_API_URL
 
-# Install pnpm
-RUN corepack enable && corepack prepare pnpm@latest --activate
-
-COPY package.json pnpm-lock.yaml ./
-RUN pnpm install --frozen-lockfile
+COPY package.json ./
+RUN npm install --no-fund --no-audit
 
 COPY . .
-RUN pnpm run build
+RUN npm run build
 
 # ── Stage 2: serve via nginx ───────────────────────────────────────────────────
 FROM nginx:1.27-alpine AS production
