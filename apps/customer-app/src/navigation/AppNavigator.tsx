@@ -41,6 +41,21 @@ import { CategoriesScreen } from '../screens/CategoriesScreen';
 import { BuyAgainScreen } from '../screens/BuyAgainScreen';
 import { FreshScreen } from '../screens/FreshScreen';
 
+// ─── New screens (spec §8.1 — completing 30-screen inventory) ─────────────────
+import { OrderConfirmedScreen } from '../screens/OrderConfirmedScreen';
+import { OrderDetailScreen } from '../screens/OrderDetailScreen';
+import { OrderReviewScreen } from '../screens/OrderReviewScreen';
+import { MenuItemDetailScreen } from '../screens/MenuItemDetailScreen';
+import { AddAddressScreen } from '../screens/AddAddressScreen';
+import { GroceryCartScreen } from '../screens/GroceryCartScreen';
+import { SavedAddressesScreen } from '../screens/SavedAddressesScreen';
+import { PaymentMethodsScreen } from '../screens/PaymentMethodsScreen';
+import { NotificationsScreen } from '../screens/NotificationsScreen';
+import { FavoritesScreen } from '../screens/FavoritesScreen';
+import { FngProScreen } from '../screens/FngProScreen';
+import { ReferEarnScreen } from '../screens/ReferEarnScreen';
+import { HelpSupportScreen } from '../screens/HelpSupportScreen';
+
 const RootStack = createNativeStackNavigator();
 const AuthStack = createNativeStackNavigator();
 const HomeStack = createNativeStackNavigator();
@@ -84,6 +99,11 @@ const HomeStackNav = () => (
     <HomeStack.Screen name="Cart" component={CartScreen} />
     <HomeStack.Screen name="Checkout" component={CheckoutScreen} />
     <HomeStack.Screen name="OrderTracking" component={OrderTrackingScreen} />
+    <HomeStack.Screen name="OrderConfirmed" component={OrderConfirmedScreen} />
+    <HomeStack.Screen name="OrderDetail" component={OrderDetailScreen} />
+    <HomeStack.Screen name="OrderReview" component={OrderReviewScreen} />
+    <HomeStack.Screen name="MenuItemDetail" component={MenuItemDetailScreen} />
+    <HomeStack.Screen name="AddAddress" component={AddAddressScreen} />
     <HomeStack.Screen name="LocationSelect" component={LocationSelectScreen} />
     <HomeStack.Screen name="Categories" component={CategoriesScreen} />
     <HomeStack.Screen name="BuyAgain" component={BuyAgainScreen} />
@@ -104,8 +124,10 @@ const InstamartStackNav = () => (
     <InstamartStack.Screen name="InstamartMain" component={InstamartHomeScreen} />
     <InstamartStack.Screen name="InstamartCategory" component={InstamartCategoryScreen} />
     <InstamartStack.Screen name="Cart" component={CartScreen} />
+    <InstamartStack.Screen name="GroceryCart" component={GroceryCartScreen} />
     <InstamartStack.Screen name="Checkout" component={CheckoutScreen} />
     <InstamartStack.Screen name="OrderTracking" component={OrderTrackingScreen} />
+    <InstamartStack.Screen name="OrderConfirmed" component={OrderConfirmedScreen} />
   </InstamartStack.Navigator>
 );
 
@@ -113,6 +135,8 @@ const OrdersStackNav = () => (
   <OrdersStack.Navigator screenOptions={NO_HEADER}>
     <OrdersStack.Screen name="OrdersList" component={MyOrdersScreen} />
     <OrdersStack.Screen name="OrderTracking" component={OrderTrackingScreen} />
+    <OrdersStack.Screen name="OrderDetail" component={OrderDetailScreen} />
+    <OrdersStack.Screen name="OrderReview" component={OrderReviewScreen} />
   </OrdersStack.Navigator>
 );
 
@@ -121,6 +145,14 @@ const ProfileStackNav = () => (
     <ProfileStack.Screen name="ProfileMain" component={ProfileScreen} />
     <ProfileStack.Screen name="Settings" component={SettingsScreen} />
     <ProfileStack.Screen name="LocationSelect" component={LocationSelectScreen} />
+    <ProfileStack.Screen name="SavedAddresses" component={SavedAddressesScreen} />
+    <ProfileStack.Screen name="AddAddress" component={AddAddressScreen} />
+    <ProfileStack.Screen name="PaymentMethods" component={PaymentMethodsScreen} />
+    <ProfileStack.Screen name="Notifications" component={NotificationsScreen} />
+    <ProfileStack.Screen name="Favorites" component={FavoritesScreen} />
+    <ProfileStack.Screen name="FngPro" component={FngProScreen} />
+    <ProfileStack.Screen name="ReferEarn" component={ReferEarnScreen} />
+    <ProfileStack.Screen name="HelpSupport" component={HelpSupportScreen} />
   </ProfileStack.Navigator>
 );
 
