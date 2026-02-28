@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   View,
   Text,
@@ -13,10 +13,18 @@ import {
   Platform,
 } from 'react-native';
 import RazorpayCheckout from 'react-native-razorpay';
-import { useNavigation } from '@react-navigation/native';
+import { useNavigation, useRoute } from '@react-navigation/native';
 import { useCartStore } from '../store/useCartStore';
 import { api } from '../services/api';
 import { theme } from '../theme';
+
+interface DeliveryAddress {
+  id?: string;
+  label: string;       // Home / Work / Other
+  address_line: string;
+  city: string;
+  pincode: string;
+}
 
 const PAYMENT_METHODS = [
   { id: 'paytm', name: 'Paytm', icon: 'https://cdn-icons-png.flaticon.com/512/825/825454.png' },
@@ -29,9 +37,18 @@ export const CheckoutScreen = () => {
   const [loading, setLoading] = useState(false);
   const [selectedMethod, setSelectedMethod] = useState('paytm');
   const [isCOD, setIsCOD] = useState(false);
-  
+  const [deliveryAddress, setDeliveryAddress] = useState<DeliveryAddress | null>(null);
+
   const { items, storeId, clearCart, total } = useCartStore();
   const navigation = useNavigation<any>();
+  const route = useRoute<any>();
+
+  // Pick up address returned from SavedAddressesScreen
+  useEffect(() => {
+    if (route.params?.selectedAddress) {
+      setDeliveryAddress(route.params.selectedAddress);
+    }
+  }, [route.params?.selectedAddress]);
 
   const billTotal = total() / 100;
   const deliveryFee = billTotal > 500 ? 0 : 25;
@@ -39,21 +56,29 @@ export const CheckoutScreen = () => {
   const grandTotal = billTotal + deliveryFee + handlingFee;
 
   const handlePlaceOrder = async () => {
+    if (!deliveryAddress) {
+      Alert.alert('No Address', 'Please select a delivery address before placing your order.');
+      return;
+    }
     setLoading(true);
 
     try {
       // 1. Create Internal Order on Backend (Status: Pending, Stock Deducted)
+      const addressString = deliveryAddress
+        ? `${deliveryAddress.address_line}, ${deliveryAddress.city} - ${deliveryAddress.pincode}`
+        : 'Address not selected';
+
       const orderPayload = {
-        id: `ORD-${Date.now()}`, // Client-side generated ID for quick correlation
+        id: `ORD-${Date.now()}`,
         storeId: storeId || 'default-store',
-        items: items.map(i => ({ 
-          id: i.productId, 
+        items: items.map(i => ({
+          id: i.productId,
           name: i.name,
           price: i.price,
-          quantity: i.quantity 
+          quantity: i.quantity,
         })),
         totalAmount: Math.round(grandTotal * 100), // In paise
-        address: "Flat 402, Shanthi Niketan, Indiranagar, Bangalore" // Demo address
+        address: addressString,
       };
 
       const { data: internalOrder } = await api.post('/orders', orderPayload);
@@ -63,7 +88,7 @@ export const CheckoutScreen = () => {
         // But for this demo, we'll just navigate
         Alert.alert('Order Placed!', 'Your order has been received. Pay cash on delivery.');
         clearCart();
-        navigation.navigate('OrderTracking', { orderId: internalOrder.id });
+        navigation.navigate('OrderConfirmed', { orderId: internalOrder.id, totalAmount: grandTotal, eta: 30 });
         return;
       }
 
@@ -86,10 +111,8 @@ export const CheckoutScreen = () => {
       };
 
       RazorpayCheckout.open(options).then((data: any) => {
-        // Clear cart and go to tracking
-        // Note: The UI will also be updated via WebSocket 'order.paid' in a real scenario
         clearCart();
-        navigation.navigate('OrderTracking', { orderId: internalOrder.id });
+        navigation.navigate('OrderConfirmed', { orderId: internalOrder.id, totalAmount: grandTotal, eta: 30 });
       }).catch((error: any) => {
         Alert.alert('Payment Cancelled', 'You can try paying again from My Orders if needed.');
       });
@@ -164,13 +187,31 @@ export const CheckoutScreen = () => {
           </View>
         </TouchableOpacity>
 
-        {/* Delivery Address Peek */}
+        {/* Delivery Address */}
         <View style={styles.addressSection}>
+          <View style={styles.addressHeader}>
             <Text style={styles.sectionTitle}>Delivering to</Text>
+            <TouchableOpacity
+              onPress={() => navigation.navigate('SavedAddresses', { selectMode: true })}
+            >
+              <Text style={styles.changeLink}>Change</Text>
+            </TouchableOpacity>
+          </View>
+          {deliveryAddress ? (
             <View style={styles.addressCard}>
-                <Text style={styles.addressHome}>Home</Text>
-                <Text style={styles.addressText}>Flat 402, Shanthi Niketan, Indiranagar, Bangalore</Text>
+              <Text style={styles.addressHome}>{deliveryAddress.label}</Text>
+              <Text style={styles.addressText}>
+                {deliveryAddress.address_line}, {deliveryAddress.city} — {deliveryAddress.pincode}
+              </Text>
             </View>
+          ) : (
+            <TouchableOpacity
+              style={styles.addAddressBtn}
+              onPress={() => navigation.navigate('SavedAddresses', { selectMode: true })}
+            >
+              <Text style={styles.addAddressBtnText}>＋  Add a delivery address</Text>
+            </TouchableOpacity>
+          )}
         </View>
 
         <View style={{ height: 100 }} />
@@ -322,26 +363,49 @@ const styles = StyleSheet.create({
     borderRadius: 5,
     backgroundColor: '#339233',
   },
-  addressSection: {
-      marginTop: 8,
+  addressSection: { marginTop: 8 },
+  addressHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 12,
+  },
+  changeLink: {
+    fontSize: 13,
+    color: theme.colors.primary,
+    fontFamily: theme.typography.fontFamily.bold,
   },
   addressCard: {
-      backgroundColor: '#FFF',
-      borderRadius: 16,
-      padding: 16,
-      borderWidth: 1,
-      borderColor: '#F0F0F0',
+    backgroundColor: '#FFF',
+    borderRadius: 16,
+    padding: 16,
+    borderWidth: 1,
+    borderColor: '#F0F0F0',
   },
   addressHome: {
-      fontSize: 14,
-      fontFamily: theme.typography.fontFamily.bold,
-      color: '#000',
-      marginBottom: 4,
+    fontSize: 14,
+    fontFamily: theme.typography.fontFamily.bold,
+    color: '#000',
+    marginBottom: 4,
   },
   addressText: {
-      fontSize: 12,
-      color: '#666',
-      lineHeight: 18,
+    fontSize: 12,
+    color: '#666',
+    lineHeight: 18,
+  },
+  addAddressBtn: {
+    backgroundColor: '#FFF',
+    borderRadius: 16,
+    padding: 16,
+    borderWidth: 1.5,
+    borderColor: theme.colors.primary,
+    borderStyle: 'dashed',
+    alignItems: 'center',
+  },
+  addAddressBtnText: {
+    color: theme.colors.primary,
+    fontSize: 14,
+    fontFamily: theme.typography.fontFamily.bold,
   },
   footer: {
     position: 'absolute',

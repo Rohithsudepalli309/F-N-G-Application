@@ -8,7 +8,7 @@ import {
   View, Text, StyleSheet, SafeAreaView, StatusBar, FlatList,
   TouchableOpacity, ActivityIndicator, Alert, RefreshControl,
 } from 'react-native';
-import { useNavigation, useFocusEffect } from '@react-navigation/native';
+import { useNavigation, useRoute, useFocusEffect } from '@react-navigation/native';
 import { api } from '../services/api';
 import { theme } from '../theme';
 
@@ -29,6 +29,8 @@ const LABEL_ICONS: Record<string, string> = {
 
 export const SavedAddressesScreen = () => {
   const navigation = useNavigation<any>();
+  const route = useRoute<any>();
+  const selectMode: boolean = route.params?.selectMode === true;
   const [addresses, setAddresses] = useState<Address[]>([]);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
@@ -68,8 +70,26 @@ export const SavedAddressesScreen = () => {
     ]);
   };
 
+  const handleSelectAddress = (item: Address) => {
+    if (selectMode) {
+      navigation.navigate('Checkout', {
+        selectedAddress: {
+          id: item.id,
+          label: item.label.charAt(0).toUpperCase() + item.label.slice(1),
+          address_line: item.line1 + (item.line2 ? `, ${item.line2}` : ''),
+          city: item.city,
+          pincode: item.pincode,
+        },
+      });
+    }
+  };
+
   const renderItem = ({ item }: { item: Address }) => (
-    <View style={[styles.card, item.is_default && styles.cardDefault]}>
+    <TouchableOpacity
+      style={[styles.card, item.is_default && styles.cardDefault, selectMode && styles.cardSelectable]}
+      onPress={() => handleSelectAddress(item)}
+      activeOpacity={selectMode ? 0.6 : 1}
+    >
       <View style={styles.cardLeft}>
         <View style={styles.iconWrap}>
           <Text style={styles.addrIcon}>{LABEL_ICONS[item.label] ?? '📍'}</Text>
@@ -86,23 +106,27 @@ export const SavedAddressesScreen = () => {
           {item.landmark && <Text style={styles.addrLandmark}>📌 {item.landmark}</Text>}
         </View>
       </View>
-      <View style={styles.cardActions}>
-        <TouchableOpacity
-          style={styles.actionBtn}
-          onPress={() => navigation.navigate('AddAddress', { address: item })}
-        >
-          <Text style={styles.actionBtnText}>Edit</Text>
-        </TouchableOpacity>
-        {!item.is_default && (
-          <TouchableOpacity style={styles.actionBtn} onPress={() => setDefault(item.id)}>
-            <Text style={styles.actionBtnText}>Set Default</Text>
+      {selectMode ? (
+        <Text style={styles.selectArrow}>›</Text>
+      ) : (
+        <View style={styles.cardActions}>
+          <TouchableOpacity
+            style={styles.actionBtn}
+            onPress={() => navigation.navigate('AddAddress', { address: item })}
+          >
+            <Text style={styles.actionBtnText}>Edit</Text>
           </TouchableOpacity>
-        )}
-        <TouchableOpacity onPress={() => deleteAddress(item.id)}>
-          <Text style={styles.deleteText}>Delete</Text>
-        </TouchableOpacity>
-      </View>
-    </View>
+          {!item.is_default && (
+            <TouchableOpacity style={styles.actionBtn} onPress={() => setDefault(item.id)}>
+              <Text style={styles.actionBtnText}>Set Default</Text>
+            </TouchableOpacity>
+          )}
+          <TouchableOpacity onPress={() => deleteAddress(item.id)}>
+            <Text style={styles.deleteText}>Delete</Text>
+          </TouchableOpacity>
+        </View>
+      )}
+    </TouchableOpacity>
   );
 
   return (
@@ -113,7 +137,7 @@ export const SavedAddressesScreen = () => {
         <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backBtn}>
           <Text style={styles.backArrow}>←</Text>
         </TouchableOpacity>
-        <Text style={styles.headerTitle}>Saved Addresses</Text>
+        <Text style={styles.headerTitle}>{selectMode ? 'Select Address' : 'Saved Addresses'}</Text>
         <TouchableOpacity onPress={() => navigation.navigate('AddAddress')}>
           <Text style={styles.addText}>+ Add</Text>
         </TouchableOpacity>
@@ -188,6 +212,8 @@ const styles = StyleSheet.create({
   },
   actionBtnText: { fontSize: 12, fontWeight: '600', color: theme.colors.text.secondary },
   deleteText: { fontSize: 12, fontWeight: '600', color: '#DC3545', paddingVertical: 6 },
+  cardSelectable: { borderColor: theme.colors.primary, borderWidth: 1.5 },
+  selectArrow: { fontSize: 22, color: theme.colors.primary, paddingRight: 4 },
 
   empty: { alignItems: 'center', paddingTop: 80 },
   emptyIcon: { fontSize: 60, marginBottom: 16 },
