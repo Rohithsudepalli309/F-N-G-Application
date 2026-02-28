@@ -1,0 +1,16 @@
+# Root-level .dockerignore (used when building from root context)
+**/.git
+**/.gitignore
+**/node_modules
+**/.env
+**/.env.local
+**/dist
+**/build
+**/*.log
+**/coverage
+apps/customer-app/android/build
+apps/customer-app/android/.gradle
+apps/customer-app/ios/build
+apps/driver-app/.build
+docs/
+*.md

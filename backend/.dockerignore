@@ -1,0 +1,16 @@
+node_modules
+.env
+.env.*
+*.log
+coverage/
+jest.config.js
+**/*.test.js
+**/*.spec.js
+scripts/
+check_user.js
+fat_seed.js
+seed*.js
+migrate*.js
+test_node.js
+bundle_test.js
+README.md
