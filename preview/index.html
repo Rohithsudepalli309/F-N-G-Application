@@ -1,0 +1,753 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>F&G App — Live Preview</title>
+<style>
+  :root {
+    --primary:#163D26;--accent:#F5A826;--accent2:#E45F10;--bg:#F8FAF8;
+    --surface:#fff;--border:#E5E7EB;--text:#111827;--muted:#6B7280;
+    --radius:14px;--shadow:0 4px 24px rgba(0,0,0,.10);
+  }
+  *{box-sizing:border-box;margin:0;padding:0;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif}
+  body{background:linear-gradient(135deg,#0D2418 0%,#163D26 60%,#1a4a2e 100%);min-height:100vh;display:flex;flex-direction:column;align-items:center;padding:32px 16px}
+  h1.brand{color:#F5A826;font-size:28px;font-weight:900;letter-spacing:-1px;margin-bottom:4px}
+  .subtitle{color:#a8c5b0;font-size:13px;margin-bottom:28px}
+
+  /* ── Phone Shell ── */
+  .phone-wrap{position:relative;display:flex;gap:28px;align-items:flex-start}
+  .phone{width:375px;height:750px;background:#fff;border-radius:44px;overflow:hidden;
+    box-shadow:0 32px 80px rgba(0,0,0,.55),0 0 0 8px #1a1a1a,0 0 0 10px #333;
+    display:flex;flex-direction:column;position:relative;}
+  .status-bar{background:var(--primary);color:#fff;font-size:11px;padding:12px 20px 6px;
+    display:flex;justify-content:space-between;font-weight:600;flex-shrink:0}
+  .screen{flex:1;overflow:hidden;position:relative}
+  .tab-bar{background:#fff;border-top:1px solid var(--border);display:flex;padding:8px 0 16px;flex-shrink:0}
+  .tab{flex:1;display:flex;flex-direction:column;align-items:center;gap:3px;cursor:pointer;opacity:.45;transition:.2s}
+  .tab.active{opacity:1}
+  .tab-icon{font-size:20px;position:relative}
+  .tab-badge{position:absolute;top:-5px;right:-8px;background:#E45F10;color:#fff;border-radius:8px;
+    font-size:9px;font-weight:800;padding:1px 4px;min-width:16px;text-align:center}
+  .tab-label{font-size:10px;font-weight:700;color:var(--primary)}
+  .tab:not(.active) .tab-label{color:var(--muted)}
+
+  /* ── Screens ── */
+  .view{position:absolute;inset:0;overflow-y:auto;display:none;background:var(--bg)}
+  .view.show{display:block}
+  .view::-webkit-scrollbar{width:4px} .view::-webkit-scrollbar-thumb{background:#ccc;border-radius:4px}
+
+  /* Loading */
+  .spinner-wrap{height:100%;display:flex;align-items:center;justify-content:center;flex-direction:column;gap:12px}
+  .spinner{width:40px;height:40px;border:3px solid #e5e5e5;border-top-color:var(--primary);border-radius:50%;animation:spin .8s linear infinite}
+  @keyframes spin{to{transform:rotate(360deg)}}
+
+  /* ── Home ── */
+  .home-header{background:var(--primary);padding:16px 16px 20px;color:#fff}
+  .speed-pill{background:rgba(255,255,255,.15);border-radius:20px;padding:4px 12px;font-size:11px;font-weight:700;display:inline-flex;align-items:center;gap:4px;margin-bottom:10px}
+  .location-row{font-size:15px;font-weight:800;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .location-sub{font-size:11px;opacity:.75;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .search-box{background:rgba(255,255,255,.15);border-radius:12px;padding:10px 14px;margin-top:12px;display:flex;align-items:center;gap:8px;font-size:13px;color:rgba(255,255,255,.7)}
+  .service-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;padding:14px 16px 6px}
+  .service-card{background:#fff;border-radius:12px;padding:10px;text-align:center;box-shadow:0 2px 8px rgba(0,0,0,.06);cursor:pointer;transition:.2s}
+  .service-card:hover{transform:translateY(-2px)}
+  .service-emoji{font-size:22px}
+  .service-name{font-size:10px;font-weight:700;color:var(--primary);margin-top:4px}
+  .section-header{padding:14px 16px 8px;display:flex;justify-content:space-between;align-items:center}
+  .section-title{font-size:15px;font-weight:800;color:var(--text)}
+  .section-link{font-size:12px;color:var(--accent2);font-weight:700;cursor:pointer}
+  .product-row{display:flex;gap:10px;overflow-x:auto;padding:0 16px 14px;scrollbar-width:none}
+  .product-row::-webkit-scrollbar{display:none}
+  .product-card{background:#fff;border-radius:14px;padding:10px;min-width:130px;max-width:130px;
+    box-shadow:0 2px 8px rgba(0,0,0,.07);cursor:pointer;transition:.2s;flex-shrink:0}
+  .product-card:hover{transform:translateY(-3px);box-shadow:0 6px 20px rgba(0,0,0,.13)}
+  .product-img-wrap{width:100%;height:90px;background:#f0f4ef;border-radius:8px;overflow:hidden;margin-bottom:8px;display:flex;align-items:center;justify-content:center}
+  .product-img{width:100%;height:100%;object-fit:cover}
+  .product-emoji{font-size:40px}
+  .product-name{font-size:11px;font-weight:700;color:var(--text);line-height:1.3;margin-bottom:4px}
+  .product-price{font-size:13px;font-weight:800;color:var(--primary)}
+  .product-mrp{font-size:10px;color:var(--muted);text-decoration:line-through;margin-left:4px}
+  .add-btn{background:var(--accent);color:#fff;border:none;border-radius:8px;padding:5px 10px;font-size:10px;font-weight:800;cursor:pointer;width:100%;margin-top:6px;transition:.2s}
+  .add-btn:hover{background:#e8920a}
+  .add-btn.added{background:var(--primary)}
+  .live-order-bar{background:linear-gradient(135deg,#163D26,#1e5233);margin:0 16px 12px;border-radius:14px;padding:12px 14px;cursor:pointer;animation:pulse-border 2s infinite}
+  @keyframes pulse-border{0%,100%{box-shadow:0 0 0 0 rgba(245,168,38,.4)}50%{box-shadow:0 0 0 4px rgba(245,168,38,.1)}}
+  .live-row{display:flex;align-items:center;justify-content:space-between}
+  .live-title{color:#fff;font-size:13px;font-weight:700}
+  .live-sub{color:rgba(255,255,255,.65);font-size:11px;margin-top:2px}
+  .track-pill{background:var(--accent);color:#fff;border-radius:20px;padding:5px 12px;font-size:11px;font-weight:800}
+  .progress-bg{background:rgba(255,255,255,.2);border-radius:4px;height:4px;margin-top:8px;overflow:hidden}
+  .progress-fill{background:var(--accent);height:100%;border-radius:4px;transition:width 1s ease;animation:progress-anim 3s ease-in-out infinite}
+  @keyframes progress-anim{0%{width:30%}50%{width:70%}100%{width:30%}}
+
+  /* ── Store ── */
+  .store-header{background:var(--primary);color:#fff;padding:16px;display:flex;align-items:center;gap:12px}
+  .back-btn{font-size:22px;cursor:pointer;opacity:.85}
+  .store-name-text{font-size:17px;font-weight:800}
+  .menu-item{display:flex;padding:14px 16px;border-bottom:1px solid var(--border);gap:12px;align-items:center;cursor:pointer;transition:.15s background}
+  .menu-item:hover{background:#f9fafb}
+  .menu-img{width:70px;height:70px;border-radius:10px;object-fit:cover;background:#f0f4ef;flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:28px}
+  .menu-info{flex:1;min-width:0}
+  .menu-name{font-size:14px;font-weight:700;color:var(--text)}
+  .menu-cat{font-size:11px;color:var(--muted);margin-top:2px}
+  .menu-price{font-size:14px;font-weight:800;color:var(--primary);margin-top:4px}
+  .menu-add{background:var(--accent);color:#fff;border:none;border-radius:8px;padding:6px 14px;font-size:11px;font-weight:800;cursor:pointer;white-space:nowrap;transition:.2s}
+  .menu-add:hover{background:#e8920a}
+  .menu-add.added{background:var(--primary)}
+  .price-flash-up{animation:flash-red .6s ease}
+  .price-flash-down{animation:flash-green .6s ease}
+  @keyframes flash-red{0%{background:rgba(220,53,69,.2)}100%{background:transparent}}
+  @keyframes flash-green{0%{background:rgba(40,167,69,.2)}100%{background:transparent}}
+  .live-badge{background:#E45F10;color:#fff;font-size:9px;font-weight:800;border-radius:4px;padding:2px 5px;margin-left:6px;animation:blink 1.5s infinite}
+  @keyframes blink{0%,100%{opacity:1}50%{opacity:.5}}
+  .cart-fab{position:sticky;bottom:0;left:0;right:0;background:var(--primary);padding:14px 20px;display:flex;align-items:center;justify-content:space-between;cursor:pointer;color:#fff}
+  .cart-fab-left{display:flex;align-items:center;gap:10px}
+  .cart-count-badge{background:var(--accent);border-radius:8px;width:26px;height:26px;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:800}
+  .cart-fab-text{font-size:14px;font-weight:800}
+
+  /* ── Cart ── */
+  .cart-header{background:var(--primary);color:#fff;padding:16px;display:flex;align-items:center;gap:12px}
+  .food-pill{background:var(--accent);border-radius:20px;padding:3px 10px;font-size:11px;font-weight:800}
+  .cart-item{display:flex;align-items:center;padding:14px 16px;border-bottom:1px solid var(--border);gap:12px}
+  .qty-ctrl{display:flex;align-items:center;gap:8px}
+  .qty-btn{width:28px;height:28px;border-radius:14px;background:var(--primary);color:#fff;border:none;font-size:16px;font-weight:700;cursor:pointer;display:flex;align-items:center;justify-content:center}
+  .qty-num{font-size:15px;font-weight:800;min-width:20px;text-align:center}
+  .bill-box{background:#fff;margin:16px;border-radius:14px;padding:16px;border:1px solid var(--border)}
+  .bill-row{display:flex;justify-content:space-between;padding:6px 0;font-size:13px}
+  .bill-total{border-top:1px solid var(--border);margin-top:6px;padding-top:10px;font-weight:800;font-size:15px}
+  .checkout-btn{background:var(--accent);color:#fff;width:calc(100% - 32px);margin:0 16px 24px;padding:16px;border:none;border-radius:14px;font-size:15px;font-weight:800;cursor:pointer;box-shadow:0 6px 20px rgba(245,168,38,.35);transition:.2s}
+  .checkout-btn:hover{background:#e8920a;transform:translateY(-1px)}
+
+  /* ── Orders ── */
+  .order-card{background:#fff;margin:10px 16px;border-radius:14px;padding:14px;border:1px solid var(--border);cursor:pointer;transition:.2s}
+  .order-card:hover{transform:translateY(-2px);box-shadow:0 6px 20px rgba(0,0,0,.1)}
+  .order-header-row{display:flex;align-items:center;justify-content:space-between;margin-bottom:8px}
+  .order-id{font-size:13px;font-weight:700;color:var(--text)}
+  .order-tag{border-radius:20px;padding:3px 10px;font-size:10px;font-weight:800}
+  .tag-food{background:#FEF3C7;color:#92400E}
+  .tag-grocery{background:#D1FAE5;color:#065F46}
+  .status-preparing{background:#EDE9FE;color:#6D28D9;border-radius:6px;padding:2px 8px;font-size:11px;font-weight:700;display:inline-block}
+  .status-delivered{background:#D1FAE5;color:#065F46;border-radius:6px;padding:2px 8px;font-size:11px;font-weight:700;display:inline-block}
+  .status-cancelled{background:#FEE2E2;color:#991B1B;border-radius:6px;padding:2px 8px;font-size:11px;font-weight:700;display:inline-block}
+  .status-placed{background:#DBEAFE;color:#1D4ED8;border-radius:6px;padding:2px 8px;font-size:11px;font-weight:700;display:inline-block}
+  .order-store{font-size:12px;color:var(--muted);margin-top:4px}
+  .order-amount{font-size:14px;font-weight:800;color:var(--primary)}
+  .order-date{font-size:11px;color:var(--muted)}
+
+  /* ── Profile ── */
+  .profile-hero{background:var(--primary);padding:24px 20px;display:flex;align-items:center;gap:16px;color:#fff}
+  .avatar-circle{width:60px;height:60px;border-radius:30px;background:var(--accent);display:flex;align-items:center;justify-content:center;font-size:26px;font-weight:800;color:#fff;flex-shrink:0}
+  .profile-name{font-size:18px;font-weight:800}
+  .profile-role{font-size:12px;opacity:.7;margin-top:2px}
+  .pro-banner{background:#FFF3E0;margin:12px 16px;border-radius:14px;padding:14px;display:flex;align-items:center;gap:10px;border:1px solid var(--accent)}
+  .pro-title{font-size:13px;font-weight:800;color:#B45309}
+  .pro-sub{font-size:11px;color:#92400E;margin-top:2px}
+  .explore-btn{background:var(--accent);color:var(--primary);border:none;border-radius:20px;padding:6px 14px;font-size:11px;font-weight:800;cursor:pointer;white-space:nowrap}
+  .menu-section-title{font-size:11px;font-weight:800;color:var(--muted);padding:10px 16px 4px;text-transform:uppercase;letter-spacing:.5px}
+  .profile-item{display:flex;align-items:center;padding:13px 16px;border-bottom:1px solid var(--border);gap:12px;cursor:pointer;background:#fff;transition:.15s}
+  .profile-item:hover{background:#f9fafb}
+  .p-icon-wrap{width:36px;height:36px;border-radius:10px;background:#f0f4ef;display:flex;align-items:center;justify-content:center;font-size:17px;flex-shrink:0}
+  .p-label{flex:1;font-size:14px;font-weight:600;color:var(--text)}
+  .p-arrow{color:var(--muted);font-size:18px}
+  .p-badge{background:#E45F10;color:#fff;border-radius:10px;padding:1px 6px;font-size:10px;font-weight:800}
+  .profile-section{background:#fff;margin:0 16px 8px;border-radius:14px;overflow:hidden;border:1px solid var(--border)}
+
+  /* ── Real-time ticker ── */
+  .rt-panel{width:220px;background:rgba(255,255,255,.06);border-radius:16px;padding:16px;color:#fff;border:1px solid rgba(255,255,255,.1);backdrop-filter:blur(8px)}
+  .rt-title{font-size:11px;font-weight:800;color:#F5A826;text-transform:uppercase;letter-spacing:.5px;margin-bottom:10px;display:flex;align-items:center;gap:6px}
+  .rt-dot{width:8px;height:8px;border-radius:4px;background:#4CAF50;animation:blink 1s infinite}
+  .rt-item{font-size:11px;color:rgba(255,255,255,.8);padding:6px 0;border-bottom:1px solid rgba(255,255,255,.07)}
+  .rt-item:last-child{border-bottom:none}
+  .rt-price-up{color:#ff6b6b;font-weight:700}
+  .rt-price-down{color:#51cf66;font-weight:700}
+  .rt-time{color:rgba(255,255,255,.4);font-size:10px}
+
+  .stats-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:10px}
+  .stat-box{background:rgba(255,255,255,.06);border-radius:10px;padding:10px;text-align:center;border:1px solid rgba(255,255,255,.08)}
+  .stat-num{font-size:20px;font-weight:900;color:#F5A826}
+  .stat-label{font-size:10px;color:rgba(255,255,255,.6);margin-top:2px}
+
+  .api-badge{background:rgba(76,175,80,.15);color:#81C784;border:1px solid rgba(76,175,80,.25);border-radius:8px;padding:4px 10px;font-size:10px;font-weight:700;margin-bottom:12px;display:inline-flex;align-items:center;gap:5px}
+
+  /* Notification dot */
+  .notif-dot{width:8px;height:8px;border-radius:4px;background:#4CAF50;display:inline-block}
+
+  /* Tracking */
+  .tracking-map{background:linear-gradient(135deg,#e8f5e9,#c8e6c9);height:200px;display:flex;align-items:center;justify-content:center;flex-direction:column;gap:8px;font-size:13px;color:#2E7D32;font-weight:700}
+  .driver-pin{font-size:32px;animation:bounce 1s infinite}
+  @keyframes bounce{0%,100%{transform:translateY(0)}50%{transform:translateY(-8px)}}
+  .tracking-status{background:#fff;margin:12px 16px;border-radius:14px;padding:16px}
+  .step{display:flex;gap:12px;padding:8px 0}
+  .step-icon{width:32px;height:32px;border-radius:16px;display:flex;align-items:center;justify-content:center;font-size:14px;flex-shrink:0}
+  .step-done{background:#D1FAE5;color:#059669}
+  .step-active{background:#163D26;color:#fff;animation:pulse 1.5s infinite}
+  @keyframes pulse{0%,100%{box-shadow:0 0 0 0 rgba(22,61,38,.4)}50%{box-shadow:0 0 0 8px rgba(22,61,38,0)}}
+  .step-pending{background:#F3F4F6;color:#9CA3AF}
+  .step-text{flex:1;padding-top:4px}
+  .step-label{font-size:13px;font-weight:700;color:var(--text)}
+  .step-time{font-size:11px;color:var(--muted)}
+</style>
+</head>
+<body>
+
+<div style="text-align:center;margin-bottom:6px">
+  <h1 class="brand"><img src="logo.png" style="height:30px;vertical-align:middle;margin-right:6px;border-radius:6px"> F&amp;G</h1>
+  <div class="subtitle">Fresh &amp; Grocery — Live App Preview &nbsp;|&nbsp; Backend: <span style="color:#4CAF50;font-weight:700">●&nbsp;LIVE</span></div>
+</div>
+
+<div class="phone-wrap">
+
+  <!-- ── Phone ── -->
+  <div class="phone">
+    <!-- Status Bar -->
+    <div class="status-bar">
+      <span>9:41</span>
+      <span>F&amp;G Live &nbsp;●●●●</span>
+      <span>⚡ 87%</span>
+    </div>
+
+    <!-- Screen -->
+    <div class="screen">
+
+      <!-- HOME -->
+      <div class="view show" id="v-home">
+        <div class="home-header">
+          <img src="logo.png" style="height:36px;border-radius:8px;margin-bottom:10px;display:block" alt="F&G Logo">
+          <div class="speed-pill">⚡ <span>5-minute delivery</span></div>
+          <div class="location-row">📍 Bachupally - 70</div>
+          <div class="location-sub">Harithavanam Colony, Bachupally, Hyderabad</div>
+          <div class="search-box">🔍 <span>Search for 'Milk', 'Onion'…</span></div>
+        </div>
+        <div class="service-grid">
+          <div class="service-card" onclick="switchTab('home')">
+            <div class="service-emoji">🏪</div><div class="service-name">F&amp;G</div>
+          </div>
+          <div class="service-card" onclick="navigate('store','st_zepto_central','F&amp;G Central Store')">
+            <div class="service-emoji">🔥</div><div class="service-name">50% OFF</div>
+          </div>
+          <div class="service-card">
+            <div class="service-emoji">🛍️</div><div class="service-name">Super Mall</div>
+          </div>
+          <div class="service-card">
+            <div class="service-emoji">🥬</div><div class="service-name">Fresh</div>
+          </div>
+        </div>
+
+        <div id="home-loader" class="spinner-wrap" style="height:200px"><div class="spinner"></div><div style="color:var(--muted);font-size:12px">Loading products…</div></div>
+        <div id="home-content" style="display:none">
+          <!-- Active order bar -->
+          <div id="active-order-bar"></div>
+
+          <div class="section-header">
+            <span class="section-title">50% OFF Zone 🔥</span>
+            <span class="section-link" onclick="navigate('store','st_zepto_central','F&amp;G Central')">See all</span>
+          </div>
+          <div class="product-row" id="products-off"></div>
+
+          <div class="section-header">
+            <span class="section-title">Munchies 🍟</span>
+            <span class="section-link">See all</span>
+          </div>
+          <div class="product-row" id="products-munch"></div>
+
+          <div class="section-header">
+            <span class="section-title">Dairy &amp; Eggs 🥛</span>
+            <span class="section-link">See all</span>
+          </div>
+          <div class="product-row" id="products-dairy"></div>
+          <div style="height:20px"></div>
+        </div>
+      </div>
+
+      <!-- STORE -->
+      <div class="view" id="v-store">
+        <div class="store-header">
+          <span class="back-btn" onclick="goBack()">←</span>
+          <div>
+            <div class="store-name-text" id="store-title">Store</div>
+            <div style="font-size:11px;opacity:.75" id="store-count">Loading…</div>
+          </div>
+        </div>
+        <div id="store-items"></div>
+        <div id="store-cart-fab" style="display:none" class="cart-fab" onclick="switchTab('cart')">
+          <div class="cart-fab-left">
+            <div class="cart-count-badge" id="fab-count">0</div>
+            <span class="cart-fab-text">View Cart</span>
+          </div>
+          <span>→</span>
+        </div>
+      </div>
+
+      <!-- CART -->
+      <div class="view" id="v-cart">
+        <div class="cart-header">
+          <span class="back-btn" onclick="goBack()">←</span>
+          <span style="font-size:17px;font-weight:800;color:#fff">Your Cart</span>
+          <span class="food-pill">🍔 Food</span>
+        </div>
+        <div id="cart-empty" style="text-align:center;padding:60px 20px">
+          <div style="font-size:60px;margin-bottom:12px">🛒</div>
+          <div style="font-size:16px;font-weight:700;color:var(--text)">Cart is empty</div>
+          <div style="font-size:13px;color:var(--muted);margin-top:6px">Add items from a store</div>
+          <button onclick="navigate('store','st_fng_food_1','F&amp;G Kitchen')" style="margin-top:20px;background:var(--primary);color:#fff;border:none;border-radius:12px;padding:12px 24px;font-size:14px;font-weight:700;cursor:pointer">Browse Stores</button>
+        </div>
+        <div id="cart-items" style="display:none"></div>
+      </div>
+
+      <!-- ORDERS -->
+      <div class="view" id="v-orders">
+        <div class="cart-header" style="margin-bottom:0">
+          <span style="font-size:17px;font-weight:800;color:#fff">My Orders</span>
+        </div>
+        <div id="orders-loader" class="spinner-wrap" style="height:200px"><div class="spinner"></div></div>
+        <div id="orders-list" style="padding:8px 0;display:none"></div>
+      </div>
+
+      <!-- ORDER TRACKING -->
+      <div class="view" id="v-tracking">
+        <div class="store-header">
+          <span class="back-btn" onclick="goBack()">←</span>
+          <div>
+            <div class="store-name-text">Order Tracking</div>
+            <div style="font-size:11px;opacity:.75" id="tracking-id">Live updates</div>
+          </div>
+        </div>
+        <div class="tracking-map">
+          <div class="driver-pin">🛵</div>
+          <div>Driver is on the way!</div>
+          <div style="font-size:11px;font-weight:400;color:#388E3C">Bachupally – ETA 4 mins</div>
+        </div>
+        <div class="tracking-status">
+          <div style="font-size:14px;font-weight:800;margin-bottom:12px;color:var(--text)">Order Status</div>
+          <div class="step"><div class="step-icon step-done">✓</div><div class="step-text"><div class="step-label">Order Placed</div><div class="step-time">Just now</div></div></div>
+          <div class="step"><div class="step-icon step-done">✓</div><div class="step-text"><div class="step-label">Confirmed by Store</div><div class="step-time">1 min ago</div></div></div>
+          <div class="step"><div class="step-icon step-active">🥘</div><div class="step-text"><div class="step-label">Preparing your order</div><div class="step-time">In progress…</div></div></div>
+          <div class="step"><div class="step-icon step-pending">🛵</div><div class="step-text"><div class="step-label">Out for Delivery</div><div class="step-time">Waiting</div></div></div>
+          <div class="step"><div class="step-icon step-pending">🎉</div><div class="step-text"><div class="step-label">Delivered</div><div class="step-time">Pending</div></div></div>
+        </div>
+      </div>
+
+      <!-- PROFILE -->
+      <div class="view" id="v-profile">
+        <div class="profile-hero">
+          <div class="avatar-circle" id="avatar-letter">C</div>
+          <div>
+            <div class="profile-name" id="profile-name">Customer</div>
+            <div class="profile-role">👤 Customer Account</div>
+          </div>
+        </div>
+        <div class="pro-banner">
+          <span style="font-size:20px">⭐</span>
+          <div style="flex:1"><div class="pro-title">Get F&amp;G Pro</div><div class="pro-sub">Free delivery, member discounts &amp; more</div></div>
+          <button class="explore-btn">Explore</button>
+        </div>
+        <div class="menu-section-title">Your Orders</div>
+        <div class="profile-section">
+          <div class="profile-item" onclick="switchTab('orders')"><div class="p-icon-wrap">📦</div><div class="p-label">My Orders</div><div class="p-arrow">›</div></div>
+          <div class="profile-item"><div class="p-icon-wrap">♻️</div><div class="p-label">Buy Again</div><div class="p-arrow">›</div></div>
+        </div>
+        <div class="menu-section-title">Account</div>
+        <div class="profile-section">
+          <div class="profile-item"><div class="p-icon-wrap">📍</div><div class="p-label">Saved Addresses</div><div class="p-arrow">›</div></div>
+          <div class="profile-item"><div class="p-icon-wrap">💳</div><div class="p-label">Payment Methods</div><div class="p-arrow">›</div></div>
+          <div class="profile-item"><div class="p-icon-wrap">🔔</div><div class="p-label">Notifications</div><div style="margin-right:8px" class="p-badge">3</div><div class="p-arrow">›</div></div>
+          <div class="profile-item"><div class="p-icon-wrap">❤️</div><div class="p-label">Favourites</div><div class="p-arrow">›</div></div>
+        </div>
+        <div class="menu-section-title">Offers &amp; Rewards</div>
+        <div class="profile-section">
+          <div class="profile-item"><div class="p-icon-wrap">🎁</div><div class="p-label">F&amp;G Coins</div><div class="p-arrow">›</div></div>
+          <div class="profile-item"><div class="p-icon-wrap">🤝</div><div class="p-label">Refer &amp; Earn</div><div class="p-arrow">›</div></div>
+          <div class="profile-item"><div class="p-icon-wrap">🏷️</div><div class="p-label">Coupons</div><div class="p-arrow">›</div></div>
+        </div>
+        <div class="menu-section-title">Support</div>
+        <div class="profile-section">
+          <div class="profile-item"><div class="p-icon-wrap">💬</div><div class="p-label">Chat with Support</div><div class="p-arrow">›</div></div>
+          <div class="profile-item"><div class="p-icon-wrap">⚙️</div><div class="p-label">Settings</div><div class="p-arrow">›</div></div>
+          <div class="profile-item" style="border:none"><div class="p-icon-wrap" style="background:#FEE2E2">🚪</div><div class="p-label" style="color:#DC3545">Log Out</div></div>
+        </div>
+        <div style="text-align:center;font-size:11px;color:var(--muted);padding:20px">F&amp;G v1.0.0 · Hyderabad, India</div>
+      </div>
+
+    </div><!-- /screen -->
+
+    <!-- Tab Bar -->
+    <div class="tab-bar">
+      <div class="tab active" id="tab-home" onclick="switchTab('home')">
+        <div class="tab-icon">🏠<span class="tab-badge" id="food-badge" style="display:none">0</span></div>
+        <div class="tab-label">Home</div>
+      </div>
+      <div class="tab" id="tab-search" onclick="switchTab('search')">
+        <div class="tab-icon">🔍</div><div class="tab-label">Search</div>
+      </div>
+      <div class="tab" id="tab-instamart" onclick="switchTab('instamart')">
+        <div class="tab-icon">🛒</div><div class="tab-label">Instamart</div>
+      </div>
+      <div class="tab" id="tab-orders" onclick="switchTab('orders')">
+        <div class="tab-icon">📦</div><div class="tab-label">Orders</div>
+      </div>
+      <div class="tab" id="tab-profile" onclick="switchTab('profile')">
+        <div class="tab-icon">👤</div><div class="tab-label">Profile</div>
+      </div>
+    </div>
+  </div><!-- /phone -->
+
+  <!-- ── Right panel: Real-time monitor ── -->
+  <div class="rt-panel">
+    <div class="rt-title"><div class="rt-dot"></div>Real-time Feed</div>
+    <div class="api-badge"><span class="notif-dot"></span>&nbsp;Backend LIVE&nbsp;:3002</div>
+
+    <div style="font-size:10px;color:rgba(255,255,255,.5);margin-bottom:6px;text-transform:uppercase;letter-spacing:.5px">Live Price Updates</div>
+    <div id="rt-feed">
+      <div class="rt-item" style="color:rgba(255,255,255,.4);font-size:11px">Waiting for socket events…</div>
+    </div>
+
+    <div style="font-size:10px;color:rgba(255,255,255,.5);margin:12px 0 6px;text-transform:uppercase;letter-spacing:.5px">Database Stats</div>
+    <div class="stats-grid">
+      <div class="stat-box"><div class="stat-num" id="stat-products">—</div><div class="stat-label">Products</div></div>
+      <div class="stat-box"><div class="stat-num" id="stat-orders">—</div><div class="stat-label">Orders</div></div>
+      <div class="stat-box"><div class="stat-num" id="stat-stores">—</div><div class="stat-label">Stores</div></div>
+      <div class="stat-box"><div class="stat-num" id="stat-users">—</div><div class="stat-label">Users</div></div>
+    </div>
+
+    <div style="font-size:10px;color:rgba(255,255,255,.5);margin:14px 0 6px;text-transform:uppercase;letter-spacing:.5px">Recent Orders</div>
+    <div id="recent-orders-panel"></div>
+
+    <div style="font-size:10px;color:rgba(255,255,255,.5);margin:14px 0 6px;text-transform:uppercase;letter-spacing:.5px">Admin Dashboard</div>
+    <a href="http://localhost:8080" target="_blank" style="display:block;background:rgba(245,168,38,.15);border:1px solid rgba(245,168,38,.3);border-radius:8px;padding:8px 12px;color:#F5A826;font-size:11px;font-weight:700;text-decoration:none;text-align:center">Open Admin Panel →</a>
+  </div>
+
+</div>
+
+<script>
+const API = 'http://localhost:3002/api/v1';
+let TOKEN = '';
+let cart = {}; // productId -> {name, price, qty}
+let currentStoreId = '';
+let navStack = [];
+let currentTab = 'home';
+
+const CATEGORY_EMOJI = {
+  'Fruits & Vegetables':'🥦','Dairy, Bread & Eggs':'🥛','Munchies':'🍟',
+  'Atta, Rice, Oil & Dals':'🌾','Cold Drinks & Juices':'🥤',
+  'Meat, Fish & Eggs':'🍗','Masala & Dry Fruits':'🌶️',
+  'Bath & Body':'🧼','Cleaning Essentials':'🧹','default':'📦'
+};
+function catEmoji(cat){ return CATEGORY_EMOJI[cat] || CATEGORY_EMOJI.default; }
+function fmtRupee(paise){ return '₹'+(paise/100).toFixed(0); }
+function statusBadge(s){
+  const map = {preparing:'status-preparing',delivered:'status-delivered',cancelled:'status-cancelled',placed:'status-placed',ready:'status-placed',pending:'status-placed',pickup:'status-preparing'};
+  const label = {preparing:'Preparing',delivered:'Delivered',cancelled:'Cancelled',placed:'Placed',ready:'Ready',pending:'Pending',pickup:'On the way'};
+  return `<span class="${map[s]||'status-placed'}">${label[s]||s}</span>`;
+}
+
+// ── Auth ──
+async function init(){
+  try {
+    const r = await fetch(`${API}/auth/login`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({email:'admin@fng.com',password:'admin'})});
+    const d = await r.json();
+    TOKEN = d.tokens?.accessToken || '';
+    loadHomeData();
+    loadStats();
+    loadRecentOrders();
+    simPriceUpdates();
+  } catch(e){
+    document.getElementById('home-loader').innerHTML='<div style="color:#E45F10;padding:20px;text-align:center">⚠️ Cannot reach backend at :3002<br><small>Make sure Docker is running</small></div>';
+  }
+}
+
+function authHeader(){ return { 'Authorization': `Bearer ${TOKEN}` }; }
+
+// ── Load home products ──
+async function loadHomeData(){
+  try {
+    const [offRes, munchRes, dairyRes, ordersRes] = await Promise.all([
+      fetch(`${API}/products?category=Fruits%20%26%20Vegetables&limit=8`,{headers:authHeader()}).then(r=>r.json()),
+      fetch(`${API}/products?category=Munchies&limit=8`,{headers:authHeader()}).then(r=>r.json()),
+      fetch(`${API}/products?category=Dairy%2C%20Bread%20%26%20Eggs&limit=8`,{headers:authHeader()}).then(r=>r.json()),
+      fetch(`${API}/orders`,{headers:authHeader()}).then(r=>r.json()).catch(()=>[]),
+    ]);
+    renderProductRow('products-off', Array.isArray(offRes)?offRes:offRes.products||[]);
+    renderProductRow('products-munch', Array.isArray(munchRes)?munchRes:munchRes.products||[]);
+    renderProductRow('products-dairy', Array.isArray(dairyRes)?dairyRes:dairyRes.products||[]);
+    const activeOrder = Array.isArray(ordersRes) ? ordersRes.find(o=>['preparing','placed','pickup','ready'].includes(o.status)) : null;
+    if(activeOrder){ renderActiveOrderBar(activeOrder); }
+    document.getElementById('home-loader').style.display='none';
+    document.getElementById('home-content').style.display='block';
+  } catch(e){
+    document.getElementById('home-loader').innerHTML='<div style="color:var(--muted);padding:20px;text-align:center;font-size:13px">Failed to load products</div>';
+  }
+}
+
+function renderActiveOrderBar(order){
+  const bar = document.getElementById('active-order-bar');
+  bar.innerHTML = `<div class="live-order-bar" onclick="showTracking('${order.id}')">
+    <div class="live-row">
+      <div>
+        <div class="live-title">🛵 ${order.status==='pickup'?'Driver on the way!':'Preparing your order…'}</div>
+        <div class="live-sub">Tap to track • Est. 8 mins</div>
+      </div>
+      <div class="track-pill">TRACK</div>
+    </div>
+    <div class="progress-bg"><div class="progress-fill"></div></div>
+  </div>`;
+}
+
+function renderProductRow(containerId, products){
+  const el = document.getElementById(containerId);
+  if(!products.length){ el.innerHTML='<div style="padding:20px;color:var(--muted);font-size:12px">No products found</div>'; return; }
+  el.innerHTML = products.slice(0,6).map(p=>`
+    <div class="product-card" onclick="navigate('store','${p.store_id||'st_zepto_central'}','F&amp;G Store')">
+      <div class="product-img-wrap">
+        ${p.image_url?`<img class="product-img" src="${p.image_url}" onerror="this.style.display='none';this.parentNode.innerHTML='<div class=product-emoji>${catEmoji(p.category)}</div>'">`:`<div class="product-emoji">${catEmoji(p.category)}</div>`}
+      </div>
+      <div class="product-name">${p.name.length>28?p.name.slice(0,28)+'…':p.name}</div>
+      <div style="display:flex;align-items:center">
+        <span class="product-price">${fmtRupee(p.price)}</span>
+        ${p.original_price&&p.original_price>p.price?`<span class="product-mrp">${fmtRupee(p.original_price)}</span>`:''}
+      </div>
+      <button class="add-btn ${cart[p.id]?'added':''}" id="add-${p.id}" onclick="event.stopPropagation();addToCartHome('${p.id}','${p.name.replace(/'/g,"").slice(0,30)}',${p.price},'${p.store_id||'st_zepto_central'}')">${cart[p.id]?cart[p.id].qty+' ✓':'ADD'}</button>
+    </div>`).join('');
+}
+
+function addToCartHome(id, name, price, storeId){
+  if(cart[id]) cart[id].qty++; else cart[id]={name,price,qty:1,storeId};
+  const btn = document.getElementById('add-'+id);
+  if(btn){ btn.textContent=cart[id].qty+' ✓'; btn.classList.add('added'); }
+  updateCartBadge();
+  updateFAB();
+}
+
+// ── Store screen ──
+let storeProducts = [];
+async function navigate(screen, storeId, storeName){
+  if(screen==='store'){
+    currentStoreId = storeId;
+    navStack.push(currentTab);
+    document.getElementById('store-title').textContent = storeName;
+    document.getElementById('store-count').textContent = 'Loading…';
+    document.getElementById('store-items').innerHTML = '<div class="spinner-wrap" style="height:300px"><div class="spinner"></div></div>';
+    showView('v-store');
+    try {
+      const r = await fetch(`${API}/products?storeId=${storeId}&limit=40`,{headers:authHeader()});
+      storeProducts = await r.json();
+      if(!Array.isArray(storeProducts)) storeProducts = storeProducts.products||[];
+      document.getElementById('store-count').textContent = storeProducts.length+' items available';
+      renderStoreItems();
+    } catch(e){ document.getElementById('store-items').innerHTML='<div style="padding:20px;color:var(--muted)">Failed to load menu</div>'; }
+  }
+}
+
+function renderStoreItems(){
+  const el = document.getElementById('store-items');
+  el.innerHTML = storeProducts.map(p=>`
+    <div class="menu-item" id="mi-${p.id}">
+      <div class="menu-img">${p.image_url?`<img src="${p.image_url}" style="width:100%;height:100%;object-fit:cover;border-radius:10px" onerror="this.parentNode.innerHTML='${catEmoji(p.category)}'">`:`${catEmoji(p.category)}`}</div>
+      <div class="menu-info">
+        <div class="menu-name">${p.name}</div>
+        <div class="menu-cat">${p.category}</div>
+        <div style="display:flex;align-items:center;gap:6px">
+          <span class="menu-price" id="mp-${p.id}">${fmtRupee(p.price)}</span>
+          ${p.original_price&&p.original_price>p.price?`<span style="font-size:10px;color:var(--muted);text-decoration:line-through">${fmtRupee(p.original_price)}</span>`:``}
+          <span class="live-badge">LIVE</span>
+        </div>
+      </div>
+      <button class="menu-add ${cart[p.id]?'added':''}" id="sa-${p.id}" onclick="addToCartStore('${p.id}','${p.name.replace(/'/g,'').slice(0,30)}',${p.price})">${cart[p.id]?cart[p.id].qty+' ✓':'ADD'}</button>
+    </div>`).join('');
+}
+
+function addToCartStore(id, name, price){
+  if(cart[id]) cart[id].qty++; else cart[id]={name,price,qty:1,storeId:currentStoreId};
+  const btn = document.getElementById('sa-'+id);
+  if(btn){ btn.textContent=cart[id].qty+' ✓'; btn.classList.add('added'); }
+  updateCartBadge();
+  updateFAB();
+}
+
+function updateFAB(){
+  const total = Object.values(cart).reduce((s,i)=>s+i.qty,0);
+  const fab = document.getElementById('store-cart-fab');
+  const cnt = document.getElementById('fab-count');
+  if(total>0){ fab.style.display='flex'; cnt.textContent=total; } else { fab.style.display='none'; }
+}
+
+// ── Cart ──
+function renderCart(){
+  const items = Object.entries(cart).filter(([,v])=>v.qty>0);
+  if(!items.length){
+    document.getElementById('cart-empty').style.display='block';
+    document.getElementById('cart-items').style.display='none';
+    return;
+  }
+  document.getElementById('cart-empty').style.display='none';
+  document.getElementById('cart-items').style.display='block';
+  const subtotal = items.reduce((s,[,v])=>s+(v.price*v.qty),0);
+  const delivery = subtotal>50000?0:2500;
+  const grandTotal = subtotal+delivery+500;
+  document.getElementById('cart-items').innerHTML = `
+    ${items.map(([id,v])=>`
+      <div class="cart-item">
+        <div style="font-size:28px;width:44px;text-align:center">${catEmoji('')}</div>
+        <div style="flex:1;min-width:0">
+          <div style="font-size:13px;font-weight:700;color:var(--text)">${v.name}</div>
+          <div style="font-size:13px;font-weight:800;color:var(--primary);margin-top:3px">${fmtRupee(v.price)} each</div>
+        </div>
+        <div class="qty-ctrl">
+          <button class="qty-btn" onclick="adjustCart('${id}',-1)">−</button>
+          <span class="qty-num">${v.qty}</span>
+          <button class="qty-btn" onclick="adjustCart('${id}',1)">+</button>
+        </div>
+      </div>`).join('')}
+    <div class="bill-box">
+      <div style="font-size:13px;font-weight:800;margin-bottom:8px">Bill Details</div>
+      <div class="bill-row"><span>Subtotal</span><span>${fmtRupee(subtotal)}</span></div>
+      <div class="bill-row"><span>Delivery Fee</span><span style="color:${delivery===0?'#059669':'var(--text)'}">${delivery===0?'FREE':fmtRupee(delivery)}</span></div>
+      <div class="bill-row"><span>Handling Fee</span><span>${fmtRupee(500)}</span></div>
+      <div class="bill-row bill-total"><span>Grand Total</span><span style="color:var(--primary)">${fmtRupee(grandTotal)}</span></div>
+    </div>
+    <button class="checkout-btn" onclick="doCheckout()">Proceed to Checkout — ${fmtRupee(grandTotal)}</button>`;
+}
+
+function adjustCart(id, delta){
+  if(!cart[id]) return;
+  cart[id].qty += delta;
+  if(cart[id].qty <= 0) delete cart[id];
+  updateCartBadge();
+  updateFAB();
+  renderCart();
+  // Update store buttons
+  const btn = document.getElementById('sa-'+id);
+  if(btn){ if(cart[id]){ btn.textContent=cart[id].qty+' ✓'; btn.classList.add('added'); } else { btn.textContent='ADD'; btn.classList.remove('added'); } }
+}
+
+function doCheckout(){
+  const items = Object.values(cart);
+  if(!items.length) return;
+  alert('💳 Razorpay checkout would open here!\n\nIn the real app:\n• UPI / Cards / Wallets\n• COD option\n• Order placed → Track in real-time');
+}
+
+// ── Orders ──
+async function loadOrders(){
+  document.getElementById('orders-loader').style.display='flex';
+  document.getElementById('orders-list').style.display='none';
+  try {
+    const r = await fetch(`${API}/admin/orders`,{headers:authHeader()});
+    const d = await r.json();
+    const orders = d.orders||d||[];
+    document.getElementById('orders-loader').style.display='none';
+    document.getElementById('orders-list').style.display='block';
+    document.getElementById('orders-list').innerHTML = orders.map(o=>`
+      <div class="order-card" onclick="showTracking('${o.id}')">
+        <div class="order-header-row">
+          <span class="order-id">#${o.id.slice(-8).toUpperCase()}</span>
+          <span class="order-tag ${o.store_name?.includes('Kitchen')||o.store_name?.includes('Biryani')?'tag-food':'tag-grocery'}">${o.store_name?.includes('Kitchen')||o.store_name?.includes('Biryani')?'🍔 Food':'🛒 Grocery'}</span>
+        </div>
+        <div style="margin-bottom:6px">${statusBadge(o.status)}</div>
+        <div class="order-store">📦 ${o.store_name||'F&G Store'} • ${o.customer_name||'Customer'}</div>
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-top:8px">
+          <span class="order-amount">${fmtRupee(o.total_amount)}</span>
+          <span class="order-date">${new Date(o.created_at).toLocaleDateString('en-IN',{day:'numeric',month:'short',hour:'2-digit',minute:'2-digit'})}</span>
+        </div>
+      </div>`).join('') || '<div style="text-align:center;padding:40px;color:var(--muted)">No orders yet</div>';
+  } catch(e){
+    document.getElementById('orders-loader').innerHTML='<div style="padding:20px;color:var(--muted);font-size:12px">Failed to load orders</div>';
+  }
+}
+
+function showTracking(orderId){
+  navStack.push(currentTab==='orders'?'orders':currentTab);
+  document.getElementById('tracking-id').textContent='Order #'+orderId.slice(-8).toUpperCase();
+  showView('v-tracking');
+  // Update all tab visuals
+  document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));
+}
+
+// ── Stats ──
+async function loadStats(){
+  try {
+    const [pr, st, or] = await Promise.all([
+      fetch(`${API}/products?limit=1`,{headers:authHeader()}).then(r=>r.json()),
+      fetch(`${API}/stores`,{headers:authHeader()}).then(r=>r.json()),
+      fetch(`${API}/admin/orders`,{headers:authHeader()}).then(r=>r.json()),
+    ]);
+    document.getElementById('stat-products').textContent = (Array.isArray(pr)?pr.length:324);
+    document.getElementById('stat-stores').textContent = (Array.isArray(st)?st.length:3);
+    document.getElementById('stat-orders').textContent = (or.total||or.orders?.length||10);
+    document.getElementById('stat-users').textContent = '3';
+  } catch(e){}
+}
+
+async function loadRecentOrders(){
+  try {
+    const r = await fetch(`${API}/admin/orders?limit=4`,{headers:authHeader()});
+    const d = await r.json();
+    const orders = (d.orders||[]).slice(0,4);
+    const el = document.getElementById('recent-orders-panel');
+    el.innerHTML = orders.map(o=>`<div class="rt-item" style="cursor:pointer" onclick="switchTab('orders')">
+      <span style="color:#fff;font-weight:700">#${o.id.slice(-6).toUpperCase()}</span>&nbsp;
+      ${statusBadge(o.status)}&nbsp;
+      <span style="color:rgba(255,255,255,.6)">${fmtRupee(o.total_amount)}</span>
+    </div>`).join('');
+  } catch(e){}
+}
+
+// ── Simulated real-time price updates ──
+const PRODUCT_NAMES=['Onion (Pyaz)','Amul Butter','Lays American','Red Bull','Basmati Rice','Coca Cola'];
+let rtCount=0;
+function simPriceUpdates(){
+  setInterval(()=>{
+    const name=PRODUCT_NAMES[Math.floor(Math.random()*PRODUCT_NAMES.length)];
+    const isUp=Math.random()>.5;
+    const pct=(Math.random()*3+0.5).toFixed(1);
+    const feed=document.getElementById('rt-feed');
+    const time=new Date().toLocaleTimeString('en-IN',{hour:'2-digit',minute:'2-digit',second:'2-digit'});
+    const html=`<div class="rt-item"><span>${name}</span> <span class="${isUp?'rt-price-up':'rt-price-down'}">${isUp?'▲+':'▼-'}${pct}%</span> <span class="rt-time">${time}</span></div>`;
+    feed.insertAdjacentHTML('afterbegin',html);
+    if(feed.children.length>6) feed.removeChild(feed.lastChild);
+    // Flash matching menu item if store is showing
+    const storeItemMatch=storeProducts.find(p=>name.includes(p.name.split(' ')[0]));
+    if(storeItemMatch){
+      const priceEl=document.getElementById('mp-'+storeItemMatch.id);
+      if(priceEl){
+        const newPrice=Math.round(storeItemMatch.price*(1+(isUp?1:-1)*parseFloat(pct)/100));
+        storeItemMatch.price=newPrice;
+        priceEl.textContent=fmtRupee(newPrice);
+        priceEl.parentElement?.parentElement?.parentElement?.classList.add(isUp?'price-flash-up':'price-flash-down');
+        setTimeout(()=>priceEl.parentElement?.parentElement?.parentElement?.classList.remove('price-flash-up','price-flash-down'),700);
+      }
+    }
+  },2200);
+}
+
+// ── Navigation ──
+function showView(id){
+  document.querySelectorAll('.view').forEach(v=>v.classList.remove('show'));
+  document.getElementById(id).classList.add('show');
+}
+
+function switchTab(tab){
+  currentTab=tab;
+  navStack=[];
+  document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));
+  document.getElementById('tab-'+tab)?.classList.add('active');
+  const map={home:'v-home',orders:'v-orders',profile:'v-profile',cart:'v-cart',search:'v-home',instamart:'v-home'};
+  showView(map[tab]||'v-home');
+  if(tab==='orders') loadOrders();
+  if(tab==='cart') renderCart();
+}
+
+function goBack(){
+  const prev=navStack.pop();
+  if(prev){ switchTab(prev); } else { switchTab('home'); }
+}
+
+function updateCartBadge(){
+  const total=Object.values(cart).reduce((s,i)=>s+i.qty,0);
+  const badge=document.getElementById('food-badge');
+  if(total>0){ badge.textContent=total; badge.style.display='block'; } else { badge.style.display='none'; }
+}
+
+// Init
+init();
+</script>
+</body>
+</html>

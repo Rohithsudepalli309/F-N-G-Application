@@ -85,9 +85,11 @@ export const LoginScreen = () => {
         <View style={[styles.circle, styles.circle1]} />
         <View style={[styles.circle, styles.circle2]} />
 
-        <Animated.Text style={[styles.logoMark, { transform: [{ translateY: logoFloat }] }]}>
-          🛒
-        </Animated.Text>
+        <Animated.Image
+          source={require('../assets/fg_logo_foreground.png')}
+          style={[styles.logoImage, { transform: [{ translateY: logoFloat }] }]}
+          resizeMode="contain"
+        />
         <Text style={styles.brandName}>F&amp;G</Text>
         <Text style={styles.brandTagline}>Fresh. Fast. Delivered.</Text>
       </View>
@@ -172,9 +174,10 @@ const styles = StyleSheet.create({
     bottom: -50,
     left: -40,
   },
-  logoMark: {
-    fontSize: 64,
-    marginBottom: 8,
+  logoImage: {
+    width: 110,
+    height: 110,
+    marginBottom: 4,
   },
   brandName: {
     fontSize: 40,

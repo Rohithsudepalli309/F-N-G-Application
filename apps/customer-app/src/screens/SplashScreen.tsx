@@ -7,6 +7,7 @@ import React, { useEffect, useRef } from 'react';
 import {
   View,
   Text,
+  Image,
   StyleSheet,
   Animated,
   StatusBar,
@@ -82,7 +83,11 @@ export const SplashScreen = () => {
 
       {/* Logo badge */}
       <Animated.View style={[styles.logoBadge, { transform: [{ scale: logoScale }], opacity: logoOpacity }]}>
-        <Text style={styles.logoInitials}>F&G</Text>
+        <Image
+          source={require('../assets/fg_logo_square.png')}
+          style={styles.logoImage}
+          resizeMode="contain"
+        />
       </Animated.View>
 
       {/* Wordmark */}
@@ -121,19 +126,14 @@ const styles = StyleSheet.create({
     borderColor: 'rgba(245,168,38,0.6)',
   },
   logoBadge: {
-    width: 96,
-    height: 96,
-    borderRadius: 24,
-    backgroundColor: theme.colors.accent,
+    width: 140,
+    height: 140,
     alignItems: 'center',
     justifyContent: 'center',
-    ...theme.shadows.orange,
   },
-  logoInitials: {
-    fontSize: 34,
-    fontWeight: '900',
-    color: theme.colors.primary,
-    letterSpacing: -1,
+  logoImage: {
+    width: 140,
+    height: 140,
   },
   wordmark: {
     fontSize: 24,

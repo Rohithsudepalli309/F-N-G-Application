@@ -37,9 +37,7 @@ export const AdminLayout = () => {
 
         {/* Logo */}
         <div className="p-6 border-b border-slate-800 flex items-center space-x-3">
-          <div className="w-9 h-9 bg-gradient-to-br from-orange-400 to-orange-600 rounded-xl flex items-center justify-center shadow-lg shadow-orange-500/30">
-            <span className="text-white font-black text-sm">F</span>
-          </div>
+          <img src="/logo.png" alt="F&G" className="w-9 h-9 rounded-xl object-contain" />
           <div>
             <span className="text-lg font-bold tracking-tight">FNG Admin</span>
             <p className="text-[10px] text-slate-500 uppercase tracking-widest">Control Centre</p>
