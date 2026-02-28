@@ -92,7 +92,12 @@ export const CartScreen = () => {
                 <Text style={styles.backArrow}>‹</Text>
             </TouchableOpacity>
             <View>
-                <Text style={styles.headerTitle}>Your Cart</Text>
+                <View style={styles.titleRow}>
+                  <Text style={styles.headerTitle}>Your Cart</Text>
+                  <View style={styles.foodPill}>
+                    <Text style={styles.foodPillText}>🍔 Food</Text>
+                  </View>
+                </View>
                 <Text style={styles.headerSub}>{items.length} Items</Text>
             </View>
         </View>
@@ -222,6 +227,22 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontFamily: theme.typography.fontFamily.bold,
     color: '#000',
+  },
+  titleRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+  },
+  foodPill: {
+    backgroundColor: '#FFF3E0',
+    paddingHorizontal: 8,
+    paddingVertical: 2,
+    borderRadius: 20,
+  },
+  foodPillText: {
+    fontSize: 10,
+    fontWeight: '700',
+    color: '#E65100',
   },
   headerSub: {
     fontSize: 11,

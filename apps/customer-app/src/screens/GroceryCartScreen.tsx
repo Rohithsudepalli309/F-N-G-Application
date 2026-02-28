@@ -12,19 +12,16 @@ import { useNavigation } from '@react-navigation/native';
 import RazorpayCheckout from 'react-native-razorpay';
 import { api } from '../services/api';
 import { theme } from '../theme';
-
-// Grocery cart uses its own Zustand slice or inline state.
-// For now we wire to the shared cart store filtered by storeId='instamart'
-import { useCartStore } from '../store/useCartStore';
+import { useGroceryCartStore } from '../store/useGroceryCartStore';
 
 export const GroceryCartScreen = () => {
   const navigation = useNavigation<any>();
-  const { items, updateQuantity, removeItem, clearCart, total, storeId } = useCartStore();
+  const { items, updateQty, removeItem, clearCart, total } = useGroceryCartStore();
   const [loading, setLoading] = useState(false);
 
-  // Filter to only grocery items if mixed cart
-  const groceryItems = items.filter(i => i.storeId?.startsWith('grocery') || i.storeId === 'instamart');
-  const cartTotal = groceryItems.reduce((s, i) => s + i.price * i.quantity, 0);
+  // Direct access — no filter needed, this store is grocery-only
+  const groceryItems = items;
+  const cartTotal = total();
   const deliveryFee = cartTotal >= 19900 ? 0 : 2500; // Free above ₹199
   const handlingFee = 500; // ₹5 platform fee in paise
   const grandTotal = cartTotal + deliveryFee + handlingFee;
@@ -164,7 +161,7 @@ export const GroceryCartScreen = () => {
                   style={styles.qtyBtn}
                   onPress={() => item.quantity <= 1
                     ? removeItem(item.productId)
-                    : updateQuantity(item.productId, item.quantity - 1)
+                    : updateQty(item.productId, item.quantity - 1)
                   }
                 >
                   <Text style={styles.qtyBtnText}>{item.quantity <= 1 ? '🗑' : '−'}</Text>
@@ -172,7 +169,7 @@ export const GroceryCartScreen = () => {
                 <Text style={styles.qtyNum}>{item.quantity}</Text>
                 <TouchableOpacity
                   style={styles.qtyBtn}
-                  onPress={() => updateQuantity(item.productId, item.quantity + 1)}
+                  onPress={() => updateQty(item.productId, item.quantity + 1)}
                 >
                   <Text style={styles.qtyBtnText}>+</Text>
                 </TouchableOpacity>

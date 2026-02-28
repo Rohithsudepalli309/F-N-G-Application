@@ -12,7 +12,7 @@ import {
 import { useRoute, useNavigation } from '@react-navigation/native';
 import { api } from '../services/api';
 import { socketService } from '../services/socket';
-import { useCartStore } from '../store/useCartStore';
+import { useGroceryCartStore } from '../store/useGroceryCartStore';
 import { useAuthStore } from '../store/useAuthStore';
 import { theme } from '../theme';
 
@@ -30,15 +30,17 @@ interface GroceryProduct {
 }
 
 const ProductCard = ({ product, storeId }: { product: GroceryProduct; storeId: string }) => {
-  const { addToCart, items, decrementFromCart } = useCartStore();
+  const { addItem, items, decrementItem } = useGroceryCartStore();
   const qty = items.find(i => i.productId === product.id)?.quantity || 0;
 
   const handleAdd = () => {
-    addToCart(storeId, {
+    addItem({
       productId: product.id,
       name: product.name,
       price: Math.round(product.price * 100), // store in paise
-      quantity: 1,
+      image: product.image,
+      unit: product.unit,
+      brand: product.brand,
     });
   };
 
@@ -87,7 +89,7 @@ const ProductCard = ({ product, storeId }: { product: GroceryProduct; storeId: s
             </TouchableOpacity>
           ) : (
             <View style={pStyles.stepper}>
-              <TouchableOpacity style={pStyles.stepBtn} onPress={() => decrementFromCart(product.id)}>
+              <TouchableOpacity style={pStyles.stepBtn} onPress={() => decrementItem(product.id)}>
                 <Text style={pStyles.stepBtnText}>−</Text>
               </TouchableOpacity>
               <Text style={pStyles.qtyText}>{qty}</Text>
@@ -115,8 +117,8 @@ export const InstamartCategoryScreen = () => {
   const [products, setProducts] = useState<GroceryProduct[]>([]);
   const [loading, setLoading] = useState(true);
   const [sortBy, setSortBy] = useState<'price_asc' | 'price_desc' | 'discount'>('price_asc');
-  const cartItems = useCartStore((s) => s.items);
-  const cartTotal = useCartStore((s) => s.total);
+  const cartItems = useGroceryCartStore((s) => s.items);
+  const cartTotal = useGroceryCartStore((s) => s.total);
 
   const fetchProducts = useCallback(async () => {
     try {
@@ -164,7 +166,7 @@ export const InstamartCategoryScreen = () => {
           <Text style={styles.backIcon}>←</Text>
         </TouchableOpacity>
         <Text style={styles.headerTitle} numberOfLines={1}>{categoryName}</Text>
-        <TouchableOpacity style={styles.cartBtn} onPress={() => navigation.navigate('Cart')}>
+        <TouchableOpacity style={styles.cartBtn} onPress={() => navigation.navigate('GroceryCart')}>
           <Text style={styles.cartIcon}>🛒</Text>
           {cartItems.length > 0 && (
             <View style={styles.cartBadge}>
@@ -213,7 +215,7 @@ export const InstamartCategoryScreen = () => {
 
       {/* Sticky cart bar */}
       {cartItems.length > 0 && (
-        <TouchableOpacity style={styles.cartBar} onPress={() => navigation.navigate('Cart')}>
+        <TouchableOpacity style={styles.cartBar} onPress={() => navigation.navigate('GroceryCart')}>
           <Text style={styles.cartBarLeft}>{cartItems.length} item{cartItems.length > 1 ? 's' : ''} · ₹{(cartTotal() / 100).toFixed(0)}</Text>
           <Text style={styles.cartBarRight}>View Cart →</Text>
         </TouchableOpacity>

@@ -93,7 +93,14 @@ export const MyOrdersScreen = () => {
               <TouchableOpacity 
                 key={order.id} 
                 style={styles.orderCard}
-                onPress={() => (navigation as any).navigate('OrderTracking', { orderId: order.id })}
+                onPress={() => {
+                  const isCompleted = ['Delivered', 'Cancelled', 'Refusal'].includes(order.status);
+                  if (isCompleted) {
+                    (navigation as any).navigate('OrderDetail', { orderId: order.id });
+                  } else {
+                    (navigation as any).navigate('OrderTracking', { orderId: order.id });
+                  }
+                }}
               >
                 <View style={styles.orderTop}>
                   <View style={styles.orderIconBox}>
@@ -109,9 +116,19 @@ export const MyOrdersScreen = () => {
                        </Text>
                        <Text style={styles.orderId}>#{order.id.slice(-8).toUpperCase()}</Text>
                     </View>
-                    <Text style={styles.orderDate}>
-                      {new Date(order.created_at).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' })}
-                    </Text>
+                    <View style={styles.typeDateRow}>
+                      <View style={[
+                        styles.typeBadge,
+                        order.type === 'grocery' ? styles.typeBadgeGrocery : styles.typeBadgeFood,
+                      ]}>
+                        <Text style={styles.typeBadgeText}>
+                          {order.type === 'grocery' ? '\uD83D\uDED2 Grocery' : '\uD83C\uDF54 Food'}
+                        </Text>
+                      </View>
+                      <Text style={styles.orderDate}>
+                        {new Date(order.created_at).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' })}
+                      </Text>
+                    </View>
                   </View>
                 </View>
                 
@@ -228,6 +245,28 @@ const styles = StyleSheet.create({
     fontSize: 11,
     color: '#666',
     fontFamily: theme.typography.fontFamily.regular,
+  },
+  typeDateRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+    marginTop: 3,
+  },
+  typeBadge: {
+    paddingHorizontal: 7,
+    paddingVertical: 2,
+    borderRadius: 20,
+  },
+  typeBadgeFood: {
+    backgroundColor: '#FFF3E0',
+  },
+  typeBadgeGrocery: {
+    backgroundColor: '#E8F5E9',
+  },
+  typeBadgeText: {
+    fontSize: 10,
+    fontWeight: '700',
+    color: '#333',
   },
   orderDivider: {
     height: 1,

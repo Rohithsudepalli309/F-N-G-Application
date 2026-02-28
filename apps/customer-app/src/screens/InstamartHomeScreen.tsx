@@ -11,7 +11,7 @@ import {
 } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { api } from '../services/api';
-import { useCartStore } from '../store/useCartStore';
+import { useGroceryCartStore } from '../store/useGroceryCartStore';
 import { theme } from '../theme';
 
 const FALLBACK_CATEGORIES = [
@@ -54,8 +54,8 @@ export const InstamartHomeScreen = () => {
   const [categories, setCategories] = useState(FALLBACK_CATEGORIES);
   const [loading, setLoading] = useState(false);
   const [search, setSearch] = useState('');
-  const cartItems = useCartStore((s) => s.items);
-  const cartTotal = useCartStore((s) => s.total);
+  const cartItems = useGroceryCartStore((s) => s.items);
+  const cartTotal = useGroceryCartStore((s) => s.total);
 
   useEffect(() => {
     const fetchCategories = async () => {
@@ -101,7 +101,7 @@ export const InstamartHomeScreen = () => {
           <Text style={styles.headerTitle}>🛒 Instamart</Text>
           <Text style={styles.headerSub}>Groceries at your doorstep</Text>
         </View>
-        <TouchableOpacity style={styles.cartBtn} onPress={() => navigation.navigate('Cart')}>
+        <TouchableOpacity style={styles.cartBtn} onPress={() => navigation.navigate('GroceryCart')}>
           <Text style={styles.cartIcon}>🛒</Text>
           {cartItems.length > 0 && (
             <View style={styles.cartBadge}>
@@ -148,7 +148,7 @@ export const InstamartHomeScreen = () => {
 
       {/* Sticky cart FAB */}
       {cartItems.length > 0 && (
-        <TouchableOpacity style={styles.fab} onPress={() => navigation.navigate('Cart')} activeOpacity={0.9}>
+        <TouchableOpacity style={styles.fab} onPress={() => navigation.navigate('GroceryCart')} activeOpacity={0.9}>
           <Text style={styles.fabText}>{cartItems.length} item{cartItems.length > 1 ? 's' : ''}  ·  ₹{(cartTotal() / 100).toFixed(0)}</Text>
           <Text style={styles.fabCta}>View Cart →</Text>
         </TouchableOpacity>

@@ -12,6 +12,8 @@ import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { useAuthStore } from '../store/useAuthStore';
 import { useUIStore } from '../store/useUIStore';
+import { useCartStore } from '../store/useCartStore';
+import { useGroceryCartStore } from '../store/useGroceryCartStore';
 import { theme } from '../theme';
 
 // ─── Auth Screens ─────────────────────────────────────────────────────────────
@@ -66,15 +68,22 @@ const ProfileStack = createNativeStackNavigator();
 const Tab = createBottomTabNavigator();
 
 // ─── Tab Icon Component ────────────────────────────────────────────────────────
-const TabIcon = ({ name, focused }: { name: string; focused: boolean }) => {
+const TabIcon = ({ name, focused, badge }: { name: string; focused: boolean; badge?: number }) => {
   const icons: Record<string, string> = {
-    Home: '🏠', Search: '🔍', Instamart: '🛒', Orders: '📦', Profile: '👤',
+    Home: '\uD83C\uDFE0', Search: '\uD83D\uDD0D', Instamart: '\uD83D\uDED2', Orders: '\uD83D\uDCE6', Profile: '\uD83D\uDC64',
   };
   return (
     <View style={tabStyles.iconWrap}>
-      <Text style={[tabStyles.icon, focused && tabStyles.iconActive]}>
-        {icons[name] || '◉'}
-      </Text>
+      <View>
+        <Text style={[tabStyles.icon, focused && tabStyles.iconActive]}>
+          {icons[name] || '\u25C9'}
+        </Text>
+        {!!badge && badge > 0 && (
+          <View style={tabStyles.badge}>
+            <Text style={tabStyles.badgeText}>{badge > 99 ? '99+' : badge}</Text>
+          </View>
+        )}
+      </View>
       <Text style={[tabStyles.label, focused && tabStyles.labelActive]}>{name}</Text>
     </View>
   );
@@ -86,6 +95,14 @@ const tabStyles = StyleSheet.create({
   iconActive: { opacity: 1 },
   label: { fontSize: 10, color: theme.colors.tabInactive, marginTop: 2, fontWeight: '500' },
   labelActive: { color: theme.colors.tabActive, fontWeight: '700' },
+  badge: {
+    position: 'absolute', top: -4, right: -8,
+    minWidth: 16, height: 16, borderRadius: 8,
+    backgroundColor: theme.colors.accent3 ?? '#E45F10',
+    alignItems: 'center', justifyContent: 'center',
+    paddingHorizontal: 3,
+  },
+  badgeText: { fontSize: 9, fontWeight: '800', color: '#fff' },
 });
 
 const NO_HEADER = { headerShown: false };
@@ -123,9 +140,7 @@ const InstamartStackNav = () => (
   <InstamartStack.Navigator screenOptions={NO_HEADER}>
     <InstamartStack.Screen name="InstamartMain" component={InstamartHomeScreen} />
     <InstamartStack.Screen name="InstamartCategory" component={InstamartCategoryScreen} />
-    <InstamartStack.Screen name="Cart" component={CartScreen} />
     <InstamartStack.Screen name="GroceryCart" component={GroceryCartScreen} />
-    <InstamartStack.Screen name="Checkout" component={CheckoutScreen} />
     <InstamartStack.Screen name="OrderTracking" component={OrderTrackingScreen} />
     <InstamartStack.Screen name="OrderConfirmed" component={OrderConfirmedScreen} />
   </InstamartStack.Navigator>
@@ -157,48 +172,54 @@ const ProfileStackNav = () => (
 );
 
 // ─── Main Tab Navigator ─────────────────────────────────────────────────────────
-const MainTabs = () => (
-  <Tab.Navigator
-    screenOptions={{
-      headerShown: false,
-      tabBarShowLabel: false,
-      tabBarStyle: {
-        backgroundColor: '#FFFFFF',
-        borderTopWidth: 1,
-        borderTopColor: theme.colors.border,
-        height: Platform.OS === 'ios' ? 84 : 62,
-        paddingBottom: Platform.OS === 'ios' ? 24 : 8,
-        ...theme.shadows.bottom,
-      },
-    }}
-  >
-    <Tab.Screen
-      name="HomeTab"
-      component={HomeStackNav}
-      options={{ tabBarIcon: ({ focused }) => <TabIcon name="Home" focused={focused} /> }}
-    />
-    <Tab.Screen
-      name="SearchTab"
-      component={SearchStackNav}
-      options={{ tabBarIcon: ({ focused }) => <TabIcon name="Search" focused={focused} /> }}
-    />
-    <Tab.Screen
-      name="InstamartTab"
-      component={InstamartStackNav}
-      options={{ tabBarIcon: ({ focused }) => <TabIcon name="Instamart" focused={focused} /> }}
-    />
-    <Tab.Screen
-      name="OrdersTab"
-      component={OrdersStackNav}
-      options={{ tabBarIcon: ({ focused }) => <TabIcon name="Orders" focused={focused} /> }}
-    />
-    <Tab.Screen
-      name="ProfileTab"
-      component={ProfileStackNav}
-      options={{ tabBarIcon: ({ focused }) => <TabIcon name="Profile" focused={focused} /> }}
-    />
-  </Tab.Navigator>
-);
+const MainTabs = () => {
+  // Live cart counts for tab badges
+  const foodItemCount = useCartStore((s) => s.items.reduce((n, i) => n + i.quantity, 0));
+  const groceryItemCount = useGroceryCartStore((s) => s.itemCount());
+
+  return (
+    <Tab.Navigator
+      screenOptions={{
+        headerShown: false,
+        tabBarShowLabel: false,
+        tabBarStyle: {
+          backgroundColor: '#FFFFFF',
+          borderTopWidth: 1,
+          borderTopColor: theme.colors.border,
+          height: Platform.OS === 'ios' ? 84 : 62,
+          paddingBottom: Platform.OS === 'ios' ? 24 : 8,
+          ...theme.shadows.bottom,
+        },
+      }}
+    >
+      <Tab.Screen
+        name="HomeTab"
+        component={HomeStackNav}
+        options={{ tabBarIcon: ({ focused }) => <TabIcon name="Home" focused={focused} badge={foodItemCount} /> }}
+      />
+      <Tab.Screen
+        name="SearchTab"
+        component={SearchStackNav}
+        options={{ tabBarIcon: ({ focused }) => <TabIcon name="Search" focused={focused} /> }}
+      />
+      <Tab.Screen
+        name="InstamartTab"
+        component={InstamartStackNav}
+        options={{ tabBarIcon: ({ focused }) => <TabIcon name="Instamart" focused={focused} badge={groceryItemCount} /> }}
+      />
+      <Tab.Screen
+        name="OrdersTab"
+        component={OrdersStackNav}
+        options={{ tabBarIcon: ({ focused }) => <TabIcon name="Orders" focused={focused} /> }}
+      />
+      <Tab.Screen
+        name="ProfileTab"
+        component={ProfileStackNav}
+        options={{ tabBarIcon: ({ focused }) => <TabIcon name="Profile" focused={focused} /> }}
+      />
+    </Tab.Navigator>
+  );
+};
 
 // ─── Auth Stack ────────────────────────────────────────────────────────────────
 const AuthStackNav = () => (

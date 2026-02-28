@@ -27,10 +27,10 @@ export const useCartStore = create<CartState>()(
       addToCart: (storeId, newItem) => {
         const { items, storeId: currentStore } = get();
         
-        // Reset cart if adding from different store
+        // Reset cart if adding from different restaurant/store — food cart is per-restaurant
         if (currentStore && currentStore !== storeId) {
-           set({ storeId, items: [newItem.quantity > 0 ? newItem : []] as any });
-           return;
+          set({ storeId, items: [{ ...newItem, quantity: newItem.quantity > 0 ? newItem.quantity : 1 }] });
+          return;
         }
 
         const existingItem = items.find(i => i.productId === newItem.productId);
