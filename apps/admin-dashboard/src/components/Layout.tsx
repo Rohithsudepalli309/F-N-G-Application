@@ -1,6 +1,6 @@
 import React from 'react';
 import { Navigate, Outlet, NavLink } from 'react-router-dom';
-import { LayoutDashboard, ShoppingBag, Users, Store, Truck, LogOut, Zap } from 'lucide-react';
+import { LayoutDashboard, ShoppingBag, Users, Store, Truck, LogOut, Tag, TrendingUp, Wallet, Zap } from 'lucide-react';
 import { useAuthStore } from '../store/useAuthStore';
 
 // ── Protected Route Guard ──────────────────────────────────────────────────
@@ -20,11 +20,14 @@ export const AdminLayout = () => {
   const logout = useAuthStore((state: any) => state.logout);
 
   const navItems = [
-    { label: 'Dashboard',   path: '/',        icon: LayoutDashboard },
-    { label: 'Live Orders', path: '/orders',   icon: ShoppingBag },
-    { label: 'Users',       path: '/users',    icon: Users },
-    { label: 'Stores',      path: '/stores',   icon: Store },
-    { label: 'Fleet',       path: '/drivers',  icon: Truck },
+    { label: 'Dashboard',   path: '/',           icon: LayoutDashboard },
+    { label: 'Live Orders', path: '/orders',      icon: ShoppingBag },
+    { label: 'Users',       path: '/users',       icon: Users },
+    { label: 'Stores',      path: '/stores',      icon: Store },
+    { label: 'Fleet',       path: '/drivers',     icon: Truck },
+    { label: 'Coupons',     path: '/coupons',     icon: Tag },
+    { label: 'Analytics',   path: '/analytics',   icon: TrendingUp },
+    { label: 'Payouts',     path: '/payouts',     icon: Wallet },
   ];
 
   return (

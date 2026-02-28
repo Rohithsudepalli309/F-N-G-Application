@@ -1,5 +1,6 @@
 import React from 'react';
 import { StatusBar } from 'react-native';
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { AppNavigator } from './src/navigation/AppNavigator';
 import { socketService } from './src/services/socket';
 import { OtpNotification } from './src/components/OtpNotification';
@@ -7,11 +8,24 @@ import { useAuthStore } from './src/store/useAuthStore';
 import { usePushNotifications } from './src/hooks/usePushNotifications';
 import { ErrorBoundary } from './src/components/ErrorBoundary';
 
+// React Query client — spec §2.1: staleTime 30s, retry 2, background refetch
+const queryClient = new QueryClient({
+  defaultOptions: {
+    queries: {
+      staleTime: 30_000,       // 30s — adequate for product/store listings
+      retry: 2,
+      refetchOnWindowFocus: false,
+    },
+  },
+});
+
 const App = () => {
   return (
-    <ErrorBoundary>
-      <MainContent />
-    </ErrorBoundary>
+    <QueryClientProvider client={queryClient}>
+      <ErrorBoundary>
+        <MainContent />
+      </ErrorBoundary>
+    </QueryClientProvider>
   );
 };
 

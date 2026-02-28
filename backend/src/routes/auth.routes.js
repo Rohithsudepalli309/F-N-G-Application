@@ -62,4 +62,39 @@ router.post('/fcm-token', authenticate, async (req, res, next) => {
   }
 });
 
+// 6. Refresh Token — POST /auth/refresh
+const jwt = require('jsonwebtoken');
+const env = require('../config/env');
+router.post('/refresh', async (req, res) => {
+  const { refreshToken } = req.body;
+  if (!refreshToken) return res.status(400).json({ error: 'refreshToken required' });
+
+  try {
+    const payload = jwt.verify(refreshToken, env.JWT_REFRESH_SECRET || env.JWT_SECRET);
+    const accessToken = jwt.sign(
+      { id: payload.id, role: payload.role },
+      env.JWT_SECRET,
+      { expiresIn: '1h' }
+    );
+    res.json({ accessToken });
+  } catch (err) {
+    res.status(401).json({ error: 'Invalid or expired refresh token' });
+  }
+});
+
+// 7. GET /auth/me — get current user profile
+const db = require('../config/db');
+router.get('/me', authenticate, async (req, res) => {
+  try {
+    const { rows } = await db.query(
+      `SELECT id, name, phone, email, role, fng_coins, created_at FROM users WHERE id = $1`,
+      [req.user.id]
+    );
+    if (!rows.length) return res.status(404).json({ error: 'User not found' });
+    res.json({ user: rows[0] });
+  } catch (err) {
+    res.status(500).json({ error: 'Failed to fetch profile' });
+  }
+});
+
 module.exports = router;
