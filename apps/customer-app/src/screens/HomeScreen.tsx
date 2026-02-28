@@ -23,6 +23,74 @@ import { ActivityIndicator } from 'react-native';
 
 const { width } = Dimensions.get('window');
 
+// ── 50% OFF TODAY Sale Banner ────────────────────────────────────────────────
+const SaleBanner = ({ onPress }: { onPress: () => void }) => {
+  const pulse = useRef(new Animated.Value(1)).current;
+  const [timeLeft, setTimeLeft] = useState({ h: 0, m: 0, s: 0 });
+
+  useEffect(() => {
+    Animated.loop(
+      Animated.sequence([
+        Animated.timing(pulse, { toValue: 1.02, duration: 900, useNativeDriver: true }),
+        Animated.timing(pulse, { toValue: 1,    duration: 900, useNativeDriver: true }),
+      ])
+    ).start();
+    const tick = () => {
+      const now = new Date();
+      const midnight = new Date();
+      midnight.setHours(23, 59, 59, 999);
+      const diff = Math.max(0, midnight.getTime() - now.getTime());
+      setTimeLeft({
+        h: Math.floor(diff / 3600000),
+        m: Math.floor((diff % 3600000) / 60000),
+        s: Math.floor((diff % 60000) / 1000),
+      });
+    };
+    tick();
+    const id = setInterval(tick, 1000);
+    return () => clearInterval(id);
+  }, []);
+
+  const pad = (n: number) => String(n).padStart(2, '0');
+
+  return (
+    <TouchableOpacity onPress={onPress} activeOpacity={0.9} style={styles.saleBanner}>
+      <Animated.View style={[styles.saleBannerGradientBg, { transform: [{ scale: pulse }] }]}>
+        <View style={styles.saleBannerLeft}>
+          <Text style={styles.saleBannerEyebrow}>🔥 Today Only</Text>
+          <Text style={styles.saleBannerHeadline}>50%{'\n'}OFF</Text>
+          <Text style={styles.saleBannerSub}>All Fruits, Veggies{'\n'}& Fresh Picks!</Text>
+          <View style={styles.saleCountdownRow}>
+            <View style={styles.saleCountdownBox}>
+              <Text style={styles.saleCountdownNum}>{pad(timeLeft.h)}</Text>
+              <Text style={styles.saleCountdownLabel}>HRS</Text>
+            </View>
+            <Text style={styles.saleColonText}>:</Text>
+            <View style={styles.saleCountdownBox}>
+              <Text style={styles.saleCountdownNum}>{pad(timeLeft.m)}</Text>
+              <Text style={styles.saleCountdownLabel}>MIN</Text>
+            </View>
+            <Text style={styles.saleColonText}>:</Text>
+            <View style={styles.saleCountdownBox}>
+              <Text style={styles.saleCountdownNum}>{pad(timeLeft.s)}</Text>
+              <Text style={styles.saleCountdownLabel}>SEC</Text>
+            </View>
+          </View>
+          <TouchableOpacity style={styles.saleBannerBtn} onPress={onPress}>
+            <Text style={styles.saleBannerBtnText}>SHOP NOW →</Text>
+          </TouchableOpacity>
+        </View>
+        <View style={styles.saleBannerRight}>
+          <Text style={styles.saleBannerEmoji}>🛍️</Text>
+          <View style={styles.saleBannerBadge}>
+            <Text style={styles.saleBannerBadgeText}>LIMITED</Text>
+          </View>
+        </View>
+      </Animated.View>
+    </TouchableOpacity>
+  );
+};
+
 // --- Mock Data ------------------------------------------------------------------------------------------─
 const BRAND_CHIPS = [
   { id: 'fng', name: 'F&G', color: '#2E7D32' },
@@ -348,7 +416,10 @@ export const HomeScreen = () => {
           </View>
         </View>
 
-        {/* --- 8. 50% OFF ZONE ------------------------------------------------------------ */}
+        {/* --- 8. 50% OFF TODAY HERO BANNER -------------------------------------------- */}
+        <SaleBanner onPress={() => (navigation as any).navigate('ProductList', { categoryName: 'Fruits & Vegetables' })} />
+
+        {/* --- 9. 50% OFF ZONE ------------------------------------------------------------ */}
         <View style={styles.offZoneSection}>
           <View style={styles.offZoneHeader}>
              <Text style={styles.offZoneTitle}>50% Off Zone</Text>
@@ -718,6 +789,108 @@ const styles = StyleSheet.create({
     marginTop: 24,
     backgroundColor: '#FFF',
     paddingVertical: 16,
+  },
+  saleBanner: {
+    marginHorizontal: 16,
+    marginTop: 20,
+    borderRadius: 20,
+    overflow: 'hidden',
+  },
+  saleBannerGradientBg: {
+    backgroundColor: '#D32F2F',
+    borderRadius: 20,
+    padding: 18,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+  },
+  saleBannerLeft: {
+    flex: 1,
+  },
+  saleBannerEyebrow: {
+    fontSize: 11,
+    fontFamily: theme.typography.fontFamily.bold,
+    color: 'rgba(255,255,255,0.8)',
+    letterSpacing: 2,
+    textTransform: 'uppercase',
+    marginBottom: 4,
+  },
+  saleBannerHeadline: {
+    fontSize: 36,
+    fontFamily: theme.typography.fontFamily.bold,
+    color: '#FFD600',
+    letterSpacing: -1,
+    lineHeight: 38,
+  },
+  saleBannerSub: {
+    fontSize: 13,
+    color: 'rgba(255,255,255,0.85)',
+    marginTop: 6,
+    fontFamily: theme.typography.fontFamily.regular,
+  },
+  saleBannerBtn: {
+    marginTop: 14,
+    backgroundColor: '#FFD600',
+    borderRadius: 22,
+    paddingVertical: 9,
+    paddingHorizontal: 20,
+    alignSelf: 'flex-start',
+  },
+  saleBannerBtnText: {
+    fontSize: 13,
+    fontFamily: theme.typography.fontFamily.bold,
+    color: '#D32F2F',
+    letterSpacing: 0.5,
+  },
+  saleBannerRight: {
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginLeft: 12,
+  },
+  saleBannerEmoji: {
+    fontSize: 56,
+  },
+  saleBannerBadge: {
+    backgroundColor: 'rgba(255,255,255,0.2)',
+    borderRadius: 12,
+    paddingHorizontal: 10,
+    paddingVertical: 5,
+    marginTop: 6,
+  },
+  saleBannerBadgeText: {
+    fontSize: 10,
+    fontFamily: theme.typography.fontFamily.bold,
+    color: '#fff',
+    letterSpacing: 1,
+  },
+  saleCountdownRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+    marginTop: 8,
+  },
+  saleCountdownBox: {
+    backgroundColor: 'rgba(0,0,0,0.25)',
+    borderRadius: 6,
+    paddingHorizontal: 7,
+    paddingVertical: 3,
+    alignItems: 'center',
+  },
+  saleCountdownNum: {
+    fontSize: 15,
+    fontFamily: theme.typography.fontFamily.bold,
+    color: '#FFD600',
+  },
+  saleCountdownLabel: {
+    fontSize: 8,
+    color: 'rgba(255,255,255,0.65)',
+    letterSpacing: 0.5,
+  },
+  saleColonText: {
+    fontSize: 16,
+    color: 'rgba(255,255,255,0.6)',
+    fontFamily: theme.typography.fontFamily.bold,
+    marginBottom: 8,
   },
   offZoneHeader: {
     paddingHorizontal: 14,

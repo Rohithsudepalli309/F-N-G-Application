@@ -169,8 +169,26 @@
 
   .api-badge{background:rgba(76,175,80,.15);color:#81C784;border:1px solid rgba(76,175,80,.25);border-radius:8px;padding:4px 10px;font-size:10px;font-weight:700;margin-bottom:12px;display:inline-flex;align-items:center;gap:5px}
 
-  /* Notification dot */
-  .notif-dot{width:8px;height:8px;border-radius:4px;background:#4CAF50;display:inline-block}
+  /* ── 50% OFF TODAY Sale Banner ── */
+  .sale-hero{margin:0 16px 14px;border-radius:20px;background:#D32F2F;padding:16px;display:flex;align-items:center;justify-content:space-between;overflow:hidden;position:relative;cursor:pointer;animation:sale-pulse 1.8s ease-in-out infinite}
+  @keyframes sale-pulse{0%,100%{box-shadow:0 0 0 0 rgba(211,47,47,.45)}50%{box-shadow:0 0 0 8px rgba(211,47,47,0)}}
+  .sale-left{flex:1}
+  .sale-eyebrow{font-size:10px;font-weight:800;color:rgba(255,255,255,.8);letter-spacing:2px;text-transform:uppercase;margin-bottom:4px}
+  .sale-headline{font-size:38px;font-weight:900;color:#FFD600;line-height:1;letter-spacing:-1px}
+  .sale-sub{font-size:11px;color:rgba(255,255,255,.85);margin-top:4px;line-height:1.4}
+  .sale-countdown{display:flex;align-items:flex-end;gap:3px;margin-top:8px}
+  .sale-box{background:rgba(0,0,0,.25);border-radius:6px;padding:3px 6px;text-align:center}
+  .sale-num{font-size:15px;font-weight:900;color:#FFD600;letter-spacing:-0.5px}
+  .sale-unit{font-size:8px;color:rgba(255,255,255,.6);letter-spacing:.5px;display:block}
+  .sale-colon{font-size:16px;font-weight:900;color:rgba(255,255,255,.5);padding-bottom:10px}
+  .sale-btn{display:inline-block;background:#FFD600;color:#D32F2F;border:none;border-radius:20px;padding:7px 14px;font-size:11px;font-weight:800;margin-top:10px;cursor:pointer;letter-spacing:.5px}
+  .sale-right{text-align:center;margin-left:8px}
+  .sale-emoji{font-size:50px;display:block;animation:wobble 1.2s ease-in-out infinite}
+  @keyframes wobble{0%,100%{transform:rotate(-5deg) scale(1)}50%{transform:rotate(5deg) scale(1.08)}}
+  .sale-limited{background:rgba(255,255,255,.18);border-radius:8px;padding:3px 8px;font-size:9px;font-weight:800;color:#fff;letter-spacing:1px;margin-top:6px;display:inline-block}
+  .sale-confetti{position:absolute;top:0;left:0;right:0;bottom:0;pointer-events:none;overflow:hidden}
+  .confetti-dot{position:absolute;width:6px;height:6px;border-radius:3px;animation:confetti-fall linear infinite}
+  @keyframes confetti-fall{0%{transform:translateY(-10px) rotate(0deg);opacity:1}100%{transform:translateY(240px) rotate(360deg);opacity:0}}
 
   /* ── Admin Control Panel ── */
   .ctrl-panel{width:280px;display:flex;flex-direction:column;gap:12px;flex-shrink:0}
@@ -281,6 +299,27 @@
 
         <div id="home-loader" class="spinner-wrap" style="height:200px"><div class="spinner"></div><div style="color:var(--muted);font-size:12px">Loading products…</div></div>
         <div id="home-content" style="display:none">
+          <!-- 50% OFF TODAY Banner -->
+          <div class="sale-hero" onclick="navigate('store','st_zepto_central','50% OFF Zone')" id="sale-banner">
+            <div class="sale-confetti" id="confetti-wrap"></div>
+            <div class="sale-left">
+              <div class="sale-eyebrow">🔥 Today Only</div>
+              <div class="sale-headline">50%<br>OFF</div>
+              <div class="sale-sub">All Fruits, Veggies<br>&amp; Fresh Picks!</div>
+              <div class="sale-countdown">
+                <div class="sale-box"><span class="sale-num" id="cd-h">00</span><span class="sale-unit">HRS</span></div>
+                <span class="sale-colon">:</span>
+                <div class="sale-box"><span class="sale-num" id="cd-m">00</span><span class="sale-unit">MIN</span></div>
+                <span class="sale-colon">:</span>
+                <div class="sale-box"><span class="sale-num" id="cd-s">00</span><span class="sale-unit">SEC</span></div>
+              </div>
+              <button class="sale-btn">SHOP NOW →</button>
+            </div>
+            <div class="sale-right">
+              <span class="sale-emoji">🛍️</span>
+              <span class="sale-limited">LIMITED</span>
+            </div>
+          </div>
           <!-- Active order bar -->
           <div id="active-order-bar"></div>
 
@@ -499,6 +538,7 @@
       </div>
       <input class="notif-input" id="notif-msg" placeholder="Type notification message…" value="Your order is being prepared!"/>
       <button class="send-notif-btn" onclick="sendToPhone()">Send to Phone 📲</button>
+      <button class="send-notif-btn" style="margin-top:8px;background:linear-gradient(135deg,#D32F2F,#E45F10)" onclick="launchSalePromo()">🔥 Launch 50% OFF TODAY</button>
     </div>
 
   </div>
@@ -954,8 +994,49 @@ function sendSystemToast(icon, title, body){
   toast._timer = setTimeout(()=>toast.classList.remove('show'),4000);
 }
 
+// ── 50% OFF countdown & confetti ──
+function startCountdown(){
+  const tick = ()=>{
+    const now = new Date(), midnight = new Date();
+    midnight.setHours(23,59,59,999);
+    const diff = Math.max(0, midnight.getTime()-now.getTime());
+    const pad = n=>String(Math.floor(n)).padStart(2,'0');
+    const hEl=document.getElementById('cd-h'), mEl=document.getElementById('cd-m'), sEl=document.getElementById('cd-s');
+    if(hEl) hEl.textContent = pad(diff/3600000);
+    if(mEl) mEl.textContent = pad((diff%3600000)/60000);
+    if(sEl) sEl.textContent = pad((diff%60000)/1000);
+  };
+  tick();
+  setInterval(tick, 1000);
+}
+
+function spawnConfetti(){
+  const wrap = document.getElementById('confetti-wrap');
+  if(!wrap) return;
+  const colors = ['#FFD600','#fff','#FF6F00','rgba(255,255,255,.6)','#FFB300'];
+  for(let i=0;i<18;i++){
+    const d = document.createElement('div');
+    d.className = 'confetti-dot';
+    d.style.cssText = `left:${Math.random()*100}%;background:${colors[i%colors.length]};animation-duration:${1.2+Math.random()*1.5}s;animation-delay:${Math.random()*2}s;width:${4+Math.random()*5}px;height:${4+Math.random()*5}px;`;
+    wrap.appendChild(d);
+  }
+}
+
+function launchSalePromo(){
+  const b = document.getElementById('sale-banner');
+  if(b){ b.style.transform='scale(1.04)'; setTimeout(()=>b.style.transform='',300); }
+  sendSystemToast('🔥','50% OFF TODAY is LIVE!','Shop now — all Fruits, Veggies & Fresh Picks at half price!');
+  const ni = document.getElementById('notif-msg');
+  if(ni) ni.value = '🔥 50% OFF TODAY — All Fruits & Veggies at half price! Limited time only.';
+  document.querySelectorAll('.nt-btn').forEach(btn=>btn.classList.remove('selected'));
+  document.querySelector('.nt-btn:nth-child(2)')?.classList.add('selected');
+  selectedNotifType = 'promo';
+}
+
 // Init
 init();
+startCountdown();
+spawnConfetti();
 </script>
 </body>
 </html>
