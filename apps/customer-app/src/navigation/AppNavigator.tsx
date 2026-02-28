@@ -70,7 +70,7 @@ const Tab = createBottomTabNavigator();
 // ─── Tab Icon Component ────────────────────────────────────────────────────────
 const TabIcon = ({ name, focused, badge }: { name: string; focused: boolean; badge?: number }) => {
   const icons: Record<string, string> = {
-    Home: '\uD83C\uDFE0', Search: '\uD83D\uDD0D', Instamart: '\uD83D\uDED2', Orders: '\uD83D\uDCE6', Profile: '\uD83D\uDC64',
+    Home: '\uD83C\uDFE0', Search: '\uD83D\uDD0D', Grocery: '\uD83D\uDED2', Orders: '\uD83D\uDCE6', Profile: '\uD83D\uDC64',
   };
   return (
     <View style={tabStyles.iconWrap}>
@@ -205,7 +205,7 @@ const MainTabs = () => {
       <Tab.Screen
         name="InstamartTab"
         component={InstamartStackNav}
-        options={{ tabBarIcon: ({ focused }) => <TabIcon name="Instamart" focused={focused} badge={groceryItemCount} /> }}
+        options={{ tabBarIcon: ({ focused }) => <TabIcon name="Grocery" focused={focused} badge={groceryItemCount} /> }}
       />
       <Tab.Screen
         name="OrdersTab"

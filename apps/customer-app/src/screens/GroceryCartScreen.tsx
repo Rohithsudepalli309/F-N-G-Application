@@ -58,7 +58,7 @@ export const GroceryCartScreen = () => {
 
       // 2. Open Razorpay
       const options = {
-        description: 'F&G Instamart Order',
+        description: 'F&G Grocery Order',
         image: 'https://i.ibb.co/your-logo',
         currency: 'INR',
         key: order.razorpayKeyId,
@@ -111,7 +111,7 @@ export const GroceryCartScreen = () => {
             style={styles.shopBtn}
             onPress={() => navigation.navigate('InstamartTab')}
           >
-            <Text style={styles.shopBtnText}>Browse Instamart</Text>
+            <Text style={styles.shopBtnText}>Browse Grocery</Text>
           </TouchableOpacity>
         </View>
       </SafeAreaView>
