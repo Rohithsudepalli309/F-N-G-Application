@@ -51,7 +51,7 @@ export const SavedAddressesScreen = () => {
 
   const setDefault = async (id: string) => {
     try {
-      await api.patch(`/addresses/${id}`, { is_default: true });
+      await api.patch(`/addresses/${id}/default`);
       setAddresses(prev => prev.map(a => ({ ...a, is_default: a.id === id })));
     } catch {}
   };

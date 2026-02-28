@@ -16,7 +16,7 @@ import { useCartStore } from '../store/useCartStore';
 import { theme } from '../theme';
 
 export const CartScreen = () => {
-  const { items, total, addToCart, decrementFromCart, clearCart } = useCartStore();
+  const { items, storeId, total, addToCart, decrementFromCart, clearCart } = useCartStore();
   const navigation = useNavigation();
 
   const handleCheckout = () => {
@@ -32,7 +32,7 @@ export const CartScreen = () => {
     <View style={styles.itemRow}>
       <View style={styles.itemInfo}>
         <Text style={styles.itemName}>{item.name}</Text>
-        <Text style={styles.itemPrice}>₹{item.price}</Text>
+        <Text style={styles.itemPrice}>₹{(item.price / 100).toFixed(0)}</Text>
       </View>
       
       <View style={styles.qtyContainer}>
@@ -45,7 +45,7 @@ export const CartScreen = () => {
         <Text style={styles.qtyText}>{item.quantity}</Text>
         <TouchableOpacity 
           style={styles.qtyBtn} 
-          onPress={() => addToCart('default-store', { ...item, quantity: 1 })}
+          onPress={() => addToCart(storeId ?? 'default', { ...item, quantity: 1 })}
         >
           <Text style={styles.qtyBtnText}>+</Text>
         </TouchableOpacity>

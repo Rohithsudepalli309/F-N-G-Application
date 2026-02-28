@@ -53,10 +53,12 @@ export const MenuItemDetailScreen = () => {
   const route = useRoute();
   const { item } = (route.params as RouteParams);
 
-  const { addItem, updateQuantity, items: cartItems } = useCartStore();
+  const { addToCart, decrementFromCart, items: cartItems } = useCartStore();
 
   const cartItem = cartItems.find(ci => ci.productId === item.id);
   const cartQty = cartItem?.quantity ?? 0;
+
+  const itemStoreId = item.store_id ?? item.restaurant_id ?? 'default';
 
   const [selectedAddons, setSelectedAddons] = useState<Record<string, string[]>>({});
 
@@ -86,12 +88,11 @@ export const MenuItemDetailScreen = () => {
   const discount = item.mrp ? Math.round(((item.mrp - item.price) / item.mrp) * 100) : 0;
 
   const handleAddToCart = () => {
-    addItem({
+    addToCart(itemStoreId, {
       productId: item.id,
       name: item.name,
       price: finalPrice,
-      storeId: item.restaurant_id ?? item.store_id ?? 'default',
-      image: item.image_url,
+      quantity: 1,
     });
   };
 
@@ -193,14 +194,14 @@ export const MenuItemDetailScreen = () => {
           <View style={styles.qtyRow}>
             <TouchableOpacity
               style={styles.qtyBtn}
-              onPress={() => updateQuantity(item.id, cartQty - 1)}
+              onPress={() => decrementFromCart(item.id)}
             >
               <Text style={styles.qtyBtnText}>−</Text>
             </TouchableOpacity>
             <Text style={styles.qtyCount}>{cartQty}</Text>
             <TouchableOpacity
               style={styles.qtyBtn}
-              onPress={() => updateQuantity(item.id, cartQty + 1)}
+              onPress={() => addToCart(itemStoreId, { productId: item.id, name: item.name, price: finalPrice, quantity: 1 })}
             >
               <Text style={styles.qtyBtnText}>+</Text>
             </TouchableOpacity>

@@ -72,7 +72,7 @@ export const OrderDetailScreen = () => {
     (async () => {
       try {
         const { data } = await api.get(`/orders/${orderId}`);
-        setOrder(data);
+        setOrder(data.order ?? data);
       } catch (e) {
         console.error('[OrderDetail]', e);
       } finally {
