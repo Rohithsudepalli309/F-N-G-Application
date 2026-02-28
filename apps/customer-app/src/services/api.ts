@@ -4,8 +4,8 @@ import { getToken } from '../utils/storage';
 
 import { Platform } from 'react-native';
 
-// For Physical Devices via USB: Use 'localhost' with 'adb reverse' (the most reliable method)
-const BASE_HOST = 'localhost'; 
+// For Physical Devices via USB or Wi-Fi: Use the actual local IP address
+const BASE_HOST = '192.168.221.78'; 
 
 export const API_URL = `http://${BASE_HOST}:3000/api/v1`;
 
