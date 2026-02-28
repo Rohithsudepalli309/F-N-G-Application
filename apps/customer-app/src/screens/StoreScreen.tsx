@@ -18,8 +18,16 @@ import { useLivePrices } from '../hooks/useLivePrices';
 interface Product {
   id: string;
   name: string;
+  description?: string;
   price: number;
+  mrp?: number;
   category: string;
+  image_url?: string;
+  is_veg?: boolean;
+  is_available?: boolean;
+  rating?: number;
+  calories?: number;
+  addon_groups?: any[];
 }
 
 type PriceFlash = 'up' | 'down';
@@ -71,11 +79,13 @@ const ProductRow = ({
   flash,
   qty,
   onAdd,
+  onItemPress,
 }: {
   item: Product;
   flash?: PriceFlash;
   qty: number;
   onAdd: () => void;
+  onItemPress: () => void;
 }) => {
   const scaleAnim = useRef(new Animated.Value(1)).current;
 
@@ -89,11 +99,11 @@ const ProductRow = ({
 
   return (
     <View style={styles.itemContainer}>
-      <View style={styles.itemInfo}>
+      <TouchableOpacity style={styles.itemInfo} onPress={onItemPress} activeOpacity={0.7}>
         <Text style={styles.itemName} numberOfLines={1}>{item.name}</Text>
         <PriceCell item={item} flash={flash} />
         <Text style={styles.itemCategory}>{item.category}</Text>
-      </View>
+      </TouchableOpacity>
       <Animated.View style={{ transform: [{ scale: scaleAnim }] }}>
         <TouchableOpacity
           style={[styles.addButton, qty > 0 && styles.addButtonActive]}
@@ -181,10 +191,15 @@ export const StoreScreen = () => {
     <View style={styles.container}>
       {/* Header */}
       <View style={styles.header}>
-        <Text style={styles.storeTitle} numberOfLines={1}>{name}</Text>
-        <Text style={styles.storeSubtitle}>
-          {products.length > 0 ? `${products.length} items available` : 'Loading menu…'}
-        </Text>
+        <TouchableOpacity onPress={() => (navigation as any).goBack()} style={styles.backBtn}>
+          <Text style={styles.backBtnText}>←</Text>
+        </TouchableOpacity>
+        <View style={{ flex: 1 }}>
+          <Text style={styles.storeTitle} numberOfLines={1}>{name}</Text>
+          <Text style={styles.storeSubtitle}>
+            {products.length > 0 ? `${products.length} items available` : 'Loading menu…'}
+          </Text>
+        </View>
       </View>
 
       <FlatList
@@ -195,6 +210,7 @@ export const StoreScreen = () => {
             flash={highlights[item.id]}
             qty={getQtyInCart(item.id)}
             onAdd={() => addToCart(storeId, { productId: item.id, name: item.name, price: item.price, quantity: 1 })}
+            onItemPress={() => (navigation as any).navigate('MenuItemDetail', { item: { ...item, store_id: storeId } })}
           />
         )}
         keyExtractor={(item) => item.id}
@@ -231,12 +247,16 @@ const styles = StyleSheet.create({
     backgroundColor: theme.colors.background,
   },
   header: {
+    flexDirection: 'row',
+    alignItems: 'center',
     paddingHorizontal: theme.spacing.m,
     paddingVertical: theme.spacing.m,
     borderBottomWidth: 1,
     borderBottomColor: theme.colors.border,
     backgroundColor: theme.colors.background,
   },
+  backBtn: { padding: 6, marginRight: 8 },
+  backBtnText: { fontSize: 22, color: theme.colors.text.primary, fontWeight: '600' },
   storeTitle: {
     fontFamily: theme.typography.fontFamily.bold,
     fontSize: theme.typography.size.xl,

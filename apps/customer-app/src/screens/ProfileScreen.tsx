@@ -6,7 +6,7 @@
 import React from 'react';
 import {
   View, Text, StyleSheet, ScrollView, TouchableOpacity,
-  SafeAreaView, StatusBar, Alert, Image,
+  SafeAreaView, StatusBar, Alert, Image, Linking,
 } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { useAuthStore } from '../store/useAuthStore';
@@ -91,7 +91,7 @@ export const ProfileScreen = () => {
             <Text style={styles.proTitle}>Get F&G Pro</Text>
             <Text style={styles.proSub}>Free delivery, member discounts &amp; more</Text>
           </View>
-          <TouchableOpacity style={styles.proBtn}>
+          <TouchableOpacity style={styles.proBtn} onPress={() => navigation.navigate('FngPro')}>
             <Text style={styles.proBtnText}>Explore</Text>
           </TouchableOpacity>
         </View>
@@ -120,25 +120,25 @@ export const ProfileScreen = () => {
             icon="📍"
             label="Saved Addresses"
             sublabel="Home, Work and more"
-            onPress={() => navigation.navigate('LocationSelect')}
+            onPress={() => navigation.navigate('SavedAddresses')}
           />
           <MenuItem
             icon="💳"
             label="Payment Methods"
             sublabel="UPI, Cards, Wallets"
-            onPress={() => {}}
+            onPress={() => navigation.navigate('PaymentMethods')}
           />
           <MenuItem
             icon="🔔"
             label="Notifications"
             badge="3"
-            onPress={() => {}}
+            onPress={() => navigation.navigate('Notifications')}
           />
           <MenuItem
             icon="❤️"
             label="Favourites"
             sublabel="Saved stores &amp; products"
-            onPress={() => {}}
+            onPress={() => navigation.navigate('Favorites')}
           />
         </View>
 
@@ -149,18 +149,18 @@ export const ProfileScreen = () => {
             icon="🎁"
             label="F&G Coins"
             sublabel="0 coins"
-            onPress={() => {}}
+            onPress={() => navigation.navigate('FngPro')}
           />
           <MenuItem
             icon="🤝"
             label="Refer &amp; Earn"
             sublabel="Invite friends, earn ₹100 each"
-            onPress={() => {}}
+            onPress={() => navigation.navigate('ReferEarn')}
           />
           <MenuItem
             icon="🏷️"
             label="Coupons"
-            onPress={() => {}}
+            onPress={() => navigation.navigate('FngPro')}
           />
         </View>
 
@@ -170,12 +170,12 @@ export const ProfileScreen = () => {
           <MenuItem
             icon="💬"
             label="Chat with Support"
-            onPress={() => {}}
+            onPress={() => navigation.navigate('HelpSupport')}
           />
           <MenuItem
             icon="📋"
             label="Legal &amp; Privacy"
-            onPress={() => {}}
+            onPress={() => Linking.openURL('https://fng.in/legal')}
           />
           <MenuItem
             icon="⚙️"
