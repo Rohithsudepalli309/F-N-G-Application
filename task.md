@@ -30,3 +30,14 @@
 - [x] ManagementPage: fixed response extraction (`data[type]`) + correct PATCH routes
 - [x] TypeScript: **0 errors** in `customer-app` (fixed `fontFamily.medium` + `background` style)
 - [x] TypeScript: **0 errors** in `admin-dashboard`
+
+## Step 10: Integration Testing, README & Final Cleanup (Completed) ✅
+- [x] `analytics.service.js` heatmap query: fixed `delivery_lat/lng` → `address_lat/lng` (second occurrence)
+- [x] `.gitignore` updated — excludes `compose_logs.txt`, `docker_build_*.log`, `tsc_errors*.txt`, `bundle_err.txt`
+- [x] `backend/src/tests/api.test.js` — new integration test suite (mock Express + supertest):
+  - Orders: GET list, POST create (201), POST cancel (200 + 404)
+  - Admin: GET stats (KPIs), GET orders (pagination + status filter), PATCH status, GET payouts (commission math)
+  - Coupons: flat discount, percent+cap, invalid code, below-min-amount, missing params
+  - Auth guards: 401 (no token), 403 (non-admin on admin routes)
+- [x] `README.md` — complete overhaul: architecture diagram, prerequisites, Docker Compose + local dev guides,
+      full API reference tables, Socket.IO events, feature checklist, test commands

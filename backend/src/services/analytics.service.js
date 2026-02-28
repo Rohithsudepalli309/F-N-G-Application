@@ -9,12 +9,12 @@ class AnalyticsService {
   async getOrderHeatmap() {
     try {
       const result = await db.query(`
-        SELECT delivery_lat as lat, delivery_lng as lng
+        SELECT address_lat as lat, address_lng as lng
         FROM orders
         WHERE status IN ('pending', 'placed', 'preparing', 'ready')
           AND created_at > NOW() - INTERVAL '24 hours'
-          AND delivery_lat IS NOT NULL
-          AND delivery_lng IS NOT NULL
+          AND address_lat IS NOT NULL
+          AND address_lng IS NOT NULL
       `);
       return result.rows;
     } catch (err) {

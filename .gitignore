@@ -46,6 +46,11 @@ yarn-error.log*
 *.log
 build_log*.txt
 dep_tree.txt
+compose_logs.txt
+docker_build_*.log
+tsc_errors*.txt
+tsc_diagnostic.txt
+bundle_err.txt
 
 # Temporary files
 tmp/
