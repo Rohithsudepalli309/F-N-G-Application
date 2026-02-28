@@ -1,0 +1,38 @@
+{
+  "_comment": "Replace ALL placeholder values below with real ones from Firebase Console.",
+  "_instructions": [
+    "1. Go to https://console.firebase.google.com",
+    "2. Create a project (or open existing one)",
+    "3. Add Android app with package name: com.customerapp",
+    "4. Download google-services.json and replace this file",
+    "5. In Firebase Console -> Project Settings -> Cloud Messaging,",
+    "   copy the Server Key and set it as FCM_SERVER_KEY in backend/.env"
+  ],
+  "project_info": {
+    "project_number": "000000000000",
+    "project_id": "fng-app-REPLACE_ME",
+    "storage_bucket": "fng-app-REPLACE_ME.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:000000000000:android:0000000000000000000000",
+        "android_client_info": {
+          "package_name": "com.customerapp"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "REPLACE_WITH_YOUR_ANDROID_API_KEY"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
