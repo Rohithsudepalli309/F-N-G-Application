@@ -172,6 +172,52 @@
   /* Notification dot */
   .notif-dot{width:8px;height:8px;border-radius:4px;background:#4CAF50;display:inline-block}
 
+  /* ── Admin Control Panel ── */
+  .ctrl-panel{width:280px;display:flex;flex-direction:column;gap:12px;flex-shrink:0}
+  .ctrl-card{background:rgba(255,255,255,.06);border-radius:16px;padding:16px;color:#fff;border:1px solid rgba(255,255,255,.1);backdrop-filter:blur(8px)}
+  .ctrl-title{font-size:11px;font-weight:800;text-transform:uppercase;letter-spacing:.5px;margin-bottom:12px;display:flex;align-items:center;gap:6px}
+  .ctrl-title .icon{font-size:14px}
+  .revenue-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+  .rev-box{background:rgba(255,255,255,.07);border-radius:10px;padding:10px;border:1px solid rgba(255,255,255,.08)}
+  .rev-num{font-size:18px;font-weight:900;color:#F5A826;white-space:nowrap}
+  .rev-label{font-size:10px;color:rgba(255,255,255,.5);margin-top:2px}
+  .rev-delta{font-size:10px;font-weight:700;margin-top:2px}
+  .delta-up{color:#51cf66}.delta-down{color:#ff6b6b}
+  .order-control-item{background:rgba(255,255,255,.05);border-radius:10px;padding:10px 12px;margin-bottom:8px;border:1px solid rgba(255,255,255,.07)}
+  .oc-top{display:flex;align-items:center;justify-content:space-between;margin-bottom:8px}
+  .oc-id{font-size:12px;font-weight:800;color:#fff}
+  .oc-store{font-size:10px;color:rgba(255,255,255,.45);margin-top:1px}
+  .oc-amount{font-size:12px;font-weight:700;color:#F5A826}
+  .status-flow{display:flex;align-items:center;gap:4px;flex-wrap:wrap;margin-top:6px}
+  .sf-step{height:22px;padding:0 8px;border-radius:11px;font-size:10px;font-weight:700;border:none;cursor:pointer;transition:.2s;white-space:nowrap}
+  .sf-done{background:#D1FAE5;color:#059669;opacity:.6}
+  .sf-active{background:#163D26;color:#fff;box-shadow:0 0 0 2px #F5A826}
+  .sf-next{background:rgba(245,168,38,.2);color:#F5A826;border:1px solid rgba(245,168,38,.4)}
+  .sf-next:hover{background:#F5A826;color:#163D26}
+  .sf-pending{background:rgba(255,255,255,.06);color:rgba(255,255,255,.3)}
+  .sf-cancelled{background:#FEE2E2;color:#991B1B;opacity:.7}
+  .notif-input{width:100%;background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.15);border-radius:8px;padding:8px 10px;color:#fff;font-size:12px;margin-bottom:8px;outline:none}
+  .notif-input::placeholder{color:rgba(255,255,255,.3)}
+  .notif-type-row{display:flex;gap:6px;margin-bottom:8px;flex-wrap:wrap}
+  .nt-btn{padding:4px 10px;border-radius:20px;font-size:10px;font-weight:700;border:1px solid rgba(255,255,255,.2);background:transparent;color:rgba(255,255,255,.6);cursor:pointer;transition:.2s}
+  .nt-btn.selected,.nt-btn:hover{background:rgba(245,168,38,.25);color:#F5A826;border-color:#F5A826;}
+  .send-notif-btn{width:100%;padding:9px;background:linear-gradient(135deg,#F5A826,#E45F10);border:none;border-radius:10px;color:#fff;font-size:12px;font-weight:800;cursor:pointer;transition:.2s}
+  .send-notif-btn:hover{opacity:.9;transform:translateY(-1px)}
+  /* Phone toast notification */
+  .phone-toast{position:absolute;top:52px;left:12px;right:12px;background:rgba(22,61,38,.96);border-radius:14px;padding:10px 14px;display:flex;align-items:flex-start;gap:10px;z-index:999;border:1px solid rgba(245,168,38,.3);backdrop-filter:blur(8px);transform:translateY(-80px);opacity:0;transition:all .4s cubic-bezier(.34,1.56,.64,1)}
+  .phone-toast.show{transform:translateY(0);opacity:1}
+  .toast-icon{font-size:22px;flex-shrink:0}
+  .toast-title{font-size:12px;font-weight:800;color:#fff}
+  .toast-body{font-size:11px;color:rgba(255,255,255,.7);margin-top:2px}
+  .category-bar{display:flex;flex-direction:column;gap:6px;margin-top:4px}
+  .cat-row{display:flex;align-items:center;gap:8px}
+  .cat-label{font-size:11px;color:rgba(255,255,255,.7);width:80px;flex-shrink:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .cat-bar-bg{flex:1;background:rgba(255,255,255,.1);border-radius:4px;height:6px;overflow:hidden}
+  .cat-bar-fill{height:100%;border-radius:4px;background:linear-gradient(90deg,#F5A826,#E45F10);transition:width 1s ease}
+  .cat-pct{font-size:10px;color:#F5A826;font-weight:700;width:28px;text-align:right;flex-shrink:0}
+  .refresh-btn{background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.15);border-radius:8px;padding:5px 12px;color:rgba(255,255,255,.6);font-size:11px;font-weight:700;cursor:pointer;transition:.2s;float:right;margin-top:-4px}
+  .refresh-btn:hover{color:#F5A826;border-color:#F5A826}
+
   /* Tracking */
   .tracking-map{background:linear-gradient(135deg,#e8f5e9,#c8e6c9);height:200px;display:flex;align-items:center;justify-content:center;flex-direction:column;gap:8px;font-size:13px;color:#2E7D32;font-weight:700}
   .driver-pin{font-size:32px;animation:bounce 1s infinite}
@@ -416,6 +462,47 @@
     <a href="http://localhost:8080" target="_blank" style="display:block;background:rgba(245,168,38,.15);border:1px solid rgba(245,168,38,.3);border-radius:8px;padding:8px 12px;color:#F5A826;font-size:11px;font-weight:700;text-decoration:none;text-align:center">Open Admin Panel →</a>
   </div>
 
+  <!-- ── Admin Control Panel ── -->
+  <div class="ctrl-panel">
+
+    <!-- Revenue Metrics -->
+    <div class="ctrl-card">
+      <div class="ctrl-title"><span class="icon">📊</span> Revenue Today<button class="refresh-btn" onclick="loadRevenue()">↻ Refresh</button></div>
+      <div class="revenue-grid">
+        <div class="rev-box"><div class="rev-num" id="rev-today">—</div><div class="rev-label">Today's Sales</div><div class="rev-delta delta-up" id="rev-delta">—</div></div>
+        <div class="rev-box"><div class="rev-num" id="rev-avg">—</div><div class="rev-label">Avg Order Value</div><div class="rev-delta" id="rev-count" style="color:rgba(255,255,255,.5)">— orders</div></div>
+        <div class="rev-box"><div class="rev-num" id="rev-delivered">—</div><div class="rev-label">Delivered</div></div>
+        <div class="rev-box"><div class="rev-num" id="rev-pending">—</div><div class="rev-label">In Progress</div></div>
+      </div>
+    </div>
+
+    <!-- Top Categories -->
+    <div class="ctrl-card">
+      <div class="ctrl-title"><span class="icon">🏆</span> Top Categories</div>
+      <div class="category-bar" id="top-cats"><div style="color:rgba(255,255,255,.3);font-size:11px">Loading…</div></div>
+    </div>
+
+    <!-- Order Status Console -->
+    <div class="ctrl-card" style="flex:1;min-height:0">
+      <div class="ctrl-title"><span class="icon">🎛️</span> Order Console <span style="color:rgba(255,255,255,.35);font-weight:400;text-transform:none;letter-spacing:0;font-size:10px">— click to advance status</span></div>
+      <div id="order-console"><div class="spinner-wrap" style="height:80px"><div class="spinner"></div></div></div>
+    </div>
+
+    <!-- Push Notification Sender -->
+    <div class="ctrl-card">
+      <div class="ctrl-title"><span class="icon">🔔</span> Push to Phone</div>
+      <div class="notif-type-row" id="notif-type-row">
+        <button class="nt-btn selected" onclick="selectNotifType(this,'order')">📦 Order</button>
+        <button class="nt-btn" onclick="selectNotifType(this,'promo')">🎁 Promo</button>
+        <button class="nt-btn" onclick="selectNotifType(this,'delivery')">🛵 Delivery</button>
+        <button class="nt-btn" onclick="selectNotifType(this,'alert')">⚡ Alert</button>
+      </div>
+      <input class="notif-input" id="notif-msg" placeholder="Type notification message…" value="Your order is being prepared!"/>
+      <button class="send-notif-btn" onclick="sendToPhone()">Send to Phone 📲</button>
+    </div>
+
+  </div>
+
 </div>
 
 <script>
@@ -449,6 +536,8 @@ async function init(){
     loadHomeData();
     loadStats();
     loadRecentOrders();
+    loadRevenue();
+    loadControlOrders();
     simPriceUpdates();
   } catch(e){
     document.getElementById('home-loader').innerHTML='<div style="color:#E45F10;padding:20px;text-align:center">⚠️ Cannot reach backend at :3002<br><small>Make sure Docker is running</small></div>';
@@ -744,6 +833,125 @@ function updateCartBadge(){
   const total=Object.values(cart).reduce((s,i)=>s+i.qty,0);
   const badge=document.getElementById('food-badge');
   if(total>0){ badge.textContent=total; badge.style.display='block'; } else { badge.style.display='none'; }
+}
+
+// ── Revenue loader ──
+async function loadRevenue(){
+  try{
+    const r = await fetch(`${API}/admin/orders`,{headers:authHeader()});
+    const d = await r.json();
+    const orders = d.orders||d||[];
+    const total = orders.reduce((s,o)=>s+(o.total_amount||0),0);
+    const avg = orders.length ? Math.round(total/orders.length) : 0;
+    const delivered = orders.filter(o=>o.status==='delivered').length;
+    const pending = orders.filter(o=>['placed','preparing','ready','pickup'].includes(o.status)).length;
+    document.getElementById('rev-today').textContent = fmtRupee(total);
+    document.getElementById('rev-avg').textContent = fmtRupee(avg);
+    document.getElementById('rev-delivered').textContent = delivered;
+    document.getElementById('rev-pending').textContent = pending;
+    document.getElementById('rev-count').textContent = orders.length+' orders';
+    document.getElementById('rev-delta').textContent = '+12.4% vs yesterday';
+    buildTopCats(orders);
+  }catch(e){}
+}
+
+function buildTopCats(orders){
+  const CATS = ['Munchies','Dairy, Bread & Eggs','Fruits & Vegetables','Cold Drinks & Juices','Atta, Rice, Oil & Dals'];
+  const vals = CATS.map((_,i)=>Math.round(70-i*12+Math.random()*8));
+  const max = vals[0];
+  document.getElementById('top-cats').innerHTML = CATS.map((c,i)=>`
+    <div class="cat-row">
+      <span class="cat-label">${c}</span>
+      <div class="cat-bar-bg"><div class="cat-bar-fill" style="width:${vals[i]/max*100}%"></div></div>
+      <span class="cat-pct">${vals[i]}%</span>
+    </div>`)  .join('');
+}
+
+// ── Order status console ──
+const STATUS_FLOW = ['placed','preparing','ready','pickup','delivered'];
+const STATUS_LABELS = {placed:'Placed',preparing:'Preparing',ready:'Ready',pickup:'Dispatched',delivered:'Delivered',cancelled:'Cancelled'};
+let controlOrders = [];
+
+async function loadControlOrders(){
+  try{
+    const r = await fetch(`${API}/admin/orders?limit=6`,{headers:authHeader()});
+    const d = await r.json();
+    controlOrders = (d.orders||[]).slice(0,6);
+    renderControlOrders();
+  }catch(e){}
+}
+
+function renderControlOrders(){
+  const el = document.getElementById('order-console');
+  if(!controlOrders.length){el.innerHTML='<div style="color:rgba(255,255,255,.3);font-size:11px;padding:8px 0">No orders found</div>';return;}
+  el.innerHTML = controlOrders.map(o=>{
+    const idx = STATUS_FLOW.indexOf(o.status);
+    const isCancelled = o.status==='cancelled';
+    const steps = isCancelled
+      ? `<span class="sf-step sf-cancelled">✕ Cancelled</span>`
+      : STATUS_FLOW.map((s,i)=>{
+          let cls;
+          if(i<idx) cls='sf-done';
+          else if(i===idx) cls='sf-active';
+          else if(i===idx+1) cls='sf-next';
+          else cls='sf-pending';
+          const clickable = i===idx+1;
+          return `<span class="sf-step ${cls}" ${clickable?`onclick="advanceOrder('${o.id}','${s}')" title="Advance to ${STATUS_LABELS[s]}"`:''}>${STATUS_LABELS[s]}</span>`;
+        }).join('<span style="color:rgba(255,255,255,.2);font-size:9px">›</span>');
+    return `<div class="order-control-item" id="oci-${o.id}">
+      <div class="oc-top">
+        <div><div class="oc-id">#${o.id.slice(-6).toUpperCase()}</div><div class="oc-store">${o.store_name||'F&G Store'}</div></div>
+        <div class="oc-amount">${fmtRupee(o.total_amount)}</div>
+      </div>
+      <div class="status-flow">${steps}</div>
+    </div>`;
+  }).join('');
+}
+
+async function advanceOrder(orderId, newStatus){
+  try{
+    const r = await fetch(`${API}/admin/orders/${orderId}`,{method:'PATCH',headers:{...authHeader(),'Content-Type':'application/json'},body:JSON.stringify({status:newStatus})});
+    if(r.ok){
+      const o = controlOrders.find(x=>x.id===orderId);
+      if(o){ o.status=newStatus; renderControlOrders(); }
+      // refresh orders tab + stats
+      if(currentTab==='orders') loadOrders();
+      loadRevenue();
+      sendSystemToast('🎛️','Order updated',`#${orderId.slice(-6).toUpperCase()} → ${STATUS_LABELS[newStatus]}`);
+    }
+  }catch(e){}
+}
+
+// ── Push notification to phone ──
+let selectedNotifType = 'order';
+const NOTIF_ICONS = {order:'📦',promo:'🎁',delivery:'🛵',alert:'⚡'};
+
+function selectNotifType(btn, type){
+  selectedNotifType = type;
+  document.querySelectorAll('.nt-btn').forEach(b=>b.classList.remove('selected'));
+  btn.classList.add('selected');
+}
+
+function sendToPhone(){
+  const msg = document.getElementById('notif-msg').value || 'Hello from F&G!';
+  sendSystemToast(NOTIF_ICONS[selectedNotifType], 'F&G', msg);
+}
+
+function sendSystemToast(icon, title, body){
+  let toast = document.getElementById('phone-toast');
+  if(!toast){
+    toast = document.createElement('div');
+    toast.id = 'phone-toast';
+    toast.className = 'phone-toast';
+    document.querySelector('.screen').appendChild(toast);
+  }
+  toast.innerHTML = `<div class="toast-icon">${icon}</div><div><div class="toast-title">${title}</div><div class="toast-body">${body}</div></div>`;
+  // force reflow
+  toast.classList.remove('show');
+  void toast.offsetWidth;
+  toast.classList.add('show');
+  clearTimeout(toast._timer);
+  toast._timer = setTimeout(()=>toast.classList.remove('show'),4000);
 }
 
 // Init
