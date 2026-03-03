@@ -14,6 +14,8 @@ interface Product {
   discountTag?: string;
   image: string;
   deliveryTime: string;
+  storeId?: string;   // real store UUID from API (may be snake_case store_id)
+  store_id?: string;
 }
 
 export const ProductCard = ({ product }: { product: Product }) => {
@@ -25,7 +27,7 @@ export const ProductCard = ({ product }: { product: Product }) => {
   const qty = cartItems.find((i: any) => i.productId === product.id)?.quantity || 0;
 
   const handleAdd = () => {
-    addToCart('default-store', {
+    addToCart(product.storeId || product.store_id || 'default-store', {
       productId: product.id,
       name: product.name,
       price: product.price,
@@ -34,7 +36,7 @@ export const ProductCard = ({ product }: { product: Product }) => {
   };
 
   const handleIncrement = () => {
-    addToCart('default-store', {
+    addToCart(product.storeId || product.store_id || 'default-store', {
       productId: product.id,
       name: product.name,
       price: product.price,
