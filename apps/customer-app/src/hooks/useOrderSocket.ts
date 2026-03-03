@@ -9,8 +9,8 @@
 import { useEffect, useRef, useCallback } from 'react';
 import { io, Socket } from 'socket.io-client';
 import { useAuthStore } from '../store/useAuthStore';
+import { SOCKET_BASE } from '../services/api';
 
-const SOCKET_URL = 'http://localhost:3000'; // Optimized for adb reverse tunnel
 const POLL_INTERVAL_MS = 15_000;
 
 export type OrderStatus =
@@ -56,7 +56,7 @@ export function useOrderSocket({
     if (!token || !orderId) return;
 
     // ── Connect ───────────────────────────────────────────────────────────
-    const socket: Socket = io(SOCKET_URL, {
+    const socket: Socket = io(SOCKET_BASE, {
       auth: { token },
       transports: ['websocket'],
       reconnection: true,

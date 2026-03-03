@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { View, Text, TextInput, TouchableOpacity, StyleSheet, ActivityIndicator, Alert } from 'react-native';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useRoute } from '@react-navigation/native';
 import { api } from '../services/api';
 import { useAuthStore } from '../store/useAuthStore';
@@ -57,7 +58,11 @@ export const OtpScreen = () => {
     setLoading(true);
     try {
       const { data } = await api.post('/auth/login', { phone, otp });
-      login(data.tokens.accessToken, data.user); // Fixed: backend returns .tokens
+      // Persist refresh token for silent re-auth
+      if (data.tokens?.refreshToken) {
+        await AsyncStorage.setItem('refresh_token', data.tokens.refreshToken);
+      }
+      login(data.tokens.accessToken, data.user);
     } catch (error) {
       Alert.alert('Error', 'Invalid OTP');
     } finally {

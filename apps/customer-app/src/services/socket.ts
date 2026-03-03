@@ -1,5 +1,5 @@
 import { io, Socket } from 'socket.io-client';
-import { API_URL } from './api';
+import { SOCKET_BASE } from './api';
 
 class SocketService {
   private socket: Socket | null = null;
@@ -10,7 +10,7 @@ class SocketService {
       return;
     }
 
-    const socketUrl = API_URL.replace('/api/v1', '');
+    const socketUrl = SOCKET_BASE;
     console.log('[SOCKET] Connecting to:', socketUrl);
 
     this.socket = io(socketUrl, {
