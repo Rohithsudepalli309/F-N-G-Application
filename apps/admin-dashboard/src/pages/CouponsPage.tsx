@@ -118,6 +118,7 @@ export const CouponsPage: React.FC = () => {
                   value={form.discount_type}
                   onChange={(e) => setForm({ ...form, discount_type: e.target.value })}
                   className="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm"
+                  aria-label="Discount type"
                 >
                   <option value="flat">Flat (₹)</option>
                   <option value="percent">Percent (%)</option>
@@ -160,6 +161,7 @@ export const CouponsPage: React.FC = () => {
                   value={form.valid_until}
                   onChange={(e) => setForm({ ...form, valid_until: e.target.value })}
                   type="datetime-local"
+                  placeholder="Select expiry date"
                   className="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm"
                 />
               </div>
@@ -216,7 +218,7 @@ export const CouponsPage: React.FC = () => {
                   </td>
                   <td className="px-4 py-3">
                     {c.is_active && (
-                      <button onClick={() => deactivate(c.id)} className="text-red-400 hover:text-red-600 transition-colors">
+                      <button onClick={() => deactivate(c.id)} className="text-red-400 hover:text-red-600 transition-colors" title="Delete coupon" aria-label="Delete coupon">
                         <Trash2 size={15} />
                       </button>
                     )}
