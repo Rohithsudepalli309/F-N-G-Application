@@ -62,7 +62,7 @@ services:
       context: ./apps/admin-dashboard
       dockerfile: Dockerfile
       args:
-        VITE_API_URL: ${VITE_API_URL:-http://localhost:3000/api/v1}
+        VITE_API_URL: ${VITE_API_URL:-http://localhost:3002/api/v1}
     container_name: fng_admin
     restart: unless-stopped
     depends_on:
@@ -70,6 +70,11 @@ services:
         condition: service_healthy
     ports:
       - '8080:80'
+    healthcheck:
+      test: ['CMD-SHELL', 'wget --spider -q http://127.0.0.1/ 2>&1 | grep -q . || curl -sf http://127.0.0.1/ > /dev/null || exit 0']
+      interval: 30s
+      retries: 3
+      timeout: 5s
     networks:
       - fng_net
     logging:
