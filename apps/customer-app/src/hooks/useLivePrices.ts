@@ -1,8 +1,7 @@
 import { useEffect, useRef } from 'react';
 import { io, Socket } from 'socket.io-client';
 import { useAuthStore } from '../store/useAuthStore';
-
-const SOCKET_URL = 'http://localhost:3000';
+import { SOCKET_BASE } from '../services/api';
 
 export interface PriceUpdate {
   productId: string;
@@ -25,7 +24,7 @@ export function useLivePrices({ onPriceUpdate }: UseLivePricesOptions) {
   useEffect(() => {
     if (!token) return;
 
-    const socket: Socket = io(SOCKET_URL, {
+    const socket: Socket = io(SOCKET_BASE, {
       auth: { token },
       transports: ['websocket'],
       reconnection: true,
