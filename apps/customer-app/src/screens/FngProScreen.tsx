@@ -4,7 +4,7 @@
  * POST /api/v1/pro/subscribe  → get Razorpay order
  * POST /api/v1/pro/verify     → confirm payment + upgrade
  */
-import React, { useEffect, useState } from 'react';
+import React, { useState } from 'react';
 import {
   View, Text, StyleSheet, SafeAreaView, StatusBar, ScrollView,
   TouchableOpacity, ActivityIndicator, Alert,
@@ -33,16 +33,52 @@ export const FngProScreen = () => {
   const navigation = useNavigation<any>();
   const [selectedPlan, setSelectedPlan] = useState('quarterly');
   const [loading, setLoading] = useState(false);
+  const [subscribed, setSubscribed] = useState(false);
 
   const plan = PLANS.find(p => p.id === selectedPlan)!;
 
-  const handleSubscribe = () => {
+  const handleSubscribe = async () => {
     setLoading(true);
-    // In production: create Razorpay subscription
-    setTimeout(() => {
+    try {
+      // 1. Create Razorpay order on backend
+      const { data } = await api.post('/pro/subscribe', { planId: selectedPlan });
+
+      // 2. Open Razorpay checkout
+      const options = {
+        description: `F&G Pro — ${plan.label}`,
+        image: 'https://i.imgur.com/3g7nmJC.png',
+        currency: data.currency,
+        key: data.keyId,
+        amount: data.amount,
+        name: 'F&G Delivery',
+        order_id: data.razorpayOrderId,
+        theme: { color: '#163D26' },
+      };
+
+      const paymentData: any = await RazorpayCheckout.open(options);
+
+      // 3. Verify & upgrade on backend
+      await api.post('/pro/verify', {
+        razorpayOrderId: data.razorpayOrderId,
+        razorpayPaymentId: paymentData.razorpay_payment_id,
+        razorpaySignature: paymentData.razorpay_signature,
+        planId: selectedPlan,
+      });
+
+      setSubscribed(true);
+      Alert.alert(
+        '🎉 Welcome to F&G Pro!',
+        `You're now a Pro member for ${plan.label}. Enjoy free delivery and exclusive perks!`,
+        [{ text: 'Awesome!', onPress: () => navigation.goBack() }]
+      );
+    } catch (err: any) {
+      // Razorpay throws when user dismisses checkout — don't show error for that
+      if (err?.code !== 0) {
+        Alert.alert('Subscription Failed', err?.response?.data?.error || 'Please try again.');
+      }
+    } finally {
       setLoading(false);
-      // Show success
-    }, 1500);
+    }
   };
 
   return (
