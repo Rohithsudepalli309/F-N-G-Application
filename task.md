@@ -70,3 +70,43 @@
   - `src/pages/AnalyticsPage.tsx` — KPI cards, revenue + orders bar charts (Recharts), top-products table
 - [x] `docker-compose.yml` — added `merchant-dashboard` service (port 8081)
 - [x] `.github/workflows/ci.yml` — added `merchant-dashboard-ci` build job
+
+## Step 12: End-to-End Bug Fixes & F&G Pro Subscription (Completed) ✅
+
+### Critical Backend Fixes
+- [x] `backend/src/routes/order.routes.js` — `GET /orders/:id`: changed `JOIN stores` → `LEFT JOIN stores` so
+      grocery orders (store_id NULL) no longer crash the endpoint. Added `FILTER (WHERE oi.id IS NOT NULL)` to
+      `json_agg` to prevent null artefacts in the items array.
+- [x] `backend/src/routes/order.routes.js` — `POST /orders/:id/rate`: complete rewrite to accept camelCase
+      `{ foodRating, deliveryRating, comment, tags[] }` from mobile client (was expecting snake_case `rating` field
+      which client never sent). Computes composite rating as average of sub-ratings. Stores `tags TEXT[]`.
+      Only updates store's average rating when `store_id` is non-null (grocery orders have no store).
+- [x] `backend/src/services/order.service.js` — `createOrder()` rewritten to be order-type aware:
+      - Generates server-side order ID: `FNG-{FOOD|GRO}-{timestamp}-{rand}` (client no longer needs to send `id`)
+      - Accepts `{ type, storeId?, items, totalAmount, deliveryFee?, address? }` — matches both food and grocery clients
+      - Food path: `UPDATE products SET stock = stock - qty` + `INSERT order_items` with `product_id` FK
+      - Grocery path: `UPDATE grocery_products SET stock_quantity - qty` (correct table) + `INSERT order_items`
+        with `product_id = NULL` (no FK violation)
+
+### Schema Hardening (idempotent migrations added to `init_db.js`)
+- [x] `ALTER TABLE users ADD COLUMN IF NOT EXISTS is_pro BOOLEAN DEFAULT FALSE`
+- [x] `ALTER TABLE users ADD COLUMN IF NOT EXISTS pro_expires_at TIMESTAMP`
+- [x] `ALTER TABLE orders ADD COLUMN IF NOT EXISTS order_type VARCHAR(20) DEFAULT 'food'` + CHECK constraint
+- [x] `ALTER TABLE reviews ADD COLUMN IF NOT EXISTS tags TEXT[]`
+- [x] Version bumped: `v2 — full spec` → `v3 — grocery + review tags + pro membership`
+
+### F&G Pro Subscription (new feature)
+- [x] `backend/src/routes/pro.routes.js` — 3 new endpoints registered at `/api/v1/pro`:
+      - `POST /subscribe`: validates planId (monthly/quarterly/annual), creates Razorpay order, returns order details
+      - `POST /verify`: validates Razorpay HMAC signature, upgrades user `is_pro = TRUE` + sets `pro_expires_at`
+      - `GET  /status`: returns current Pro status, auto-downgrades expired subscriptions on read
+- [x] `backend/src/app.js` — registered `proRoutes` at `/api/v1/pro`
+- [x] `apps/customer-app/src/screens/FngProScreen.tsx` — `handleSubscribe()` stub replaced with real flow:
+      1. `POST /pro/subscribe` → get Razorpay order ID + amount
+      2. Open `RazorpayCheckout.open()` with plan details
+      3. `POST /pro/verify` → confirm payment + backend upgrade
+      Handles user cancellation gracefully (Razorpay code 0) without showing an error alert.
+
+### TypeScript
+- [x] `customer-app` `tsc --noEmit` passes with **0 errors**
+
