@@ -1,15 +1,18 @@
 /**
  * FngProScreen.tsx
  * Spec §8.1 #26 — F&G Pro membership subscription plans.
- * GET /api/pro/plans
+ * POST /api/v1/pro/subscribe  → get Razorpay order
+ * POST /api/v1/pro/verify     → confirm payment + upgrade
  */
 import React, { useEffect, useState } from 'react';
 import {
   View, Text, StyleSheet, SafeAreaView, StatusBar, ScrollView,
-  TouchableOpacity, ActivityIndicator,
+  TouchableOpacity, ActivityIndicator, Alert,
 } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
+import RazorpayCheckout from 'react-native-razorpay';
 import { theme } from '../theme';
+import api from '../services/api';
 
 const PERKS = [
   { icon: '🚚', title: 'Free Delivery', desc: 'Zero delivery fee on every order, every day' },
