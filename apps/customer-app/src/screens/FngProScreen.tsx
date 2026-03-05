@@ -12,7 +12,7 @@ import {
 import { useNavigation } from '@react-navigation/native';
 import RazorpayCheckout from 'react-native-razorpay';
 import { theme } from '../theme';
-import api from '../services/api';
+import { api } from '../services/api';
 
 const PERKS = [
   { icon: '🚚', title: 'Free Delivery', desc: 'Zero delivery fee on every order, every day' },
