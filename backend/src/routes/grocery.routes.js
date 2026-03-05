@@ -2,44 +2,75 @@ const express = require('express');
 const router = express.Router();
 const db = require('../config/db');
 
-// GET /api/v1/grocery/categories
+// GET /api/v1/grocery/categories?section=grocery|fashion|household|tools|daily
 router.get('/categories', async (req, res) => {
   try {
+    const { section } = req.query;
     const { rows } = await db.query(
-      `SELECT id, name, image_url, sort_order
+      `SELECT id, name, image_url, sort_order, section
        FROM grocery_categories
-       WHERE is_active = TRUE
-       ORDER BY sort_order ASC, name ASC`
+       WHERE is_active = TRUE ${section ? 'AND section = $1' : ''}
+       ORDER BY sort_order ASC, name ASC`,
+      section ? [section] : []
     );
 
     // Seed default categories if empty
     if (rows.length === 0) {
+      // [name, image_url, sort_order, section]
       const defaults = [
-        ['Fruits & Vegetables', null, 1],
-        ['Dairy & Breakfast', null, 2],
-        ['Snacks & Munchies', null, 3],
-        ['Beverages', null, 4],
-        ['Bakery & Biscuits', null, 5],
-        ['Instant & Frozen', null, 6],
-        ['Cleaning Essentials', null, 7],
-        ['Personal Care', null, 8],
-        ['Atta, Rice & Dal', null, 9],
-        ['Oils & Ghee', null, 10],
-        ['Baby Care', null, 11],
-        ['Pet Care', null, 12],
+        // ── Grocery ─────────────────────────────────────────────
+        ['Fruits & Vegetables',     null, 1,  'grocery'],
+        ['Dairy & Breakfast',       null, 2,  'grocery'],
+        ['Snacks & Munchies',       null, 3,  'grocery'],
+        ['Beverages',               null, 4,  'grocery'],
+        ['Bakery & Biscuits',       null, 5,  'grocery'],
+        ['Instant & Frozen',        null, 6,  'grocery'],
+        ['Atta, Rice & Dal',        null, 7,  'grocery'],
+        ['Oils & Ghee',             null, 8,  'grocery'],
+        ['Masala & Spices',         null, 9,  'grocery'],
+        ['Baby Care',               null, 10, 'grocery'],
+        ['Pet Care',                null, 11, 'grocery'],
+        // ── Daily Essentials ─────────────────────────────────────
+        ['Cleaning Essentials',     null, 1,  'daily'],
+        ['Personal Care',           null, 2,  'daily'],
+        ['Laundry Detergents',      null, 3,  'daily'],
+        ['Toilet & Floor Cleaners', null, 4,  'daily'],
+        ['Tissue & Paper Products', null, 5,  'daily'],
+        ['Disinfectants & Sanitizers', null, 6, 'daily'],
+        // ── Household ────────────────────────────────────────────
+        ['Kitchen Storage',         null, 1,  'household'],
+        ['Cookware & Pans',         null, 2,  'household'],
+        ['Containers & Boxes',      null, 3,  'household'],
+        ['Brooms & Cleaning Tools', null, 4,  'household'],
+        ['Organizers & Shelves',    null, 5,  'household'],
+        ['Light Bulbs & Batteries', null, 6,  'household'],
+        // ── Tools ────────────────────────────────────────────────
+        ['Hand Tools',              null, 1,  'tools'],
+        ['Power Tool Accessories',  null, 2,  'tools'],
+        ['Adhesives & Tapes',       null, 3,  'tools'],
+        ['Locks & Safety',          null, 4,  'tools'],
+        ['Plumbing Fittings',       null, 5,  'tools'],
+        ['Electrical Fittings',     null, 6,  'tools'],
+        // ── Fashion ──────────────────────────────────────────────
+        ['Men\'s T-Shirts',         null, 1,  'fashion'],
+        ['Women\'s Kurtas',         null, 2,  'fashion'],
+        ['Kids Clothing',           null, 3,  'fashion'],
+        ['Accessories & Belts',     null, 4,  'fashion'],
+        ['Footwear',                null, 5,  'fashion'],
+        ['Innerwear & Socks',       null, 6,  'fashion'],
       ];
 
-      for (const [name, image_url, sort_order] of defaults) {
+      for (const [name, image_url, sort_order, section] of defaults) {
         await db.query(
-          `INSERT INTO grocery_categories (name, image_url, sort_order)
-           VALUES ($1, $2, $3)
+          `INSERT INTO grocery_categories (name, image_url, sort_order, section)
+           VALUES ($1, $2, $3, $4)
            ON CONFLICT DO NOTHING`,
-          [name, image_url, sort_order]
+          [name, image_url, sort_order, section]
         );
       }
 
       const { rows: seeded } = await db.query(
-        `SELECT id, name, image_url, sort_order FROM grocery_categories ORDER BY sort_order`
+        `SELECT id, name, image_url, sort_order, section FROM grocery_categories ORDER BY section, sort_order`
       );
       return res.json({ categories: seeded });
     }

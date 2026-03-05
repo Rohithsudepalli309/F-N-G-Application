@@ -105,8 +105,13 @@ const initDb = async () => {
         name VARCHAR(100) NOT NULL,
         image_url TEXT,
         sort_order INTEGER DEFAULT 0,
-        is_active BOOLEAN DEFAULT TRUE
+        is_active BOOLEAN DEFAULT TRUE,
+        section VARCHAR(50) DEFAULT 'grocery'
       );
+    `);
+    // Add section column to existing tables (idempotent)
+    await db.query(`
+      ALTER TABLE grocery_categories ADD COLUMN IF NOT EXISTS section VARCHAR(50) DEFAULT 'grocery';
     `);
 
     // 7. Grocery products
