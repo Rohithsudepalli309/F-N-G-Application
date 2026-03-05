@@ -1,5 +1,5 @@
 # ── Stage 1: deps ──────────────────────────────────────────────────────────────
-FROM node:20-alpine AS deps
+FROM node:22-alpine AS deps
 WORKDIR /app
 
 COPY package.json ./
@@ -7,7 +7,7 @@ COPY package.json ./
 RUN npm install --omit=dev --no-fund --no-audit
 
 # ── Stage 2: production ────────────────────────────────────────────────────────
-FROM node:20-alpine AS production
+FROM node:22-alpine AS production
 WORKDIR /app
 
 # Add non-root user for security

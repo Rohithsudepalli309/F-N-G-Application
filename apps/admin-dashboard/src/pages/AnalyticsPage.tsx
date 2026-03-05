@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { TrendingUp, Package, IndianRupee, Store, Loader2 } from 'lucide-react';
+import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer } from 'recharts';
 import { useAuthStore } from '../store/useAuthStore';
 
 interface DailyRow { date: string; orders: number; revenue: number }
@@ -33,8 +34,6 @@ export const AnalyticsPage: React.FC = () => {
       }
     })();
   }, []);
-
-  const maxRevenue = Math.max(...daily.map((d) => d.revenue), 1);
 
   const metricCards = [
     { label: 'Orders Today', value: stats.ordersToday, icon: Package, color: 'text-blue-600', bg: 'bg-blue-50' },
@@ -71,31 +70,36 @@ export const AnalyticsPage: React.FC = () => {
         ))}
       </div>
 
-      {/* Revenue Bar Chart (CSS only) */}
+      {/* Revenue Bar Chart */}
       <div className="bg-white rounded-2xl border border-slate-100 shadow-sm p-6">
         <h3 className="text-sm font-bold text-slate-700 mb-6">Revenue – Last 7 Days</h3>
         {daily.length === 0 ? (
           <p className="text-center text-slate-400 py-10 text-sm">No delivery data yet</p>
         ) : (
-          <div className="flex items-end space-x-3 h-48">
-            {daily.map((row) => {
-              const pct = Math.round((row.revenue / maxRevenue) * 100);
-              return (
-                <div key={row.date} className="flex-1 flex flex-col items-center space-y-2">
-                  <span className="text-[10px] text-slate-600 font-semibold">
-                    ₹{(row.revenue / 100).toLocaleString('en-IN', { notation: 'compact' })}
-                  </span>
-                  <div
-                    className="w-full bg-gradient-to-t from-orange-500 to-orange-400 rounded-t-lg transition-all"
-                    style={{ height: `${Math.max(pct, 4)}%` }}
-                  />
-                  <span className="text-[10px] text-slate-400">
-                    {new Date(row.date).toLocaleDateString('en-IN', { weekday: 'short' })}
-                  </span>
-                </div>
-              );
-            })}
-          </div>
+          <ResponsiveContainer width="100%" height={192}>
+            <BarChart
+              data={daily.map((r) => ({
+                day: new Date(r.date).toLocaleDateString('en-IN', { weekday: 'short' }),
+                revenue: Math.round(r.revenue / 100),
+                orders: r.orders,
+              }))}
+              barCategoryGap="30%"
+              margin={{ top: 4, right: 4, left: 0, bottom: 0 }}
+            >
+              <XAxis dataKey="day" tick={{ fontSize: 10, fill: '#94a3b8' }} axisLine={false} tickLine={false} />
+              <YAxis
+                tick={{ fontSize: 10, fill: '#94a3b8' }}
+                axisLine={false}
+                tickLine={false}
+                tickFormatter={(v: number) => v >= 1000 ? `₹${(v / 1000).toFixed(1)}k` : `₹${v}`}
+              />
+              <Tooltip
+                formatter={(v: number) => [`₹${v.toLocaleString('en-IN')}`, 'Revenue']}
+                contentStyle={{ borderRadius: 8, fontSize: 12, border: '1px solid #f1f5f9' }}
+              />
+              <Bar dataKey="revenue" fill="#f97316" radius={[6, 6, 0, 0]} />
+            </BarChart>
+          </ResponsiveContainer>
         )}
       </div>
 
