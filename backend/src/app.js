@@ -12,6 +12,7 @@ const couponRoutes = require('./routes/coupons.routes');
 const searchRoutes = require('./routes/search.routes');
 const groceryRoutes = require('./routes/grocery.routes');
 const adminRoutes = require('./routes/admin.routes');
+const merchantRoutes = require('./routes/merchant.routes');
 const { initSocketServer } = require('./services/socket.service');
 const priceEngine = require('./services/priceEngine.service');
 const { initDb } = require('./config/init_db');
@@ -41,6 +42,7 @@ app.use('/api/v1/coupons', couponRoutes);
 app.use('/api/v1/search', searchRoutes);
 app.use('/api/v1/grocery', groceryRoutes);
 app.use('/api/v1/admin', adminRoutes);
+app.use('/api/v1/merchant', merchantRoutes);
 app.use('/api/v1', catalogRoutes); // /api/v1/stores + /api/v1/products
 
 // 3. Health Check

@@ -68,8 +68,14 @@ const initDb = async () => {
         is_active BOOLEAN DEFAULT TRUE,
         cuisine_tags TEXT[],
         delivery_time_min INTEGER DEFAULT 30,
+        owner_id INTEGER REFERENCES users(id),
         created_at TIMESTAMP DEFAULT NOW()
       );
+    `);
+
+    // owner_id migration — safe to run on existing DBs (idempotent)
+    await db.query(`
+      ALTER TABLE stores ADD COLUMN IF NOT EXISTS owner_id INTEGER REFERENCES users(id);
     `);
 
     // 5. Products

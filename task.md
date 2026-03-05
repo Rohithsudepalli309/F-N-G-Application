@@ -41,3 +41,32 @@
   - Auth guards: 401 (no token), 403 (non-admin on admin routes)
 - [x] `README.md` — complete overhaul: architecture diagram, prerequisites, Docker Compose + local dev guides,
       full API reference tables, Socket.IO events, feature checklist, test commands
+
+## Step 11: Merchant Dashboard (Completed) ✅
+- [x] `backend/src/config/init_db.js` — added `owner_id INTEGER REFERENCES users(id)` to `stores` table +
+      idempotent `ALTER TABLE stores ADD COLUMN IF NOT EXISTS owner_id` for existing databases
+- [x] `backend/src/routes/merchant.routes.js` — 10 protected endpoints:
+  - `GET  /merchant/profile`
+  - `GET  /merchant/orders` (paginated, filterable by status)
+  - `PATCH /merchant/orders/:id/accept` → `preparing`, emits `order_status_update`
+  - `PATCH /merchant/orders/:id/reject` → `cancelled`, emits `order_status_update`
+  - `PATCH /merchant/orders/:id/ready`  → `ready`, emits `delivery:order_ready`
+  - `GET  /merchant/menu`
+  - `PATCH /merchant/products/:id/availability`
+  - `PATCH /merchant/products/:id/stock`
+  - `PATCH /merchant/store/toggle`
+  - `GET  /merchant/analytics?period=week|month`
+- [x] `backend/src/app.js` — registered `/api/v1/merchant` router
+- [x] `apps/merchant-dashboard/` — full React 18 + Vite 5 + TypeScript + Tailwind 3 SPA (emerald theme, port 5174 / Docker 8081):
+  - Config: `package.json`, `tsconfig.json`, `vite.config.ts`, `tailwind.config.js`, `index.html`, `nginx.conf`, `Dockerfile`
+  - `src/styles/index.css` — Tailwind + custom `.card`, `.btn-primary`, `.btn-danger`, `.input`, `.badge`
+  - `src/store/useAuthStore.ts` — Zustand persist (`merchant_auth`)
+  - `src/services/api.ts` — Axios client with JWT interceptor
+  - `src/services/socket.ts` — Socket.IO singleton
+  - `src/components/Layout.tsx` — dark slate sidebar, emerald active indicators, mobile overlay
+  - `src/pages/LoginPage.tsx` — email+password login, role-guard (merchant/admin only)
+  - `src/pages/OrdersPage.tsx` — live socket feed, 7 status tabs, Accept / Reject / Ready actions
+  - `src/pages/MenuPage.tsx` — product grid grouped by category, availability toggle, stock warning
+  - `src/pages/AnalyticsPage.tsx` — KPI cards, revenue + orders bar charts (Recharts), top-products table
+- [x] `docker-compose.yml` — added `merchant-dashboard` service (port 8081)
+- [x] `.github/workflows/ci.yml` — added `merchant-dashboard-ci` build job

@@ -48,3 +48,17 @@ jobs:
           node-version: '20'
       - run: npm ci --legacy-peer-deps
       - run: npm run build
+
+  merchant-dashboard-ci:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: ./apps/merchant-dashboard
+    steps:
+      - uses: actions/checkout@v4
+      - name: Use Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+      - run: npm ci --legacy-peer-deps
+      - run: npm run build
