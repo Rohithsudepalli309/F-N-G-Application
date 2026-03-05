@@ -128,6 +128,7 @@ export default function Layout() {
         <header className="lg:hidden flex items-center gap-3 px-4 h-16 bg-slate-900 border-b border-slate-800 shrink-0">
           <button
             onClick={() => setSidebarOpen(true)}
+            aria-label="Open navigation menu"
             className="text-slate-400 hover:text-slate-100"
           >
             <Menu size={22} />
