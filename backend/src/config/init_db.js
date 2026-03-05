@@ -261,7 +261,9 @@ const initDb = async () => {
     `);
 
     // ── Schema migrations (idempotent ADD COLUMN IF NOT EXISTS) ──
-    // v3 — Grocery order type discriminator + review tags
+    // v3 — Grocery order type discriminator + review tags + pro membership
+    await db.query(`ALTER TABLE users ADD COLUMN IF NOT EXISTS is_pro BOOLEAN DEFAULT FALSE;`);
+    await db.query(`ALTER TABLE users ADD COLUMN IF NOT EXISTS pro_expires_at TIMESTAMP;`);
     await db.query(`ALTER TABLE orders ADD COLUMN IF NOT EXISTS order_type VARCHAR(20) DEFAULT 'food';`);
     await db.query(`
       ALTER TABLE orders DROP CONSTRAINT IF EXISTS orders_order_type_check;
