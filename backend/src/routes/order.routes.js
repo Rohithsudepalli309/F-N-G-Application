@@ -36,9 +36,9 @@ router.get('/:id', authenticate, async (req, res) => {
                 'name', oi.name,
                 'price', oi.price,
                 'quantity', oi.quantity
-              )) AS items
+              )) FILTER (WHERE oi.id IS NOT NULL) AS items
        FROM orders o
-       JOIN stores s ON o.store_id = s.id
+       LEFT JOIN stores s ON o.store_id = s.id
        LEFT JOIN order_items oi ON oi.order_id = o.id
        WHERE o.id = $1 AND o.customer_id = $2
        GROUP BY o.id, s.name, s.image_url`,
@@ -88,8 +88,18 @@ router.post('/:id/cancel', authenticate, async (req, res) => {
 
 // POST /api/v1/orders/:id/rate — submit rating after delivery
 router.post('/:id/rate', authenticate, async (req, res) => {
-  const { rating, food_rating, delivery_rating, comment } = req.body;
-  if (!rating) return res.status(400).json({ error: 'rating is required' });
+  // Accept both camelCase (mobile client) and snake_case (legacy)
+  const foodRating    = req.body.foodRating    ?? req.body.food_rating    ?? null;
+  const deliveryRating= req.body.deliveryRating ?? req.body.delivery_rating ?? null;
+  const comment       = req.body.comment || null;
+  const tags          = Array.isArray(req.body.tags) ? req.body.tags : [];
+  // Compute composite rating: average of whichever sub-ratings are provided
+  const provided = [foodRating, deliveryRating].filter(r => r != null);
+  const compositeRating = provided.length > 0
+    ? Math.round(provided.reduce((a, b) => a + b, 0) / provided.length)
+    : (req.body.rating ?? null);
+
+  if (!compositeRating) return res.status(400).json({ error: 'At least one rating is required' });
 
   try {
     const { rows: orderRows } = await db.query(
@@ -103,21 +113,23 @@ router.post('/:id/rate', authenticate, async (req, res) => {
     if (order.status !== 'delivered') return res.status(400).json({ error: 'Can only rate delivered orders' });
 
     const { rows } = await db.query(
-      `INSERT INTO reviews (order_id, user_id, store_id, rating, food_rating, delivery_rating, comment)
-       VALUES ($1, $2, $3, $4, $5, $6, $7)
+      `INSERT INTO reviews (order_id, user_id, store_id, rating, food_rating, delivery_rating, comment, tags)
+       VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
        ON CONFLICT (order_id, user_id) DO UPDATE
-         SET rating = $4, food_rating = $5, delivery_rating = $6, comment = $7
+         SET rating = $4, food_rating = $5, delivery_rating = $6, comment = $7, tags = $8
        RETURNING *`,
-      [req.params.id, req.user.id, order.store_id, rating, food_rating || null, delivery_rating || null, comment || null]
+      [req.params.id, req.user.id, order.store_id, compositeRating, foodRating, deliveryRating, comment, tags]
     );
 
-    // Update store avg rating
-    await db.query(
-      `UPDATE stores SET rating = (
-         SELECT ROUND(AVG(rating)::numeric, 1) FROM reviews WHERE store_id = $1
-       ) WHERE id = $1`,
-      [order.store_id]
-    );
+    // Update store avg rating (only for food orders with a store)
+    if (order.store_id) {
+      await db.query(
+        `UPDATE stores SET rating = (
+           SELECT ROUND(AVG(rating)::numeric, 1) FROM reviews WHERE store_id = $1
+         ) WHERE id = $1`,
+        [order.store_id]
+      );
+    }
 
     res.status(201).json({ review: rows[0] });
   } catch (err) {

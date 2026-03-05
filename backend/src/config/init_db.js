@@ -260,7 +260,19 @@ const initDb = async () => {
       );
     `);
 
-    logger.info('Database schema initialized successfully (v2 — full spec).');
+    // ── Schema migrations (idempotent ADD COLUMN IF NOT EXISTS) ──
+    // v3 — Grocery order type discriminator + review tags
+    await db.query(`ALTER TABLE orders ADD COLUMN IF NOT EXISTS order_type VARCHAR(20) DEFAULT 'food';`);
+    await db.query(`
+      ALTER TABLE orders DROP CONSTRAINT IF EXISTS orders_order_type_check;
+    `);
+    await db.query(`
+      ALTER TABLE orders ADD CONSTRAINT orders_order_type_check
+        CHECK (order_type IN ('food','grocery'));
+    `);
+    await db.query(`ALTER TABLE reviews ADD COLUMN IF NOT EXISTS tags TEXT[];`);
+
+    logger.info('Database schema initialized successfully (v3 — grocery + review tags).');
   } catch (err) {
     logger.error('Database initialization failed:', err);
     throw err;

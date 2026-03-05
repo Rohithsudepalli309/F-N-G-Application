@@ -36,45 +36,75 @@ class OrderService {
   }
 
   async createOrder(data, customerId) {
-    const { id, storeId, items, totalAmount, address } = data;
+    const {
+      storeId,
+      items,
+      totalAmount,
+      address,
+      deliveryFee = 0,
+      order_type,
+      type, // client may send 'type' instead of 'order_type'
+    } = data;
+
+    // Normalise order type: client sends { type: 'grocery' } or { order_type: 'grocery' }
+    const orderType = order_type || type || 'food';
+
+    // Always generate the order ID server-side — never trust clients to send it
+    const orderId = `FNG-${orderType.toUpperCase().slice(0, 3)}-${Date.now()}-${Math.floor(Math.random() * 1000)}`;
+
     const client = await db.pool.connect();
-    
+
     try {
       await client.query('BEGIN');
 
       // 1. Insert into orders with 'pending' status (awaiting payment webhook)
       await client.query(
-        `INSERT INTO orders (id, customer_id, store_id, total_amount, address, status) 
-         VALUES ($1, $2, $3, $4, $5, $6)`,
-        [id, customerId, storeId, totalAmount, address, 'pending']
+        `INSERT INTO orders (id, customer_id, store_id, order_type, total_amount, delivery_fee, address, status)
+         VALUES ($1, $2, $3, $4, $5, $6, $7, $8)`,
+        [orderId, customerId, storeId || null, orderType, totalAmount, deliveryFee, address || null, 'pending']
       );
 
       // 2. Insert order items & Deduct Stock Atomically
       for (const item of items) {
-        // Attempt to deduct stock
-        const stockResult = await client.query(
-          `UPDATE products 
-           SET stock = stock - $1 
-           WHERE id = $2 AND stock >= $1 
-           RETURNING stock`,
-          [item.quantity, item.id]
-        );
+        if (orderType === 'grocery') {
+          // For grocery orders: deduct from grocery_products, store product_id as NULL
+          // (grocery_products IDs are integers, not in the products FK table)
+          await client.query(
+            `UPDATE grocery_products
+             SET stock_quantity = GREATEST(0, stock_quantity - $1)
+             WHERE id = $2`,
+            [item.quantity, item.id]
+          );
+          await client.query(
+            `INSERT INTO order_items (order_id, product_id, name, price, quantity)
+             VALUES ($1, NULL, $2, $3, $4)`,
+            [orderId, item.name, item.price, item.quantity]
+          );
+        } else {
+          // Food orders: deduct from products and enforce stock
+          const stockResult = await client.query(
+            `UPDATE products
+             SET stock = stock - $1
+             WHERE id = $2 AND stock >= $1
+             RETURNING stock`,
+            [item.quantity, item.id]
+          );
 
-        if (stockResult.rows.length === 0) {
-           throw new Error(`Insufficient stock for product: ${item.name}`);
+          if (stockResult.rows.length === 0) {
+            throw new Error(`Insufficient stock for product: ${item.name}`);
+          }
+
+          await client.query(
+            `INSERT INTO order_items (order_id, product_id, name, price, quantity)
+             VALUES ($1, $2, $3, $4, $5)`,
+            [orderId, item.id, item.name, item.price, item.quantity]
+          );
         }
-
-        // Insert into order_items
-        await client.query(
-          `INSERT INTO order_items (order_id, product_id, name, price, quantity) 
-           VALUES ($1, $2, $3, $4, $5)`,
-          [id, item.id, item.name, item.price, item.quantity]
-        );
       }
 
       await client.query('COMMIT');
-      logger.info(`Order ${id} created successfully (pending payment) for customer ${customerId}`);
-      return { id, status: 'pending' };
+      logger.info(`Order ${orderId} (${orderType}) created for customer ${customerId}`);
+      return { id: orderId, status: 'pending' };
     } catch (err) {
       await client.query('ROLLBACK');
       logger.error('Error in createOrder:', err);
