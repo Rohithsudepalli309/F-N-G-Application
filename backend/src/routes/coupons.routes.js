@@ -9,6 +9,9 @@ router.post('/validate', authenticate, async (req, res) => {
   if (!code || !orderTotal) {
     return res.status(400).json({ error: 'code and orderTotal are required' });
   }
+  if (!Number.isInteger(orderTotal) || orderTotal <= 0) {
+    return res.status(400).json({ error: 'orderTotal must be a positive integer (paise)' });
+  }
 
   try {
     const { rows } = await db.query(

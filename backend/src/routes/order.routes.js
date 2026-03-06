@@ -16,6 +16,13 @@ router.get('/', authenticate, async (req, res, next) => {
 
 // POST /api/v1/orders — create a new order
 router.post('/', authenticate, async (req, res, next) => {
+  const { items, totalAmount } = req.body;
+  if (!Array.isArray(items) || items.length === 0) {
+    return res.status(400).json({ error: 'items must be a non-empty array' });
+  }
+  if (!Number.isInteger(totalAmount) || totalAmount <= 0) {
+    return res.status(400).json({ error: 'totalAmount must be a positive integer (paise)' });
+  }
   try {
     const order = await orderService.createOrder(req.body, req.user.id);
     res.status(201).json(order);
@@ -35,7 +42,8 @@ router.get('/:id', authenticate, async (req, res) => {
                 'product_id', oi.product_id,
                 'name', oi.name,
                 'price', oi.price,
-                'quantity', oi.quantity
+                'quantity', oi.quantity,
+                'total_price', oi.price * oi.quantity
               )) FILTER (WHERE oi.id IS NOT NULL) AS items
        FROM orders o
        LEFT JOIN stores s ON o.store_id = s.id

@@ -216,7 +216,7 @@ export const InstamartCategoryScreen = () => {
       {/* Sticky cart bar */}
       {cartItems.length > 0 && (
         <TouchableOpacity style={styles.cartBar} onPress={() => navigation.navigate('GroceryCart')}>
-          <Text style={styles.cartBarLeft}>{cartItems.length} item{cartItems.length > 1 ? 's' : ''} · ₹{(cartTotal() / 100).toFixed(0)}</Text>
+          <Text style={styles.cartBarLeft}>{cartItems.length} item{cartItems.length > 1 ? 's' : ''} · ₹{(cartTotal() / 100).toLocaleString('en-IN', { maximumFractionDigits: 0 })}</Text>
           <Text style={styles.cartBarRight}>View Cart →</Text>
         </TouchableOpacity>
       )}

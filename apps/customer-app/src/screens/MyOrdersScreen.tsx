@@ -15,6 +15,7 @@ import { theme } from '../theme';
 import { api } from '../services/api';
 import { RefreshControl, ActivityIndicator } from 'react-native';
 import { useCartStore } from '../store/useCartStore';
+import { useGroceryCartStore } from '../store/useGroceryCartStore';
 
 export const MyOrdersScreen = () => {
   const navigation = useNavigation();
@@ -23,18 +24,29 @@ export const MyOrdersScreen = () => {
   const [loading, setLoading] = React.useState(true);
   const [refreshing, setRefreshing] = React.useState(false);
   const addToCart = useCartStore((state) => state.addToCart);
+  const addGroceryItem = useGroceryCartStore((state) => state.addItem);
+  const updateGroceryQty = useGroceryCartStore((state) => state.updateQty);
 
   const handleReorder = (order: any) => {
-    const sid = String(order.store_id ?? 'default');
-    order.items?.forEach((item: any) => {
-      addToCart(sid, {
-        productId: String(item.product_id ?? item.id),
-        name: item.name,
-        price: Number(item.price),
-        quantity: item.quantity,
+    if (order.type === 'grocery') {
+      order.items?.forEach((item: any) => {
+        const productId = String(item.product_id ?? item.id);
+        addGroceryItem({ productId, name: item.name, price: Number(item.price) });
+        if (item.quantity > 1) updateGroceryQty(productId, item.quantity);
       });
-    });
-    (navigation as any).navigate('Cart');
+      (navigation as any).navigate('GroceryCart');
+    } else {
+      const sid = String(order.store_id ?? 'default');
+      order.items?.forEach((item: any) => {
+        addToCart(sid, {
+          productId: String(item.product_id ?? item.id),
+          name: item.name,
+          price: Number(item.price),
+          quantity: item.quantity,
+        });
+      });
+      (navigation as any).navigate('Cart');
+    }
   };
 
   const fetchOrders = async () => {

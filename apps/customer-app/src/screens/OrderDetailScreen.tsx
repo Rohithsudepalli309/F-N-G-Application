@@ -41,7 +41,7 @@ const STATUS_LABEL: Record<string, string> = {
 interface OrderItem {
   name: string;
   quantity: number;
-  unit_price: number;
+  price: number;
   total_price: number;
 }
 
@@ -97,7 +97,7 @@ export const OrderDetailScreen = () => {
     );
   }
 
-  const subtotal = order.items?.reduce((s, i) => s + i.total_price, 0) ?? order.total_amount;
+  const subtotal = order.items?.reduce((s, i) => s + (i.total_price ?? i.price * i.quantity), 0) ?? order.total_amount;
   const canTrack = ['agent_assigned', 'picked_up', 'out_for_delivery'].includes(order.status);
   const canReview = order.status === 'delivered';
   const canCancel = ['pending', 'confirmed', 'accepted'].includes(order.status);
@@ -148,7 +148,7 @@ export const OrderDetailScreen = () => {
                 <Text style={styles.itemQty}>{item.quantity}×</Text>
                 <Text style={styles.itemName}>{item.name}</Text>
               </View>
-              <Text style={styles.itemPrice}>₹{(item.total_price / 100).toFixed(0)}</Text>
+              <Text style={styles.itemPrice}>₹{((item.total_price ?? item.price * item.quantity) / 100).toLocaleString('en-IN', { maximumFractionDigits: 0 })}</Text>
             </View>
           ))}
         </View>
@@ -158,25 +158,25 @@ export const OrderDetailScreen = () => {
         <View style={styles.card}>
           <View style={styles.billRow}>
             <Text style={styles.billLabel}>Subtotal</Text>
-            <Text style={styles.billValue}>₹{(subtotal / 100).toFixed(0)}</Text>
+            <Text style={styles.billValue}>₹{(subtotal / 100).toLocaleString('en-IN', { maximumFractionDigits: 0 })}</Text>
           </View>
           <View style={styles.billRow}>
             <Text style={styles.billLabel}>Delivery Fee</Text>
             <Text style={styles.billValue}>
-              {order.delivery_fee === 0 ? 'FREE' : `₹${(order.delivery_fee / 100).toFixed(0)}`}
+              {order.delivery_fee === 0 ? 'FREE' : `₹${(order.delivery_fee / 100).toLocaleString('en-IN', { maximumFractionDigits: 0 })}`}
             </Text>
           </View>
           {(order.coupon_discount ?? 0) > 0 && (
             <View style={styles.billRow}>
               <Text style={[styles.billLabel, { color: '#1A7A3C' }]}>Coupon Discount</Text>
               <Text style={[styles.billValue, { color: '#1A7A3C' }]}>
-                -₹{((order.coupon_discount ?? 0) / 100).toFixed(0)}
+                -₹{((order.coupon_discount ?? 0) / 100).toLocaleString('en-IN', { maximumFractionDigits: 0 })}
               </Text>
             </View>
           )}
           <View style={[styles.billRow, styles.totalRow]}>
             <Text style={styles.totalLabel}>Total Paid</Text>
-            <Text style={styles.totalValue}>₹{(order.total_amount / 100).toFixed(0)}</Text>
+            <Text style={styles.totalValue}>₹{(order.total_amount / 100).toLocaleString('en-IN', { maximumFractionDigits: 0 })}</Text>
           </View>
           <View style={styles.billRow}>
             <Text style={styles.billLabel}>Payment Method</Text>

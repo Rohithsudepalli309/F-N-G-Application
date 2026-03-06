@@ -230,6 +230,26 @@ router.post('/coupons', ...isAdmin, async (req, res) => {
     return res.status(400).json({ error: 'code, discount_type and discount_value are required' });
   }
 
+  const validTypes = ['flat', 'percent'];
+  if (!validTypes.includes(discount_type)) {
+    return res.status(400).json({ error: 'discount_type must be flat or percent' });
+  }
+  if (!Number.isInteger(discount_value) || discount_value <= 0) {
+    return res.status(400).json({ error: 'discount_value must be a positive integer' });
+  }
+  if (discount_type === 'percent' && discount_value > 100) {
+    return res.status(400).json({ error: 'percent discount_value cannot exceed 100' });
+  }
+  if (!Number.isInteger(min_order_amount) || min_order_amount < 0) {
+    return res.status(400).json({ error: 'min_order_amount must be a non-negative integer (paise)' });
+  }
+  if (max_discount != null && (!Number.isInteger(max_discount) || max_discount <= 0)) {
+    return res.status(400).json({ error: 'max_discount must be a positive integer (paise)' });
+  }
+  if (!Number.isInteger(max_uses) || max_uses <= 0) {
+    return res.status(400).json({ error: 'max_uses must be a positive integer' });
+  }
+
   try {
     const { rows } = await db.query(
       `INSERT INTO coupons (code, description, discount_type, discount_value, min_order_amount, max_discount, max_uses, valid_until)

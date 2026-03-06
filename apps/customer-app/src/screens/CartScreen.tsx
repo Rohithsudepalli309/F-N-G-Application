@@ -32,7 +32,7 @@ export const CartScreen = () => {
     <View style={styles.itemRow}>
       <View style={styles.itemInfo}>
         <Text style={styles.itemName}>{item.name}</Text>
-        <Text style={styles.itemPrice}>₹{(item.price / 100).toFixed(0)}</Text>
+        <Text style={styles.itemPrice}>₹{(item.price / 100).toLocaleString('en-IN', { maximumFractionDigits: 0 })}</Text>
       </View>
       
       <View style={styles.qtyContainer}>

@@ -88,7 +88,7 @@ export const OrderConfirmedScreen = () => {
             <View style={styles.divider} />
             <View style={styles.cardRow}>
               <Text style={styles.cardLabel}>Total Paid</Text>
-              <Text style={[styles.cardValue, styles.amount]}>₹{totalAmount.toFixed(2)}</Text>
+              <Text style={[styles.cardValue, styles.amount]}>₹{totalAmount.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</Text>
             </View>
             <View style={styles.divider} />
             <View style={styles.cardRow}>

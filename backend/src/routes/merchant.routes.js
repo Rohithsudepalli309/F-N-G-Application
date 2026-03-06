@@ -372,6 +372,12 @@ router.post('/products', ...isMerchant, async (req, res) => {
   if (!name || price == null) {
     return res.status(400).json({ error: 'name and price are required' });
   }
+  if (!Number.isInteger(price) || price <= 0) {
+    return res.status(400).json({ error: 'price must be a positive integer (paise)' });
+  }
+  if (original_price != null && (!Number.isInteger(original_price) || original_price <= 0)) {
+    return res.status(400).json({ error: 'original_price must be a positive integer (paise)' });
+  }
   try {
     const storeId = await getMerchantStoreId(req.user.id);
     const { rows } = await db.query(
@@ -394,6 +400,12 @@ router.post('/products', ...isMerchant, async (req, res) => {
 router.put('/products/:id', ...isMerchant, async (req, res) => {
   const { id } = req.params;
   const { name, description, price, original_price, category, brand, image_url, stock, unit, is_veg, is_available } = req.body;
+  if (price != null && (!Number.isInteger(price) || price <= 0)) {
+    return res.status(400).json({ error: 'price must be a positive integer (paise)' });
+  }
+  if (original_price != null && (!Number.isInteger(original_price) || original_price <= 0)) {
+    return res.status(400).json({ error: 'original_price must be a positive integer (paise)' });
+  }
   try {
     const storeId = await getMerchantStoreId(req.user.id);
     // Verify product belongs to this merchant's store

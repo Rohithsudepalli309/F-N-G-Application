@@ -240,7 +240,7 @@ export const InstamartHomeScreen = () => {
       {/* Sticky cart FAB */}
       {cartItems.length > 0 && (
         <TouchableOpacity style={styles.fab} onPress={() => navigation.navigate('GroceryCart')} activeOpacity={0.9}>
-          <Text style={styles.fabText}>{cartItems.length} item{cartItems.length > 1 ? 's' : ''}  ·  ₹{(cartTotal() / 100).toFixed(0)}</Text>
+          <Text style={styles.fabText}>{cartItems.length} item{cartItems.length > 1 ? 's' : ''}  ·  ₹{(cartTotal() / 100).toLocaleString('en-IN', { maximumFractionDigits: 0 })}</Text>
           <Text style={styles.fabCta}>View Cart →</Text>
         </TouchableOpacity>
       )}

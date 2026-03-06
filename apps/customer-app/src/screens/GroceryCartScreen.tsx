@@ -72,7 +72,7 @@ export const GroceryCartScreen = () => {
   const handlingFee = 500; // ₹5 platform fee in paise
   const grandTotal = cartTotal + deliveryFee + handlingFee - couponDiscount;
 
-  const fmt = (paise: number) => `₹${(paise / 100).toFixed(0)}`;
+  const fmt = (paise: number) => `₹${(paise / 100).toLocaleString('en-IN', { maximumFractionDigits: 0 })}`;
 
   const handleCheckout = async () => {
     if (groceryItems.length === 0) return;

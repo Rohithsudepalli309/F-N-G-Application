@@ -145,9 +145,9 @@ export const MenuItemDetailScreen = () => {
           </View>
 
           <View style={styles.priceRow}>
-            <Text style={styles.price}>₹{(finalPrice / 100).toFixed(0)}</Text>
+            <Text style={styles.price}>₹{(finalPrice / 100).toLocaleString('en-IN', { maximumFractionDigits: 0 })}</Text>
             {item.mrp && item.mrp > item.price && (
-              <Text style={styles.mrp}>₹{(item.mrp / 100).toFixed(0)}</Text>
+              <Text style={styles.mrp}>₹{(item.mrp / 100).toLocaleString('en-IN', { maximumFractionDigits: 0 })}</Text>
             )}
           </View>
 
@@ -179,7 +179,7 @@ export const MenuItemDetailScreen = () => {
                   </View>
                   <Text style={styles.addonName}>{option.name}</Text>
                   {option.price > 0 && (
-                    <Text style={styles.addonPrice}>+₹{(option.price / 100).toFixed(0)}</Text>
+                    <Text style={styles.addonPrice}>+₹{(option.price / 100).toLocaleString('en-IN', { maximumFractionDigits: 0 })}</Text>
                   )}
                 </TouchableOpacity>
               );
@@ -214,7 +214,7 @@ export const MenuItemDetailScreen = () => {
             activeOpacity={0.85}
           >
             <Text style={styles.addBtnText}>
-              Add to Cart — ₹{(finalPrice / 100).toFixed(0)}
+              Add to Cart — ₹{(finalPrice / 100).toLocaleString('en-IN', { maximumFractionDigits: 0 })}
             </Text>
           </TouchableOpacity>
         )}
