@@ -3,28 +3,74 @@
  * Spec §8.1 #21 — Instamart / grocery cart (separate from food cart).
  * Displays grocery items, quantity controls, bill summary, and checkout.
  */
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   View, Text, StyleSheet, SafeAreaView, StatusBar, ScrollView,
-  TouchableOpacity, Image, ActivityIndicator, Alert,
+  TouchableOpacity, Image, ActivityIndicator, Alert, TextInput,
 } from 'react-native';
-import { useNavigation } from '@react-navigation/native';
+import { useNavigation, useRoute } from '@react-navigation/native';
 import RazorpayCheckout from 'react-native-razorpay';
 import { api } from '../services/api';
 import { theme } from '../theme';
 import { useGroceryCartStore } from '../store/useGroceryCartStore';
 
+interface DeliveryAddress {
+  id?: string;
+  label: string;
+  address_line: string;
+  city: string;
+  pincode: string;
+}
+
 export const GroceryCartScreen = () => {
   const navigation = useNavigation<any>();
+  const route = useRoute<any>();
   const { items, updateQty, removeItem, clearCart, total } = useGroceryCartStore();
   const [loading, setLoading] = useState(false);
+  const [address, setAddress] = useState<DeliveryAddress | null>(null);
+  const [couponCode, setCouponCode] = useState('');
+  const [couponDiscount, setCouponDiscount] = useState(0); // in paise
+  const [couponError, setCouponError] = useState('');
+  const [applyingCoupon, setApplyingCoupon] = useState(false);
+
+  // Pick up address selected from SavedAddressesScreen
+  useEffect(() => {
+    if (route.params?.selectedAddress) {
+      setAddress(route.params.selectedAddress);
+    }
+  }, [route.params?.selectedAddress]);
+
+  const handleApplyCoupon = async () => {
+    const code = couponCode.trim().toUpperCase();
+    if (!code) return;
+    try {
+      setApplyingCoupon(true);
+      setCouponError('');
+      const { data } = await api.post('/coupons/validate', {
+        code,
+        orderAmount: cartTotal,
+      });
+      setCouponDiscount(data.discount ?? 0);
+    } catch (e: any) {
+      setCouponDiscount(0);
+      setCouponError(e?.response?.data?.error ?? 'Invalid or expired coupon');
+    } finally {
+      setApplyingCoupon(false);
+    }
+  };
+
+  const handleRemoveCoupon = () => {
+    setCouponCode('');
+    setCouponDiscount(0);
+    setCouponError('');
+  };
 
   // Direct access — no filter needed, this store is grocery-only
   const groceryItems = items;
   const cartTotal = total();
   const deliveryFee = cartTotal >= 19900 ? 0 : 2500; // Free above ₹199
   const handlingFee = 500; // ₹5 platform fee in paise
-  const grandTotal = cartTotal + deliveryFee + handlingFee;
+  const grandTotal = cartTotal + deliveryFee + handlingFee - couponDiscount;
 
   const fmt = (paise: number) => `₹${(paise / 100).toFixed(0)}`;
 
@@ -33,6 +79,9 @@ export const GroceryCartScreen = () => {
     setLoading(true);
     try {
       // 1. Create order on backend
+      const addressString = address
+        ? `${address.address_line}, ${address.city} - ${address.pincode}`
+        : '';
       const { data: order } = await api.post('/orders', {
         type: 'grocery',
         items: groceryItems.map(i => ({
@@ -43,6 +92,7 @@ export const GroceryCartScreen = () => {
         })),
         totalAmount: grandTotal,
         deliveryFee,
+        address: addressString,
       });
 
       if (!order?.razorpayOrderId) {
@@ -176,6 +226,70 @@ export const GroceryCartScreen = () => {
               </View>
             </View>
           ))}
+        </View>
+
+        {/* Delivery Address */}
+        <View style={styles.addressCard}>
+          <View style={styles.addressHeader}>
+            <Text style={styles.addressTitle}>📍  Deliver to</Text>
+            <TouchableOpacity
+              onPress={() => navigation.navigate('SavedAddresses', { selectMode: true })}
+            >
+              <Text style={styles.addressChangeLink}>
+                {address ? 'Change' : 'Add Address'}
+              </Text>
+            </TouchableOpacity>
+          </View>
+          {address ? (
+            <Text style={styles.addressText}>
+              <Text style={styles.addressLabel}>{address.label}  </Text>
+              {address.address_line}, {address.city} — {address.pincode}
+            </Text>
+          ) : (
+            <Text style={styles.addressPlaceholder}>
+              No address selected. Tap "Add Address" to choose one.
+            </Text>
+          )}
+        </View>
+
+        {/* Coupon */}
+        <View style={styles.couponCard}>
+          <Text style={styles.couponTitle}>🏷️  Coupon Code</Text>
+          {couponDiscount > 0 ? (
+            <View style={styles.couponAppliedRow}>
+              <View>
+                <Text style={styles.couponAppliedCode}>{couponCode.trim().toUpperCase()}</Text>
+                <Text style={styles.couponAppliedSaving}>Saving {fmt(couponDiscount)}</Text>
+              </View>
+              <TouchableOpacity onPress={handleRemoveCoupon}>
+                <Text style={styles.couponRemoveText}>Remove</Text>
+              </TouchableOpacity>
+            </View>
+          ) : (
+            <View style={styles.couponInputRow}>
+              <TextInput
+                style={styles.couponInput}
+                placeholder="Enter coupon code"
+                placeholderTextColor="#AAA"
+                value={couponCode}
+                onChangeText={(t) => { setCouponCode(t); setCouponError(''); }}
+                autoCapitalize="characters"
+                returnKeyType="done"
+                onSubmitEditing={handleApplyCoupon}
+              />
+              <TouchableOpacity
+                style={[styles.couponApplyBtn, (!couponCode.trim() || applyingCoupon) && styles.couponApplyBtnDisabled]}
+                onPress={handleApplyCoupon}
+                disabled={!couponCode.trim() || applyingCoupon}
+              >
+                {applyingCoupon
+                  ? <ActivityIndicator color="#FFF" size="small" />
+                  : <Text style={styles.couponApplyBtnText}>Apply</Text>
+                }
+              </TouchableOpacity>
+            </View>
+          )}
+          {couponError !== '' && <Text style={styles.couponErrorText}>{couponError}</Text>}
         </View>
 
         {/* Bill breakdown */}
