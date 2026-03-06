@@ -309,6 +309,12 @@ export const GroceryCartScreen = () => {
             <Text style={styles.billLabel}>Handling Fee</Text>
             <Text style={styles.billValue}>{fmt(handlingFee)}</Text>
           </View>
+          {couponDiscount > 0 && (
+            <View style={styles.billRow}>
+              <Text style={[styles.billLabel, { color: '#2E7D32' }]}>Coupon Discount</Text>
+              <Text style={[styles.billValue, { color: '#2E7D32' }]}>−{fmt(couponDiscount)}</Text>
+            </View>
+          )}
           {deliveryFee > 0 && (
             <View style={styles.freeShipHint}>
               <Text style={styles.freeShipText}>
@@ -439,4 +445,107 @@ const styles = StyleSheet.create({
     backgroundColor: '#163D26', borderRadius: 12, paddingHorizontal: 28, paddingVertical: 14,
   },
   shopBtnText: { color: '#fff', fontWeight: '700', fontSize: 15 },
+
+  addressCard: {
+    margin: 16,
+    marginBottom: 0,
+    backgroundColor: theme.colors.surface,
+    borderRadius: 16,
+    padding: 16,
+    borderWidth: 1,
+    borderColor: theme.colors.border,
+  },
+  addressHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 8,
+  },
+  addressTitle: {
+    fontSize: 14,
+    fontWeight: '700',
+    color: theme.colors.text.primary,
+  },
+  addressChangeLink: {
+    fontSize: 13,
+    color: '#163D26',
+    fontWeight: '700',
+  },
+  addressText: {
+    fontSize: 13,
+    color: theme.colors.text.secondary,
+    lineHeight: 20,
+  },
+  addressLabel: {
+    fontWeight: '700',
+    color: theme.colors.text.primary,
+  },
+  addressPlaceholder: {
+    fontSize: 13,
+    color: '#AAA',
+    fontStyle: 'italic',
+  },
+
+  couponCard: {
+    margin: 16,
+    marginBottom: 0,
+    backgroundColor: theme.colors.surface,
+    borderRadius: 16,
+    padding: 16,
+    borderWidth: 1,
+    borderColor: theme.colors.border,
+  },
+  couponTitle: {
+    fontSize: 14,
+    fontWeight: '700',
+    color: theme.colors.text.primary,
+    marginBottom: 10,
+  },
+  couponInputRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 10,
+  },
+  couponInput: {
+    flex: 1,
+    height: 44,
+    borderWidth: 1.5,
+    borderColor: '#E0E0E0',
+    borderRadius: 10,
+    paddingHorizontal: 12,
+    fontSize: 14,
+    color: '#000',
+    backgroundColor: '#FAFAFA',
+  },
+  couponApplyBtn: {
+    height: 44,
+    paddingHorizontal: 18,
+    backgroundColor: '#163D26',
+    borderRadius: 10,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  couponApplyBtnDisabled: { opacity: 0.5 },
+  couponApplyBtnText: { color: '#FFF', fontWeight: '700', fontSize: 14 },
+  couponErrorText: { color: '#DC3545', fontSize: 12, marginTop: 8 },
+  couponAppliedRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+  },
+  couponAppliedCode: {
+    fontSize: 14,
+    fontWeight: '700',
+    color: '#2E7D32',
+  },
+  couponAppliedSaving: {
+    fontSize: 12,
+    color: '#2E7D32',
+    marginTop: 2,
+  },
+  couponRemoveText: {
+    color: '#DC3545',
+    fontWeight: '700',
+    fontSize: 13,
+  },
 });
