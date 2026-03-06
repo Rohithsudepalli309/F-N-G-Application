@@ -140,7 +140,18 @@ export const CheckoutScreen = () => {
         theme: { color: theme.colors.primary }
       };
 
-      RazorpayCheckout.open(options).then((data: any) => {
+      RazorpayCheckout.open(options).then(async (data: any) => {
+        try {
+          await api.post('/payments/verify', {
+            razorpay_order_id: data.razorpay_order_id,
+            razorpay_payment_id: data.razorpay_payment_id,
+            razorpay_signature: data.razorpay_signature,
+            orderId: internalOrder.id,
+          });
+        } catch {
+          // Verification failed — warn but continue; webhook will handle it
+          console.warn('[Checkout] Client-side payment verification failed — webhook fallback active');
+        }
         clearCart();
         navigation.navigate('OrderConfirmed', { orderId: internalOrder.id, totalAmount: grandTotal, eta: 30 });
       }).catch((error: any) => {

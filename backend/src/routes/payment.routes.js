@@ -49,4 +49,25 @@ router.post('/webhook', express.raw({ type: 'application/json' }), async (req, r
   }
 });
 
+// 3. Verify Payment Signature (Client-side, after Razorpay SDK success)
+router.post('/verify', authenticate, async (req, res, next) => {
+  try {
+    const { razorpay_order_id, razorpay_payment_id, razorpay_signature, orderId } = req.body;
+    if (!razorpay_order_id || !razorpay_payment_id || !razorpay_signature || !orderId) {
+      return res.status(400).json({ error: 'Missing required verification parameters' });
+    }
+    const isValid = paymentService.verifyPaymentSignature(
+      razorpay_order_id, razorpay_payment_id, razorpay_signature
+    );
+    if (!isValid) {
+      return res.status(400).json({ error: 'Invalid payment signature — verification failed' });
+    }
+    const io = req.app.get('io');
+    await paymentService.markVerified(orderId, razorpay_payment_id, razorpay_order_id, io);
+    res.json({ success: true });
+  } catch (err) {
+    next(err);
+  }
+});
+
 module.exports = router;

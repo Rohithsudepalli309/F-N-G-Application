@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { Wallet, CheckCircle, Clock, Loader2, Download } from 'lucide-react';
-import { useAuthStore } from '../store/useAuthStore';
+import api from '../services/api';
 
 interface DriverPayout {
   driver_id: number;
@@ -12,10 +12,7 @@ interface DriverPayout {
   net_payout: number;
 }
 
-const API = import.meta.env.VITE_API_URL ?? 'http://localhost:3000/api/v1';
-
 export const PayoutsPage: React.FC = () => {
-  const { token } = useAuthStore() as any;
   const [payouts, setPayouts] = useState<DriverPayout[]>([]);
   const [loading, setLoading] = useState(true);
   const [period, setPeriod] = useState<'week' | 'month'>('week');
@@ -24,16 +21,8 @@ export const PayoutsPage: React.FC = () => {
     (async () => {
       setLoading(true);
       try {
-        const res = await fetch(`${API}/admin/payouts?period=${period}`, {
-          headers: { Authorization: `Bearer ${token}` },
-        });
-        if (res.ok) {
-          const data = await res.json();
-          setPayouts(data.payouts ?? []);
-        } else {
-          // Endpoint not yet implemented — show empty state
-          setPayouts([]);
-        }
+        const { data } = await api.get(`/admin/payouts?period=${period}`);
+        setPayouts(data.payouts ?? []);
       } catch {
         setPayouts([]);
       } finally {

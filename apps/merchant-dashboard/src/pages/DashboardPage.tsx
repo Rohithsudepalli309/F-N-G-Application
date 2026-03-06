@@ -50,7 +50,7 @@ const STATUS_COLOR: Record<string, string> = {
   cancelled: 'bg-red-500/10 text-red-400 border-red-500/20',
 };
 
-const fmt = (v: number) => `₹${v.toLocaleString('en-IN')}`;
+const fmt = (v: number) => `₹${(v / 100).toLocaleString('en-IN')}`;
 
 const timeAgo = (iso: string) => {
   const diff = Math.floor((Date.now() - new Date(iso).getTime()) / 1000);

@@ -144,7 +144,7 @@ class AuthService {
 
   // 4. Update Profile
   async updateProfile(userId, data) {
-    const { name, email, address } = data;
+    const { name, email, address, phone } = data;
     
     // Dynamically build update query
     const fields = [];
@@ -154,11 +154,12 @@ class AuthService {
     if (name) { fields.push(`name = $${idx++}`); values.push(name); }
     if (email) { fields.push(`email = $${idx++}`); values.push(email); }
     if (address) { fields.push(`address = $${idx++}`); values.push(address); }
+    if (phone) { fields.push(`phone = $${idx++}`); values.push(phone); }
 
     if (fields.length === 0) return { message: 'No changes' };
 
     values.push(userId);
-    const query = `UPDATE users SET ${fields.join(', ')}, updated_at = NOW() WHERE id = $${idx} RETURNING id, name, email, role, address`;
+    const query = `UPDATE users SET ${fields.join(', ')}, updated_at = NOW() WHERE id = $${idx} RETURNING id, name, email, phone, role, address`;
     
     const result = await db.query(query, values);
     return result.rows[0];

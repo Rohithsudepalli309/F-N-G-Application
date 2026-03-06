@@ -8,11 +8,13 @@ import {
   ScrollView,
   TouchableOpacity,
   Image,
+  Alert,
 } from 'react-native';
 import { useNavigation, useIsFocused } from '@react-navigation/native';
 import { theme } from '../theme';
 import { api } from '../services/api';
 import { RefreshControl, ActivityIndicator } from 'react-native';
+import { useCartStore } from '../store/useCartStore';
 
 export const MyOrdersScreen = () => {
   const navigation = useNavigation();
@@ -20,6 +22,20 @@ export const MyOrdersScreen = () => {
   const [orders, setOrders] = React.useState<any[]>([]);
   const [loading, setLoading] = React.useState(true);
   const [refreshing, setRefreshing] = React.useState(false);
+  const addToCart = useCartStore((state) => state.addToCart);
+
+  const handleReorder = (order: any) => {
+    const sid = String(order.store_id ?? 'default');
+    order.items?.forEach((item: any) => {
+      addToCart(sid, {
+        productId: String(item.product_id ?? item.id),
+        name: item.name,
+        price: Number(item.price),
+        quantity: item.quantity,
+      });
+    });
+    (navigation as any).navigate('Cart');
+  };
 
   const fetchOrders = async () => {
     try {
@@ -94,7 +110,7 @@ export const MyOrdersScreen = () => {
                 key={order.id} 
                 style={styles.orderCard}
                 onPress={() => {
-                  const isCompleted = ['Delivered', 'Cancelled', 'Refusal'].includes(order.status);
+                  const isCompleted = ['delivered', 'cancelled', 'rejected'].includes(order.status);
                   if (isCompleted) {
                     (navigation as any).navigate('OrderDetail', { orderId: order.id });
                   } else {
@@ -111,8 +127,8 @@ export const MyOrdersScreen = () => {
                   </View>
                   <View style={styles.orderMeta}>
                     <View style={styles.statusRow}>
-                       <Text style={[styles.statusText, (order.status === 'Cancelled' || order.status === 'Refusal') && styles.statusCancelled]}>
-                         {order.status}
+                       <Text style={[styles.statusText, (order.status === 'cancelled' || order.status === 'rejected') && styles.statusCancelled]}>
+                         {order.status.replace(/_/g, ' ')}
                        </Text>
                        <Text style={styles.orderId}>#{order.id.slice(-8).toUpperCase()}</Text>
                     </View>
@@ -138,14 +154,17 @@ export const MyOrdersScreen = () => {
                   <Text style={styles.orderItems} numberOfLines={1}>
                     {order.items?.map((i: any) => i.name).join(', ') || 'Items details...'}
                   </Text>
-                  <Text style={styles.orderAmount}>₹{order.total_amount}</Text>
+                  <Text style={styles.orderAmount}>₹{(order.total_amount / 100).toLocaleString('en-IN')}</Text>
                 </View>
 
                 <View style={styles.orderActions}>
-                   <TouchableOpacity style={styles.actionBtn}>
+                   <TouchableOpacity style={styles.actionBtn} onPress={() => handleReorder(order)}>
                       <Text style={styles.actionText}>Reorder</Text>
                    </TouchableOpacity>
-                   <TouchableOpacity style={[styles.actionBtn, styles.actionBtnOutline]}>
+                   <TouchableOpacity
+                     style={[styles.actionBtn, styles.actionBtnOutline]}
+                     onPress={() => Alert.alert('Need Help?', 'Contact our support:\n\n📞 1800-123-4567 (toll-free)\n📧 support@fng.in', [{ text: 'OK' }])}
+                   >
                       <Text style={styles.actionTextOutline}>Need Help?</Text>
                    </TouchableOpacity>
                 </View>

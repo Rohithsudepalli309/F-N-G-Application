@@ -1,34 +1,27 @@
 import React, { useEffect, useState } from 'react';
 import { TrendingUp, Package, IndianRupee, Store, Loader2 } from 'lucide-react';
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer } from 'recharts';
-import { useAuthStore } from '../store/useAuthStore';
+import api from '../services/api';
 
 interface DailyRow { date: string; orders: number; revenue: number }
 interface TopStore { name: string; order_count: number; revenue: number }
 
-const API = import.meta.env.VITE_API_URL ?? 'http://localhost:3000/api/v1';
-
 export const AnalyticsPage: React.FC = () => {
-  const { token } = useAuthStore() as any;
   const [daily, setDaily] = useState<DailyRow[]>([]);
   const [topStores, setTopStores] = useState<TopStore[]>([]);
   const [stats, setStats] = useState({ ordersToday: 0, totalCustomers: 0, totalDrivers: 0, revenueToday: 0 });
   const [loading, setLoading] = useState(true);
 
-  const headers = { Authorization: `Bearer ${token}` };
-
   useEffect(() => {
     (async () => {
       try {
         const [analyticsRes, statsRes] = await Promise.all([
-          fetch(`${API}/admin/analytics`, { headers }),
-          fetch(`${API}/admin/stats`, { headers }),
+          api.get('/admin/analytics'),
+          api.get('/admin/stats'),
         ]);
-        const analyticsData = await analyticsRes.json();
-        const statsData = await statsRes.json();
-        setDaily(analyticsData.daily ?? []);
-        setTopStores(analyticsData.topStores ?? []);
-        setStats(statsData);
+        setDaily(analyticsRes.data.daily ?? []);
+        setTopStores(analyticsRes.data.topStores ?? []);
+        setStats(statsRes.data);
       } finally {
         setLoading(false);
       }

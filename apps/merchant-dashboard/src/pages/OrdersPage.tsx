@@ -111,7 +111,7 @@ export default function OrdersPage() {
     }
   };
 
-  const fmt = (v: number) => `₹${v.toLocaleString('en-IN')}`;
+  const fmt = (v: number) => `₹${(v / 100).toLocaleString('en-IN')}`;
 
   return (
     <div className="p-6 space-y-6 animate-fade-in">

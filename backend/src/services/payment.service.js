@@ -50,6 +50,29 @@ class PaymentService {
     return expectedSignature === signature;
   }
 
+  // 2b. Verify Client Payment Signature (after Razorpay SDK success)
+  verifyPaymentSignature(razorpayOrderId, razorpayPaymentId, signature) {
+    const body = `${razorpayOrderId}|${razorpayPaymentId}`;
+    const expectedSignature = crypto
+      .createHmac('sha256', env.RAZORPAY_KEY_SECRET)
+      .update(body)
+      .digest('hex');
+    return expectedSignature === signature;
+  }
+
+  // 2c. Record verified payment and mark order paid
+  async markVerified(orderId, razorpayPaymentId, razorpayOrderId, io) {
+    await db.query(
+      `UPDATE transactions
+       SET status = 'success', razorpay_payment_id = $1, razorpay_signature = $2
+       WHERE order_id = $3`,
+      [razorpayPaymentId, razorpayOrderId, orderId]
+    );
+    const orderService = require('./order.service');
+    await orderService.markPaid(orderId, io);
+    logger.info(`Payment verified client-side for order ${orderId}`);
+  }
+
   // 3. Handle Webhook Event
   async handleWebhook(event, io) {
     logger.info(`Processing Webhook: ${event.event}`);

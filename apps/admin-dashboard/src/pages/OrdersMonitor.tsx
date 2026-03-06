@@ -14,19 +14,28 @@ interface Order {
 
 export const OrdersMonitor = () => {
   const [orders, setOrders] = useState<Order[]>([]);
+  const [refreshing, setRefreshing] = useState(false);
+  const [lastRefreshed, setLastRefreshed] = useState<Date | null>(null);
   const token = useAuthStore((state: any) => state.token);
 
+  const fetchOrders = async (silent = false) => {
+    if (!silent) setRefreshing(true);
+    try {
+      const { data } = await api.get('/admin/orders?limit=50');
+      setOrders(data.orders ?? []);
+      setLastRefreshed(new Date());
+    } catch (err) {
+      console.error('Failed to fetch orders');
+    } finally {
+      if (!silent) setRefreshing(false);
+    }
+  };
+
   useEffect(() => {
-    // Fetch current active orders
-    const fetchOrders = async () => {
-      try {
-        const { data } = await api.get('/admin/orders?active=true');
-        setOrders(data);
-      } catch (err) {
-        console.error('Failed to fetch orders');
-      }
-    };
-    fetchOrders();
+    fetchOrders(true);
+
+    // Auto-refresh every 60s as socket fallback
+    const interval = setInterval(() => fetchOrders(true), 60_000);
 
     // Setup Socket connection for live updates
     if (token) {
@@ -36,16 +45,18 @@ export const OrdersMonitor = () => {
         setOrders((prev: Order[]) => {
           const index = prev.findIndex((o: Order) => o.id === updatedOrder.id);
           if (index !== -1) {
-            const newOrders = [...prev];
-            newOrders[index] = updatedOrder;
-            return newOrders;
+            const next = [...prev];
+            next[index] = updatedOrder;
+            return next;
           }
           return [updatedOrder, ...prev];
         });
+        setLastRefreshed(new Date());
       });
     }
 
     return () => {
+      clearInterval(interval);
       socketService.off('order.platform.update');
     };
   }, [token]);
@@ -64,11 +75,27 @@ export const OrdersMonitor = () => {
   return (
     <div className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
       <div className="p-6 border-b border-gray-100 flex justify-between items-center">
-        <h3 className="text-lg font-semibold">Live Orders Monitor</h3>
-        <span className="flex items-center text-sm text-green-600 font-medium">
-          <span className="w-2 h-2 bg-green-500 rounded-full mr-2 animate-pulse"></span>
-          Live Feed Active
-        </span>
+        <div>
+          <h3 className="text-lg font-semibold">Live Orders Monitor</h3>
+          {lastRefreshed && (
+            <p className="text-xs text-gray-400 mt-0.5">
+              Updated {lastRefreshed.toLocaleTimeString()}
+            </p>
+          )}
+        </div>
+        <div className="flex items-center gap-3">
+          <button
+            onClick={() => fetchOrders(false)}
+            disabled={refreshing}
+            className="text-xs font-medium px-3 py-1.5 rounded-lg border border-gray-200 hover:bg-gray-50 transition-colors disabled:opacity-50"
+          >
+            {refreshing ? 'Refreshing…' : 'Refresh'}
+          </button>
+          <span className="flex items-center text-sm text-green-600 font-medium">
+            <span className="w-2 h-2 bg-green-500 rounded-full mr-2 animate-pulse"></span>
+            Live Feed Active
+          </span>
+        </div>
       </div>
       <div className="overflow-x-auto">
         <table className="w-full text-left">

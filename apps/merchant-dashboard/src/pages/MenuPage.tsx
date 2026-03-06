@@ -58,7 +58,7 @@ export default function MenuPage() {
     setEditProduct(p);
     setFormData({
       name: p.name, description: p.description ?? '',
-      price: String(p.price), original_price: String(p.original_price ?? ''),
+      price: String(p.price / 100), original_price: p.original_price ? String(p.original_price / 100) : '',
       category: p.category ?? '', brand: p.brand ?? '',
       image_url: p.image_url ?? '', stock: String(p.stock),
       unit: p.unit ?? '', is_veg: p.is_veg,
@@ -73,8 +73,8 @@ export default function MenuPage() {
       const payload = {
         name: formData.name.trim(),
         description: formData.description.trim() || undefined,
-        price: Number(formData.price),
-        original_price: formData.original_price ? Number(formData.original_price) : undefined,
+        price: Math.round(Number(formData.price) * 100),
+        original_price: formData.original_price ? Math.round(Number(formData.original_price) * 100) : undefined,
         category: formData.category.trim() || undefined,
         brand: formData.brand.trim() || undefined,
         image_url: formData.image_url.trim() || undefined,
@@ -143,7 +143,7 @@ export default function MenuPage() {
     return acc;
   }, {});
 
-  const fmt = (v: number) => `₹${v.toLocaleString('en-IN')}`;
+  const fmt = (v: number) => `₹${(v / 100).toLocaleString('en-IN')}`;
 
   return (
     <div className="p-6 space-y-6 animate-fade-in">

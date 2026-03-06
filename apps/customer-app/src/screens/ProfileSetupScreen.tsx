@@ -21,7 +21,8 @@ export const ProfileSetupScreen = () => {
   const navigation = useNavigation();
 
   const [name, setName] = useState(user?.name === 'New User' ? '' : user?.name || '');
-  const [email, setEmail] = useState('');
+  const [email, setEmail] = useState(user?.email || '');
+  const [phone, setPhone] = useState(user?.phone || '');
   const [loading, setLoading] = useState(false);
 
   const handleSave = async () => {
@@ -32,9 +33,9 @@ export const ProfileSetupScreen = () => {
 
     setLoading(true);
     try {
-      await api.put('/auth/profile', { name, email });
+      await api.put('/auth/profile', { name, email: email || undefined, phone: phone || undefined });
       
-      updateUser({ name, email });
+      updateUser({ name, email: email || undefined, phone: phone || undefined });
       Alert.alert('Success', 'Profile updated successfully!');
       navigation.goBack();
     } catch (e) {
@@ -74,8 +75,20 @@ export const ProfileSetupScreen = () => {
               style={styles.input}
               placeholder="john@example.com"
               keyboardType="email-address"
+              autoCapitalize="none"
               value={email}
               onChangeText={setEmail}
+            />
+          </View>
+
+          <View style={styles.field}>
+            <Text style={styles.label}>PHONE NUMBER (OPTIONAL)</Text>
+            <TextInput
+              style={styles.input}
+              placeholder="+91 9876543210"
+              keyboardType="phone-pad"
+              value={phone}
+              onChangeText={setPhone}
             />
           </View>
         </View>
