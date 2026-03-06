@@ -88,6 +88,11 @@ const initDb = async () => {
       ALTER TABLE stores ADD COLUMN IF NOT EXISTS cuisine_tags TEXT[];
     `);
 
+    // is_active, lat, lng migrations — idempotent
+    await db.query(`ALTER TABLE stores ADD COLUMN IF NOT EXISTS is_active BOOLEAN DEFAULT TRUE;`);
+    await db.query(`ALTER TABLE stores ADD COLUMN IF NOT EXISTS lat DECIMAL(10,7);`);
+    await db.query(`ALTER TABLE stores ADD COLUMN IF NOT EXISTS lng DECIMAL(10,7);`);
+
     // 5. Products
     await db.query(`
       CREATE TABLE IF NOT EXISTS products (
@@ -107,6 +112,11 @@ const initDb = async () => {
         created_at TIMESTAMP DEFAULT NOW()
       );
     `);
+
+    // products: missing columns migration — idempotent
+    await db.query(`ALTER TABLE products ADD COLUMN IF NOT EXISTS brand VARCHAR(100);`);
+    await db.query(`ALTER TABLE products ADD COLUMN IF NOT EXISTS is_available BOOLEAN DEFAULT TRUE;`);
+    await db.query(`ALTER TABLE products ADD COLUMN IF NOT EXISTS is_veg BOOLEAN DEFAULT TRUE;`);
 
     // 6. Grocery categories
     await db.query(`
