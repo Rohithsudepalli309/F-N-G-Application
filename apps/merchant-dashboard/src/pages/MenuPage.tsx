@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { clsx } from 'clsx';
-import { Search, ToggleLeft, ToggleRight, Package, RefreshCw, AlertCircle } from 'lucide-react';
+import { Search, ToggleLeft, ToggleRight, Package, RefreshCw, AlertCircle, Plus, Pencil, Trash2, X } from 'lucide-react';
 import api from '../services/api';
 
 interface Product {
@@ -23,6 +23,14 @@ export default function MenuPage() {
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState('');
   const [toggling, setToggling] = useState<string | null>(null);
+  const [showForm, setShowForm] = useState(false);
+  const [editProduct, setEditProduct] = useState<Product | null>(null);
+  const [saving, setSaving] = useState(false);
+  const [deleting, setDeleting] = useState<string | null>(null);
+  const [formData, setFormData] = useState({
+    name: '', description: '', price: '', original_price: '',
+    category: '', brand: '', image_url: '', stock: '', unit: '', is_veg: false,
+  });
 
   const fetchMenu = async () => {
     setLoading(true);
@@ -37,6 +45,68 @@ export default function MenuPage() {
   };
 
   useEffect(() => { fetchMenu(); }, []);
+
+  const openAdd = () => {
+    setEditProduct(null);
+    setFormData({ name: '', description: '', price: '', original_price: '', category: '', brand: '', image_url: '', stock: '', unit: '', is_veg: false });
+    setShowForm(true);
+  };
+
+  const openEdit = (p: Product) => {
+    setEditProduct(p);
+    setFormData({
+      name: p.name, description: p.description ?? '',
+      price: String(p.price), original_price: String(p.original_price ?? ''),
+      category: p.category ?? '', brand: p.brand ?? '',
+      image_url: p.image_url ?? '', stock: String(p.stock),
+      unit: p.unit ?? '', is_veg: p.is_veg,
+    });
+    setShowForm(true);
+  };
+
+  const handleSave = async () => {
+    if (!formData.name.trim() || !formData.price) return;
+    setSaving(true);
+    try {
+      const payload = {
+        name: formData.name.trim(),
+        description: formData.description.trim() || undefined,
+        price: Number(formData.price),
+        original_price: formData.original_price ? Number(formData.original_price) : undefined,
+        category: formData.category.trim() || undefined,
+        brand: formData.brand.trim() || undefined,
+        image_url: formData.image_url.trim() || undefined,
+        stock: formData.stock ? Number(formData.stock) : 0,
+        unit: formData.unit.trim() || undefined,
+        is_veg: formData.is_veg,
+      };
+      if (editProduct) {
+        const { data } = await api.put(`/merchant/products/${editProduct.id}`, payload);
+        setProducts((prev) => prev.map((p) => p.id === editProduct.id ? { ...p, ...data.product } : p));
+      } else {
+        const { data } = await api.post('/merchant/products', payload);
+        setProducts((prev) => [...prev, data.product]);
+      }
+      setShowForm(false);
+    } catch {
+      // Error toast / alert would go here
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  const handleDelete = async (productId: string) => {
+    if (!window.confirm('Delete this product permanently?')) return;
+    setDeleting(productId);
+    try {
+      await api.delete(`/merchant/products/${productId}`);
+      setProducts((prev) => prev.filter((p) => p.id !== productId));
+    } catch {
+      // Error toast
+    } finally {
+      setDeleting(null);
+    }
+  };
 
   const toggleAvailability = async (product: Product) => {
     setToggling(product.id);
@@ -76,10 +146,16 @@ export default function MenuPage() {
           <h1 className="text-2xl font-bold text-slate-100">Menu</h1>
           <p className="text-sm text-slate-400">{products.length} items in your store</p>
         </div>
-        <button onClick={fetchMenu} className="btn-secondary flex items-center gap-2 text-sm">
-          <RefreshCw size={15} className={loading ? 'animate-spin' : ''} />
-          Refresh
-        </button>
+        <div className="flex items-center gap-3">
+          <button onClick={fetchMenu} className="btn-secondary flex items-center gap-2 text-sm">
+            <RefreshCw size={15} className={loading ? 'animate-spin' : ''} />
+            Refresh
+          </button>
+          <button onClick={openAdd} className="btn-primary flex items-center gap-2 text-sm">
+            <Plus size={15} />
+            Add Product
+          </button>
+        </div>
       </div>
 
       {/* Search */}
@@ -191,11 +267,106 @@ export default function MenuPage() {
                         <ToggleLeft size={18} />
                       )}
                     </button>
+
+                    {/* Edit / Delete */}
+                    <div className="flex gap-2">
+                      <button
+                        onClick={() => openEdit(product)}
+                        className="flex-1 flex items-center justify-center gap-1.5 px-3 py-2 rounded-lg border border-slate-700 text-slate-400 hover:border-slate-500 hover:text-slate-200 text-xs font-medium transition-all"
+                      >
+                        <Pencil size={13} /> Edit
+                      </button>
+                      <button
+                        onClick={() => handleDelete(product.id)}
+                        disabled={deleting === product.id}
+                        className="flex items-center justify-center gap-1.5 px-3 py-2 rounded-lg border border-red-900/50 text-red-500 hover:bg-red-500/10 text-xs font-medium transition-all disabled:opacity-40"
+                      >
+                        {deleting === product.id
+                          ? <RefreshCw size={13} className="animate-spin" />
+                          : <Trash2 size={13} />}
+                      </button>
+                    </div>
                   </div>
                 ))}
               </div>
             </section>
           ))}
+        </div>
+      )}
+
+      {/* ── Add / Edit Product Modal ─────────────────────────────── */}
+      {showForm && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60">
+          <div className="w-full max-w-lg bg-slate-900 rounded-2xl border border-slate-800 shadow-2xl overflow-y-auto max-h-[90vh]">
+            <div className="flex items-center justify-between p-5 border-b border-slate-800">
+              <h2 className="text-lg font-bold text-slate-100">
+                {editProduct ? 'Edit Product' : 'Add New Product'}
+              </h2>
+              <button onClick={() => setShowForm(false)} className="text-slate-500 hover:text-slate-200 transition-colors">
+                <X size={20} />
+              </button>
+            </div>
+
+            <div className="p-5 space-y-4">
+              <div>
+                <label className="text-xs font-semibold text-slate-400 uppercase tracking-wide mb-1.5 block">Product Name *</label>
+                <input className="input w-full" placeholder="e.g. Alphonso Mango" value={formData.name} onChange={(e) => setFormData(f => ({ ...f, name: e.target.value }))} />
+              </div>
+              <div>
+                <label className="text-xs font-semibold text-slate-400 uppercase tracking-wide mb-1.5 block">Description</label>
+                <textarea className="input w-full h-20 resize-none" placeholder="Short description…" value={formData.description} onChange={(e) => setFormData(f => ({ ...f, description: e.target.value }))} />
+              </div>
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <label className="text-xs font-semibold text-slate-400 uppercase tracking-wide mb-1.5 block">Price (₹) *</label>
+                  <input type="number" min="0" className="input w-full" placeholder="0" value={formData.price} onChange={(e) => setFormData(f => ({ ...f, price: e.target.value }))} />
+                </div>
+                <div>
+                  <label className="text-xs font-semibold text-slate-400 uppercase tracking-wide mb-1.5 block">Original Price (₹)</label>
+                  <input type="number" min="0" className="input w-full" placeholder="0" value={formData.original_price} onChange={(e) => setFormData(f => ({ ...f, original_price: e.target.value }))} />
+                </div>
+              </div>
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <label className="text-xs font-semibold text-slate-400 uppercase tracking-wide mb-1.5 block">Category</label>
+                  <input className="input w-full" placeholder="e.g. Fresh, Snacks" value={formData.category} onChange={(e) => setFormData(f => ({ ...f, category: e.target.value }))} />
+                </div>
+                <div>
+                  <label className="text-xs font-semibold text-slate-400 uppercase tracking-wide mb-1.5 block">Brand</label>
+                  <input className="input w-full" placeholder="e.g. Fresho" value={formData.brand} onChange={(e) => setFormData(f => ({ ...f, brand: e.target.value }))} />
+                </div>
+              </div>
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <label className="text-xs font-semibold text-slate-400 uppercase tracking-wide mb-1.5 block">Stock Qty</label>
+                  <input type="number" min="0" className="input w-full" placeholder="0" value={formData.stock} onChange={(e) => setFormData(f => ({ ...f, stock: e.target.value }))} />
+                </div>
+                <div>
+                  <label className="text-xs font-semibold text-slate-400 uppercase tracking-wide mb-1.5 block">Unit</label>
+                  <input className="input w-full" placeholder="e.g. kg, pcs, L" value={formData.unit} onChange={(e) => setFormData(f => ({ ...f, unit: e.target.value }))} />
+                </div>
+              </div>
+              <div>
+                <label className="text-xs font-semibold text-slate-400 uppercase tracking-wide mb-1.5 block">Image URL</label>
+                <input className="input w-full" placeholder="https://…" value={formData.image_url} onChange={(e) => setFormData(f => ({ ...f, image_url: e.target.value }))} />
+              </div>
+              <label className="flex items-center gap-3 cursor-pointer select-none">
+                <input type="checkbox" className="w-4 h-4 accent-emerald-500" checked={formData.is_veg} onChange={(e) => setFormData(f => ({ ...f, is_veg: e.target.checked }))} />
+                <span className="text-sm font-medium text-slate-300">Vegetarian / Vegan product</span>
+              </label>
+            </div>
+
+            <div className="flex gap-3 p-5 border-t border-slate-800">
+              <button onClick={() => setShowForm(false)} className="btn-secondary flex-1">Cancel</button>
+              <button
+                onClick={handleSave}
+                disabled={!formData.name.trim() || !formData.price || saving}
+                className="btn-primary flex-1 flex items-center justify-center gap-2 disabled:opacity-50"
+              >
+                {saving ? <RefreshCw size={15} className="animate-spin" /> : (editProduct ? 'Save Changes' : 'Add Product')}
+              </button>
+            </div>
+          </div>
         </div>
       )}
     </div>

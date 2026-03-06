@@ -57,6 +57,7 @@ import { FavoritesScreen } from '../screens/FavoritesScreen';
 import { FngProScreen } from '../screens/FngProScreen';
 import { ReferEarnScreen } from '../screens/ReferEarnScreen';
 import { HelpSupportScreen } from '../screens/HelpSupportScreen';
+import { OfflineBanner } from '../components/OfflineBanner';
 
 const RootStack = createNativeStackNavigator();
 const AuthStack = createNativeStackNavigator();
@@ -245,6 +246,7 @@ export const AppNavigator = () => {
           <RootStack.Screen name="Main" component={MainTabs} />
         )}
       </RootStack.Navigator>
+      <OfflineBanner />
     </NavigationContainer>
   );
 };

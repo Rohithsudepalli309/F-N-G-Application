@@ -320,4 +320,84 @@ router.get('/analytics', ...isMerchant, async (req, res) => {
   }
 });
 
+// ── POST /merchant/products ──────────────────────────────────────────────────
+// Create a new product listed under the merchant's store.
+router.post('/products', ...isMerchant, async (req, res) => {
+  const { name, description, price, original_price, category, brand, image_url, stock, unit, is_veg } = req.body;
+  if (!name || price == null) {
+    return res.status(400).json({ error: 'name and price are required' });
+  }
+  try {
+    const storeId = await getMerchantStoreId(req.user.id);
+    const { rows } = await db.query(
+      `INSERT INTO products
+         (store_id, name, description, price, original_price, category, brand, image_url, stock, unit, is_veg, is_available)
+       VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11, true)
+       RETURNING *`,
+      [storeId, name, description ?? null, price, original_price ?? null,
+       category ?? null, brand ?? null, image_url ?? null,
+       stock ?? 0, unit ?? null, is_veg ?? false]
+    );
+    res.status(201).json({ product: rows[0] });
+  } catch (err) {
+    res.status(err.status || 500).json({ error: err.message || 'Failed to create product' });
+  }
+});
+
+// ── PUT /merchant/products/:id ───────────────────────────────────────────────
+// Update an existing product. Only fields present in the body are changed.
+router.put('/products/:id', ...isMerchant, async (req, res) => {
+  const { id } = req.params;
+  const { name, description, price, original_price, category, brand, image_url, stock, unit, is_veg, is_available } = req.body;
+  try {
+    const storeId = await getMerchantStoreId(req.user.id);
+    // Verify product belongs to this merchant's store
+    const check = await db.query(
+      `SELECT id FROM products WHERE id = $1 AND store_id = $2`,
+      [id, storeId]
+    );
+    if (!check.rows.length) return res.status(404).json({ error: 'Product not found' });
+
+    const { rows } = await db.query(
+      `UPDATE products SET
+         name          = COALESCE($1, name),
+         description   = COALESCE($2, description),
+         price         = COALESCE($3, price),
+         original_price= COALESCE($4, original_price),
+         category      = COALESCE($5, category),
+         brand         = COALESCE($6, brand),
+         image_url     = COALESCE($7, image_url),
+         stock         = COALESCE($8, stock),
+         unit          = COALESCE($9, unit),
+         is_veg        = COALESCE($10, is_veg),
+         is_available  = COALESCE($11, is_available),
+         updated_at    = NOW()
+       WHERE id = $12 AND store_id = $13
+       RETURNING *`,
+      [name, description, price, original_price, category, brand, image_url,
+       stock, unit, is_veg, is_available, id, storeId]
+    );
+    res.json({ product: rows[0] });
+  } catch (err) {
+    res.status(err.status || 500).json({ error: err.message || 'Failed to update product' });
+  }
+});
+
+// ── DELETE /merchant/products/:id ────────────────────────────────────────────
+// Remove a product from the merchant's store.
+router.delete('/products/:id', ...isMerchant, async (req, res) => {
+  const { id } = req.params;
+  try {
+    const storeId = await getMerchantStoreId(req.user.id);
+    const { rowCount } = await db.query(
+      `DELETE FROM products WHERE id = $1 AND store_id = $2`,
+      [id, storeId]
+    );
+    if (rowCount === 0) return res.status(404).json({ error: 'Product not found' });
+    res.json({ success: true });
+  } catch (err) {
+    res.status(err.status || 500).json({ error: err.message || 'Failed to delete product' });
+  }
+});
+
 module.exports = router;

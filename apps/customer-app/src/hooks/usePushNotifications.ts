@@ -1,15 +1,18 @@
 import { useEffect, useRef } from 'react';
-import { Platform, Alert } from 'react-native';
+import { Alert } from 'react-native';
+import messaging from '@react-native-firebase/messaging';
 import { useAuthStore } from '../store/useAuthStore';
 import { api } from '../services/api';
 
 /**
- * usePushNotifications.ts
- * 
- * Expert-level hook for managing OS-level alerts:
- *  - Request permissions on mount
- *  - Register FCM token with F&G Backend
- *  - Handle background message deep-linking
+ * usePushNotifications
+ *
+ * Handles the full FCM lifecycle:
+ *  1. Request OS permission (iOS prompt / Android 13+ POST_NOTIFICATIONS)
+ *  2. Obtain FCM token and register it with the F&G backend
+ *  3. Refresh token listener (token rotation)
+ *  4. Foreground message handler → in-app Alert
+ *  5. Background / quit-state tap handler → deep-link ready
  */
 export const usePushNotifications = () => {
   const { isAuthenticated, user } = useAuthStore((state: any) => ({
@@ -19,58 +22,68 @@ export const usePushNotifications = () => {
   const isRegistered = useRef(false);
 
   useEffect(() => {
-    if (!isAuthenticated || !user || isRegistered.current) return;
+    if (!isAuthenticated || !user) return;
 
-    const setupNotifications = async () => {
+    // ── 1. Request permission ────────────────────────────────────────────────
+    const setup = async () => {
       try {
-        // 1. Request Permission (Mocking the native prompt logic)
-        console.log('[Push] Requesting permissions...');
-        
-        // In reality: 
-        // const authStatus = await messaging().requestPermission();
-        // const enabled = authStatus === messaging.AuthorizationStatus.AUTHORIZED || authStatus === messaging.AuthorizationStatus.PROVISIONAL;
+        const authStatus = await messaging().requestPermission();
+        const enabled =
+          authStatus === messaging.AuthorizationStatus.AUTHORIZED ||
+          authStatus === messaging.AuthorizationStatus.PROVISIONAL;
 
-        const enabled = true; // Simulating permission granted
-
-        if (enabled) {
-          // 2. Get Token
-          // const token = await messaging().getToken();
-          const mockToken = `fcm_mock_${user.id}_${Date.now()}`;
-          console.log('[Push] Token generated:', mockToken);
-
-          // 3. Register with Backend
-          await api.post('auth/fcm-token', { token: mockToken });
-          console.log('[Push] Token registered successfully with F&G Backend');
-          isRegistered.current = true;
+        if (!enabled) {
+          console.warn('[Push] Permission denied');
+          return;
         }
-      } catch (error) {
-        console.warn('[Push] Setup failed:', error);
+
+        // ── 2. Get & register FCM token ──────────────────────────────────────
+        if (!isRegistered.current) {
+          const token = await messaging().getToken();
+          await api.post('auth/fcm-token', { token });
+          isRegistered.current = true;
+          console.log('[Push] Token registered');
+        }
+      } catch (err) {
+        console.warn('[Push] Setup error:', err);
       }
     };
 
-    setupNotifications();
+    setup();
 
-    // 4. Foreground Message Handler (Simulation)
-    // In a real app, messaging().onMessage(async remoteMessage => { ... })
-    const simulateForegroundNotification = (title: string, body: string) => {
-      Alert.alert(title, body, [
-        { text: 'View Order', onPress: () => console.log('[Push] Navigating to Order...') },
-        { text: 'Dismiss', style: 'cancel' }
-      ]);
-    };
+    // ── 3. Token refresh ─────────────────────────────────────────────────────
+    const unsubRefresh = messaging().onTokenRefresh(async (token) => {
+      try {
+        await api.post('auth/fcm-token', { token });
+        console.log('[Push] Token refreshed + re-registered');
+      } catch (err) {
+        console.warn('[Push] Token refresh registration failed:', err);
+      }
+    });
 
-    // 5. Background / Quit state handler
-    /*
-    messaging().onNotificationOpenedApp(remoteMessage => {
+    // ── 4. Foreground messages ───────────────────────────────────────────────
+    const unsubForeground = messaging().onMessage(async (remoteMessage) => {
+      const title = remoteMessage.notification?.title ?? 'F&G';
+      const body  = remoteMessage.notification?.body  ?? '';
+      Alert.alert(title, body, [{ text: 'OK' }]);
+    });
+
+    // ── 5. Background / quit-state tap ───────────────────────────────────────
+    messaging().onNotificationOpenedApp((remoteMessage) => {
       console.log('[Push] App opened from background:', remoteMessage.data);
+      // TODO: use navigation ref to navigate based on remoteMessage.data.screen
     });
 
-    messaging().getInitialNotification().then(remoteMessage => {
+    messaging().getInitialNotification().then((remoteMessage) => {
       if (remoteMessage) {
-         console.log('[Push] App opened from quit state:', remoteMessage.data);
+        console.log('[Push] App opened from quit state:', remoteMessage.data);
+        // TODO: navigate to remoteMessage.data.screen on first render
       }
     });
-    */
 
+    return () => {
+      unsubRefresh();
+      unsubForeground();
+    };
   }, [isAuthenticated, user]);
 };
