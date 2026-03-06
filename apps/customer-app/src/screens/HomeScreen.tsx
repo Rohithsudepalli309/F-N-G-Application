@@ -222,31 +222,60 @@ export const HomeScreen = () => {
           </View>
         </TouchableOpacity>
 
-        {/* --- 2. SERVICE GRID (4 Columns) --- */}
+        {/* --- 2. SERVICE GRID — 3D Elevated Tiles --- */}
         <View style={styles.serviceGrid}>
            <TouchableOpacity style={styles.serviceCard}>
-              <View style={[styles.servicePill, { backgroundColor: '#F3E5F5' }]}>
-                 <Text style={[styles.servicePillText, { color: '#7B1FA2' }]}>F&G</Text>
+              <View style={[styles.servicePill, {
+                backgroundColor: '#7B1FA2',
+                shadowColor: '#7B1FA2',
+                shadowOffset: { width: 0, height: 6 },
+                shadowOpacity: 0.5,
+                shadowRadius: 8,
+                elevation: 8,
+              }]}>
+                 <Text style={[styles.servicePillText, { color: '#FFF' }]}>F{'\n'}& G</Text>
               </View>
            </TouchableOpacity>
            <TouchableOpacity 
               style={styles.serviceCard}
               onPress={() => (navigation as any).navigate('ProductList', { categoryName: 'Fruits & Vegetables' })}
            >
-              <View style={[styles.servicePill, { backgroundColor: '#FFF3E0' }]}>
-                 <Text style={[styles.servicePillText, { color: '#E65100' }]}>50%</Text>
-                 <Text style={styles.servicePillSub}>OFF ZONE</Text>
+              <View style={[styles.servicePill, {
+                backgroundColor: '#E65100',
+                shadowColor: '#E65100',
+                shadowOffset: { width: 0, height: 6 },
+                shadowOpacity: 0.5,
+                shadowRadius: 8,
+                elevation: 8,
+              }]}>
+                 <Text style={[styles.servicePillText, { color: '#FFE0B2', fontSize: 16 }]}>50%</Text>
+                 <Text style={[styles.servicePillSub, { color: '#FFF' }]}>OFF</Text>
               </View>
            </TouchableOpacity>
            <TouchableOpacity style={styles.serviceCard}>
-              <View style={[styles.servicePill, { backgroundColor: '#E8EAF6' }]}>
-                 <Text style={[styles.servicePillText, { color: '#303F9F' }]}>Super</Text>
-                 <Text style={styles.servicePillSub}>Mall.</Text>
+              <View style={[styles.servicePill, {
+                backgroundColor: '#1565C0',
+                shadowColor: '#1565C0',
+                shadowOffset: { width: 0, height: 6 },
+                shadowOpacity: 0.5,
+                shadowRadius: 8,
+                elevation: 8,
+              }]}>
+                 <Text style={[styles.servicePillText, { color: '#FFF' }]}>Super</Text>
+                 <Text style={[styles.servicePillSub, { color: '#90CAF9' }]}>Mall</Text>
               </View>
            </TouchableOpacity>
            <TouchableOpacity style={styles.serviceCard}>
-              <View style={[styles.servicePill, { backgroundColor: '#E0F2F1' }]}>
-                 <Text style={[styles.servicePillText, { color: '#00796B' }]}>Fresh</Text>
+              <View style={[styles.servicePill, {
+                backgroundColor: '#00796B',
+                shadowColor: '#00796B',
+                shadowOffset: { width: 0, height: 6 },
+                shadowOpacity: 0.5,
+                shadowRadius: 8,
+                elevation: 8,
+              }]}>
+                 <Text style={[styles.servicePillText, { color: '#B2EBF2' }]}>🌿</Text>
+                 <Text style={[styles.servicePillSub, { color: '#FFF' }]}>Fresh</Text>
               </View>
            </TouchableOpacity>
         </View>
@@ -395,21 +424,25 @@ export const HomeScreen = () => {
            </View>
         </View>
 
-        {/* --- 6. Category Grid (Grocery & Kitchen) ---------------------------─ */}
+        {/* --- 6. Category Grid (Grocery & Kitchen) — 3D Cards */}
         <View style={styles.gridSection}>
-          <Text style={styles.sectionTitle}>Grocery & Kitchen</Text>
+          <View style={styles.sectionHeader3D}>
+            <View style={styles.accentBar} />
+            <Text style={styles.sectionTitle}>Grocery & Kitchen</Text>
+          </View>
           <View style={styles.gridWrapper}>
             {HOME_CATEGORIES.map(category => (
               <TouchableOpacity 
                 key={category.id} 
-                style={styles.gridCard}
+                style={styles.gridCard3D}
+                activeOpacity={0.85}
                 onPress={() => (navigation as any).navigate('ProductList', { categoryName: category.title })}
               >
-                <Text style={styles.gridTitle} numberOfLines={2}>{category.title}</Text>
-                <Image source={{ uri: category.image }} style={styles.gridImage} resizeMode="cover" />
-                <View style={styles.gridFooter}>
-                  <Text style={styles.gridStarts}>Starts at</Text>
-                  <Text style={styles.gridPrice}>{category.price}</Text>
+                <Image source={{ uri: category.image }} style={styles.gridImage3D} resizeMode="cover" />
+                <View style={styles.gridCardOverlay} />
+                <Text style={styles.gridTitle3D} numberOfLines={2}>{category.title}</Text>
+                <View style={styles.gridFooter3D}>
+                  <Text style={styles.gridPrice3D}>{category.price}</Text>
                 </View>
               </TouchableOpacity>
             ))}
