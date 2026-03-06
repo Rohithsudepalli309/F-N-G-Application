@@ -76,9 +76,9 @@ const ProductCard = ({ product, storeId }: { product: GroceryProduct; storeId: s
         <Text style={pStyles.unit}>{product.unit}</Text>
 
         <View style={pStyles.priceRow}>
-          <Text style={pStyles.price}>₹{product.price}</Text>
+          <Text style={pStyles.price}>₹{(product.price / 100).toLocaleString('en-IN')}</Text>
           {product.mrp > product.price && (
-            <Text style={pStyles.mrp}>₹{product.mrp}</Text>
+            <Text style={pStyles.mrp}>₹{(product.mrp / 100).toLocaleString('en-IN')}</Text>
           )}
         </View>
 

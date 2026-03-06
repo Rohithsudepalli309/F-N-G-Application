@@ -104,9 +104,9 @@ export const SearchScreen = () => {
         <Text style={styles.resultName} numberOfLines={1}>{item.name}</Text>
         {item.type === 'product' && (
           <View style={styles.priceRow}>
-            <Text style={styles.price}>₹{item.price}</Text>
+            <Text style={styles.price}>₹{((item.price ?? 0) / 100).toLocaleString('en-IN')}</Text>
             {item.mrp && item.mrp > (item.price || 0) && (
-              <Text style={styles.mrp}>₹{item.mrp}</Text>
+              <Text style={styles.mrp}>₹{(item.mrp / 100).toLocaleString('en-IN')}</Text>
             )}
           </View>
         )}

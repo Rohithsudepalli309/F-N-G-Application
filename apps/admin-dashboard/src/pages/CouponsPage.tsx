@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { Tag, Plus, Trash2, ToggleLeft, ToggleRight, Loader2 } from 'lucide-react';
-import { useAuthStore } from '../store/useAuthStore';
+import api from '../services/api';
 
 interface Coupon {
   id: number;
@@ -16,10 +16,7 @@ interface Coupon {
   is_active: boolean;
 }
 
-const API = import.meta.env.VITE_API_URL ?? 'http://localhost:3000/api/v1';
-
 export const CouponsPage: React.FC = () => {
-  const { token } = useAuthStore() as any;
   const [coupons, setCoupons] = useState<Coupon[]>([]);
   const [loading, setLoading] = useState(true);
   const [showForm, setShowForm] = useState(false);
@@ -34,13 +31,10 @@ export const CouponsPage: React.FC = () => {
     valid_until: '',
   });
 
-  const headers = { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' };
-
   const load = async () => {
     try {
       setLoading(true);
-      const res = await fetch(`${API}/coupons`, { headers });
-      const data = await res.json();
+      const { data } = await api.get('/coupons');
       setCoupons(data.coupons ?? []);
     } finally {
       setLoading(false);
@@ -51,17 +45,13 @@ export const CouponsPage: React.FC = () => {
 
   const create = async () => {
     if (!form.code || !form.discount_value) return;
-    await fetch(`${API}/admin/coupons`, {
-      method: 'POST',
-      headers,
-      body: JSON.stringify({
-        ...form,
-        discount_value: parseInt(form.discount_value),
-        min_order_amount: parseInt(form.min_order_amount) || 0,
-        max_discount: form.max_discount ? parseInt(form.max_discount) : undefined,
-        max_uses: parseInt(form.max_uses) || 1000,
-        valid_until: form.valid_until || undefined,
-      }),
+    await api.post('/admin/coupons', {
+      ...form,
+      discount_value: parseInt(form.discount_value),
+      min_order_amount: parseInt(form.min_order_amount) || 0,
+      max_discount: form.max_discount ? parseInt(form.max_discount) : undefined,
+      max_uses: parseInt(form.max_uses) || 1000,
+      valid_until: form.valid_until || undefined,
     });
     setShowForm(false);
     setForm({ code: '', description: '', discount_type: 'flat', discount_value: '', min_order_amount: '', max_discount: '', max_uses: '1000', valid_until: '' });
@@ -69,7 +59,7 @@ export const CouponsPage: React.FC = () => {
   };
 
   const deactivate = async (id: number) => {
-    await fetch(`${API}/admin/coupons/${id}`, { method: 'DELETE', headers });
+    await api.delete(`/admin/coupons/${id}`);
     load();
   };
 

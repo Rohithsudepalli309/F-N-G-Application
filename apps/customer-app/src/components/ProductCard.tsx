@@ -107,15 +107,15 @@ export const ProductCard = ({ product }: { product: Product }) => {
       {/* ── PRICE ROW ─────────────────────────────────────────── */}
       <View style={styles.priceRow}>
         <View style={styles.pricePill}>
-          <Text style={styles.priceText}>₹{product.price}</Text>
+          <Text style={styles.priceText}>₹{(product.price / 100).toLocaleString('en-IN')}</Text>
         </View>
         {product.originalPrice ? (
-          <Text style={styles.mrp}>₹{product.originalPrice}</Text>
+          <Text style={styles.mrp}>₹{(product.originalPrice / 100).toLocaleString('en-IN')}</Text>
         ) : null}
       </View>
 
       {discount ? (
-        <Text style={styles.discountText}>₹{discount} OFF</Text>
+        <Text style={styles.discountText}>₹{(discount / 100).toLocaleString('en-IN')} OFF</Text>
       ) : null}
 
       {/* Dashed separator ─ */}
