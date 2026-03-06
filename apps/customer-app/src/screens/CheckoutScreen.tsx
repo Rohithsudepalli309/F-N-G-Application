@@ -11,6 +11,7 @@ import {
   ScrollView,
   Image,
   Platform,
+  TextInput,
 } from 'react-native';
 import RazorpayCheckout from 'react-native-razorpay';
 import { useNavigation, useRoute } from '@react-navigation/native';
@@ -38,6 +39,10 @@ export const CheckoutScreen = () => {
   const [selectedMethod, setSelectedMethod] = useState('paytm');
   const [isCOD, setIsCOD] = useState(false);
   const [deliveryAddress, setDeliveryAddress] = useState<DeliveryAddress | null>(null);
+  const [couponCode, setCouponCode] = useState('');
+  const [couponDiscount, setCouponDiscount] = useState(0);
+  const [couponError, setCouponError] = useState('');
+  const [applyingCoupon, setApplyingCoupon] = useState(false);
 
   const { items, storeId, clearCart, total } = useCartStore();
   const navigation = useNavigation<any>();
@@ -53,7 +58,32 @@ export const CheckoutScreen = () => {
   const billTotal = total() / 100;
   const deliveryFee = billTotal > 500 ? 0 : 25;
   const handlingFee = 5;
-  const grandTotal = billTotal + deliveryFee + handlingFee;
+  const grandTotal = billTotal + deliveryFee + handlingFee - couponDiscount;
+
+  const handleApplyCoupon = async () => {
+    const code = couponCode.trim().toUpperCase();
+    if (!code) return;
+    try {
+      setApplyingCoupon(true);
+      setCouponError('');
+      const { data } = await api.post('/coupons/validate', {
+        code,
+        orderAmount: Math.round(billTotal * 100),
+      });
+      setCouponDiscount(data.discount / 100);
+    } catch (e: any) {
+      setCouponDiscount(0);
+      setCouponError(e?.response?.data?.error ?? 'Invalid or expired coupon');
+    } finally {
+      setApplyingCoupon(false);
+    }
+  };
+
+  const handleRemoveCoupon = () => {
+    setCouponCode('');
+    setCouponDiscount(0);
+    setCouponError('');
+  };
 
   const handlePlaceOrder = async () => {
     if (!deliveryAddress) {
@@ -186,6 +216,49 @@ export const CheckoutScreen = () => {
             </View>
           </View>
         </TouchableOpacity>
+
+        {/* Coupon Code */}
+        <Text style={styles.sectionTitle}>Have a Coupon?</Text>
+        <View style={styles.couponBox}>
+          {couponDiscount > 0 ? (
+            <View style={styles.couponApplied}>
+              <View style={styles.couponAppliedLeft}>
+                <Text style={styles.couponAppliedIcon}>🏷️</Text>
+                <View>
+                  <Text style={styles.couponAppliedCode}>{couponCode.trim().toUpperCase()}</Text>
+                  <Text style={styles.couponAppliedSaving}>Saving ₹{couponDiscount.toLocaleString('en-IN')}</Text>
+                </View>
+              </View>
+              <TouchableOpacity onPress={handleRemoveCoupon} style={styles.couponRemoveBtn}>
+                <Text style={styles.couponRemoveText}>Remove</Text>
+              </TouchableOpacity>
+            </View>
+          ) : (
+            <View style={styles.couponInputRow}>
+              <TextInput
+                style={styles.couponInput}
+                placeholder="Enter coupon code"
+                placeholderTextColor="#AAA"
+                value={couponCode}
+                onChangeText={(t) => { setCouponCode(t); setCouponError(''); }}
+                autoCapitalize="characters"
+                returnKeyType="done"
+                onSubmitEditing={handleApplyCoupon}
+              />
+              <TouchableOpacity
+                style={[styles.couponApplyBtn, (!couponCode.trim() || applyingCoupon) && styles.couponApplyBtnDisabled]}
+                onPress={handleApplyCoupon}
+                disabled={!couponCode.trim() || applyingCoupon}
+              >
+                {applyingCoupon
+                  ? <ActivityIndicator color="#FFF" size="small" />
+                  : <Text style={styles.couponApplyBtnText}>Apply</Text>
+                }
+              </TouchableOpacity>
+            </View>
+          )}
+          {couponError !== '' && <Text style={styles.couponErrorText}>{couponError}</Text>}
+        </View>
 
         {/* Delivery Address */}
         <View style={styles.addressSection}>
