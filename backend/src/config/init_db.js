@@ -78,6 +78,16 @@ const initDb = async () => {
       ALTER TABLE stores ADD COLUMN IF NOT EXISTS owner_id INTEGER REFERENCES users(id);
     `);
 
+    // delivery_time_min migration — idempotent
+    await db.query(`
+      ALTER TABLE stores ADD COLUMN IF NOT EXISTS delivery_time_min INTEGER DEFAULT 30;
+    `);
+
+    // cuisine_tags migration — idempotent
+    await db.query(`
+      ALTER TABLE stores ADD COLUMN IF NOT EXISTS cuisine_tags TEXT[];
+    `);
+
     // 5. Products
     await db.query(`
       CREATE TABLE IF NOT EXISTS products (

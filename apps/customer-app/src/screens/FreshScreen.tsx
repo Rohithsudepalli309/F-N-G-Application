@@ -14,9 +14,9 @@ interface FreshProduct {
   price: number;
   originalPrice?: number;
   image: string;
-  weight?: string;
+  weight: string;
   discountTag?: string;
-  deliveryTime?: string;
+  deliveryTime: string;
 }
 
 export const FreshScreen = () => {
@@ -36,7 +36,7 @@ export const FreshScreen = () => {
         price: p.price,
         originalPrice: p.original_price ?? undefined,
         image: p.image_url ?? p.image ?? '',
-        weight: p.unit,
+        weight: p.unit ?? '',
         discountTag:
           p.original_price && p.price < p.original_price
             ? `${Math.round((1 - p.price / p.original_price) * 100)}% OFF`

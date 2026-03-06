@@ -17,7 +17,7 @@ router.get('/', async (req, res) => {
     const [storesResult, productsResult] = await Promise.all([
       type !== 'products'
         ? db.query(
-            `SELECT id, name, type, rating, distance, image_url, delivery_time_min
+            `SELECT id, name, type, rating, distance, image_url
              FROM stores
              WHERE is_active = TRUE
                AND (name ILIKE $1 OR type ILIKE $1)
