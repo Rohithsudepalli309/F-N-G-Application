@@ -41,6 +41,51 @@ router.get('/profile', ...isMerchant, async (req, res) => {
   }
 });
 
+// ── PATCH /merchant/profile ───────────────────────────────────────────────────
+router.patch('/profile', ...isMerchant, async (req, res) => {
+  const { storeName, storeType, imageUrl, deliveryTimeMin, cuisineTags, ownerName, phone } = req.body;
+  try {
+    // Update store fields (only provided fields)
+    await db.query(
+      `UPDATE stores
+       SET name              = COALESCE($1, name),
+           store_type        = COALESCE($2, store_type),
+           image_url         = COALESCE($3, image_url),
+           delivery_time_min = COALESCE($4, delivery_time_min),
+           cuisine_tags      = COALESCE($5, cuisine_tags)
+       WHERE owner_id = $6`,
+      [
+        storeName   || null,
+        storeType   || null,
+        imageUrl    || null,
+        deliveryTimeMin != null ? Number(deliveryTimeMin) : null,
+        cuisineTags || null,
+        req.user.id,
+      ]
+    );
+    // Update user fields
+    await db.query(
+      `UPDATE users
+       SET name  = COALESCE($1, name),
+           phone = COALESCE($2, phone)
+       WHERE id = $3`,
+      [ownerName || null, phone || null, req.user.id]
+    );
+    // Return fresh profile
+    const { rows } = await db.query(
+      `SELECT s.id, s.name, s.type, s.store_type, s.rating, s.is_active,
+              s.image_url, s.delivery_time_min, s.cuisine_tags,
+              u.name AS owner_name, u.email, u.phone
+       FROM stores s JOIN users u ON s.owner_id = u.id
+       WHERE s.owner_id = $1`,
+      [req.user.id]
+    );
+    res.json({ store: rows[0] });
+  } catch (err) {
+    res.status(500).json({ error: err.message || 'Failed to update profile' });
+  }
+});
+
 // ── 2. GET /merchant/orders ──────────────────────────────────────────────────
 // Query params: status, page, limit
 router.get('/orders', ...isMerchant, async (req, res) => {

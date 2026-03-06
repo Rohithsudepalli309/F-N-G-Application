@@ -6,6 +6,8 @@ import LoginPage from './pages/LoginPage';
 import OrdersPage from './pages/OrdersPage';
 import MenuPage from './pages/MenuPage';
 import AnalyticsPage from './pages/AnalyticsPage';
+import DashboardPage from './pages/DashboardPage';
+import ProfilePage from './pages/ProfilePage';
 
 function PrivateRoute({ children }: { children: React.ReactNode }) {
   const isAuthenticated = useAuthStore((s) => s.isAuthenticated);
@@ -25,10 +27,11 @@ export default function App() {
             </PrivateRoute>
           }
         >
-          <Route index element={<AnalyticsPage />} />
+          <Route index element={<DashboardPage />} />
           <Route path="orders" element={<OrdersPage />} />
           <Route path="menu" element={<MenuPage />} />
           <Route path="analytics" element={<AnalyticsPage />} />
+          <Route path="profile" element={<ProfilePage />} />
         </Route>
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>

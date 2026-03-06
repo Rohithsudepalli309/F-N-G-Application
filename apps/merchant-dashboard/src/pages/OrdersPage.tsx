@@ -4,6 +4,7 @@ import { CheckCircle2, XCircle, PackageCheck, Clock, RefreshCw, ChefHat } from '
 import { useAuthStore } from '../store/useAuthStore';
 import api from '../services/api';
 import { getSocket } from '../services/socket';
+import { useToast } from '../components/Toast';
 
 interface OrderItem {
   name: string;
@@ -34,12 +35,19 @@ const STATUS_BADGE: Record<string, string> = {
   cancelled:        'bg-red-500/20 text-red-400 border-red-500/30',
 };
 
+const ACTION_LABEL: Record<string, string> = {
+  accept: 'Order accepted',
+  reject: 'Order rejected',
+  ready:  'Order marked as ready',
+};
+
 export default function OrdersPage() {
   const [orders, setOrders] = useState<Order[]>([]);
   const [activeTab, setActiveTab] = useState('all');
   const [loading, setLoading] = useState(true);
   const [actionLoading, setActionLoading] = useState<number | null>(null);
   const { token, store } = useAuthStore();
+  const { toast } = useToast();
 
   const fetchOrders = useCallback(async () => {
     setLoading(true);
@@ -94,9 +102,10 @@ export default function OrdersPage() {
     setActionLoading(orderId);
     try {
       await api.patch(`/merchant/orders/${orderId}/${action}`);
+      toast('success', ACTION_LABEL[action]);
       await fetchOrders();
     } catch {
-      // Toast would go here
+      toast('error', 'Action failed — please try again.');
     } finally {
       setActionLoading(null);
     }

@@ -11,14 +11,16 @@ import {
   X,
   Store,
   ChevronRight,
+  UserCircle,
 } from 'lucide-react';
 import { useAuthStore } from '../store/useAuthStore';
 
 const navItems = [
-  { to: '/',          label: 'Dashboard',  icon: LayoutDashboard, end: true },
+  { to: '/',          label: 'Dashboard',  icon: LayoutDashboard, end: true  },
   { to: '/orders',    label: 'Orders',     icon: ClipboardList,   end: false },
   { to: '/menu',      label: 'Menu',       icon: UtensilsCrossed, end: false },
   { to: '/analytics', label: 'Analytics',  icon: BarChart3,       end: false },
+  { to: '/profile',   label: 'Profile',    icon: UserCircle,      end: false },
 ];
 
 export default function Layout() {

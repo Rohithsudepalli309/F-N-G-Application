@@ -15,6 +15,7 @@ import {
 } from 'lucide-react';
 import { clsx } from 'clsx';
 import api from '../services/api';
+import { useToast } from '../components/Toast';
 
 interface StoreProfile {
   id: string;
@@ -65,6 +66,7 @@ export default function DashboardPage() {
   const [orders, setOrders] = useState<Order[]>([]);
   const [loading, setLoading] = useState(true);
   const [toggling, setToggling] = useState(false);
+  const { toast } = useToast();
 
   const fetchAll = async () => {
     setLoading(true);
@@ -98,8 +100,9 @@ export default function DashboardPage() {
     try {
       const { data } = await api.patch('/merchant/store/toggle');
       setStore((s) => s ? { ...s, is_active: data.store.is_active } : s);
+      toast('success', data.store.is_active ? 'Store is now open.' : 'Store is now closed.');
     } catch {
-      // Silently ignore
+      toast('error', 'Could not update store status.');
     } finally {
       setToggling(false);
     }

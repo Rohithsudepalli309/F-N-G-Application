@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { clsx } from 'clsx';
 import { Search, ToggleLeft, ToggleRight, Package, RefreshCw, AlertCircle, Plus, Pencil, Trash2, X } from 'lucide-react';
 import api from '../services/api';
+import { useToast } from '../components/Toast';
 
 interface Product {
   id: string;
@@ -27,6 +28,7 @@ export default function MenuPage() {
   const [editProduct, setEditProduct] = useState<Product | null>(null);
   const [saving, setSaving] = useState(false);
   const [deleting, setDeleting] = useState<string | null>(null);
+  const { toast } = useToast();
   const [formData, setFormData] = useState({
     name: '', description: '', price: '', original_price: '',
     category: '', brand: '', image_url: '', stock: '', unit: '', is_veg: false,
@@ -83,13 +85,15 @@ export default function MenuPage() {
       if (editProduct) {
         const { data } = await api.put(`/merchant/products/${editProduct.id}`, payload);
         setProducts((prev) => prev.map((p) => p.id === editProduct.id ? { ...p, ...data.product } : p));
+        toast('success', 'Product updated.');
       } else {
         const { data } = await api.post('/merchant/products', payload);
         setProducts((prev) => [...prev, data.product]);
+        toast('success', 'Product added.');
       }
       setShowForm(false);
     } catch {
-      // Error toast / alert would go here
+      toast('error', 'Failed to save product — please try again.');
     } finally {
       setSaving(false);
     }
@@ -101,8 +105,9 @@ export default function MenuPage() {
     try {
       await api.delete(`/merchant/products/${productId}`);
       setProducts((prev) => prev.filter((p) => p.id !== productId));
+      toast('success', 'Product deleted.');
     } catch {
-      // Error toast
+      toast('error', 'Could not delete product.');
     } finally {
       setDeleting(null);
     }
@@ -117,8 +122,9 @@ export default function MenuPage() {
       setProducts((prev) =>
         prev.map((p) => (p.id === product.id ? { ...p, ...data.product } : p))
       );
+      toast('success', data.product?.is_available ? 'Product enabled.' : 'Product hidden.');
     } catch {
-      // Toast would go here
+      toast('error', 'Could not toggle availability.');
     } finally {
       setToggling(null);
     }

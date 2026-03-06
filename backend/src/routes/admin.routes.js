@@ -56,6 +56,18 @@ router.get('/stats', ...isAdmin, async (req, res) => {
   }
 });
 
+// GET /api/v1/admin/orders/pending-count — count of unactioned new orders
+router.get('/orders/pending-count', ...isAdmin, async (req, res) => {
+  try {
+    const { rows } = await db.query(
+      `SELECT COUNT(*) FROM orders WHERE status = 'placed'`
+    );
+    res.json({ count: parseInt(rows[0].count) });
+  } catch (err) {
+    res.status(500).json({ error: 'Failed to fetch pending count' });
+  }
+});
+
 // GET /api/v1/admin/orders?page=1&limit=20&status=
 router.get('/orders', ...isAdmin, async (req, res) => {
   const { page = 1, limit = 20, status } = req.query;

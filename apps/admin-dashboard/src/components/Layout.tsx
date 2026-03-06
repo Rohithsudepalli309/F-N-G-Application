@@ -1,7 +1,8 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { Navigate, Outlet, NavLink } from 'react-router-dom';
 import { LayoutDashboard, ShoppingBag, Users, Store, Truck, LogOut, Tag, TrendingUp, Wallet, Zap } from 'lucide-react';
 import { useAuthStore } from '../store/useAuthStore';
+import api from '../services/api';
 
 // ── Protected Route Guard ──────────────────────────────────────────────────
 export const ProtectedRoute = () => {
@@ -18,6 +19,18 @@ export const ProtectedRoute = () => {
 export const AdminLayout = () => {
   const user = useAuthStore((state: any) => state.user);
   const logout = useAuthStore((state: any) => state.logout);
+  const [pendingCount, setPendingCount] = useState(0);
+
+  useEffect(() => {
+    const fetchCount = () => {
+      api.get('/admin/orders/pending-count')
+        .then((r) => setPendingCount(r.data.count ?? 0))
+        .catch(() => {});
+    };
+    fetchCount();
+    const interval = setInterval(fetchCount, 30_000);
+    return () => clearInterval(interval);
+  }, []);
 
   const navItems = [
     { label: 'Dashboard',   path: '/',           icon: LayoutDashboard },
@@ -63,7 +76,12 @@ export const AdminLayout = () => {
                 size={18}
                 className="mr-3 flex-shrink-0 transition-transform duration-200 group-hover:scale-110"
               />
-              <span>{item.label}</span>
+              <span className="flex-1">{item.label}</span>
+              {item.path === '/orders' && pendingCount > 0 && (
+                <span className="ml-auto bg-orange-500 text-white text-[10px] font-bold leading-none px-1.5 py-0.5 rounded-full min-w-[18px] text-center">
+                  {pendingCount > 99 ? '99+' : pendingCount}
+                </span>
+              )}
             </NavLink>
           ))}
         </nav>
