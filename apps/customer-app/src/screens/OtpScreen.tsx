@@ -23,7 +23,6 @@ export const OtpScreen = () => {
   // Auto-fill when global lastOtp changes
   React.useEffect(() => {
     if (lastOtp) {
-      console.log('[DEBUG] Auto-filling OTP from store:', lastOtp);
       setOtp(lastOtp);
     }
   }, [lastOtp]);
