@@ -5,7 +5,7 @@ import { saveToken, removeToken } from '../utils/storage';
 import { registerFcmToken } from '../utils/notifications';
 
 interface AuthState {
-  user: { id: string; name: string; role: string; address?: string } | null;
+  user: { id: string; name: string; role: string; address?: string; email?: string; phone?: string } | null;
   token: string | null;
   isAuthenticated: boolean;
   lastOtp: string | null;

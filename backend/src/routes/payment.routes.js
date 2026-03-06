@@ -11,6 +11,9 @@ router.post('/orders', authenticate, async (req, res, next) => {
     if (!orderId) {
        return res.status(400).json({ error: 'Internal orderId is required' });
     }
+    if (!Number.isInteger(amount) || amount < 100) {
+      return res.status(400).json({ error: 'amount must be a positive integer in paise (minimum 100)' });
+    }
 
     const order = await paymentService.createOrder(req.user.id, amount, orderId);
     

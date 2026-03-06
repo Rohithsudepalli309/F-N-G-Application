@@ -31,10 +31,14 @@ const { authenticate } = require('../middleware/auth');
 // 3. Send OTP
 router.post('/otp', async (req, res, next) => {
   try {
+    const { phone } = req.body;
+    if (!phone || typeof phone !== 'string' || !/^\d{10}$/.test(phone.trim())) {
+      return res.status(400).json({ error: 'A valid 10-digit phone number is required' });
+    }
     const logger = require('../config/logger');
     logger.info(`OTP request body: ${JSON.stringify(req.body)}`);
     const io = req.app.get('io');
-    const result = await authService.sendOtp(req.body.phone, io);
+    const result = await authService.sendOtp(phone.trim(), io);
     res.json(result);
   } catch (err) {
     next(err);
