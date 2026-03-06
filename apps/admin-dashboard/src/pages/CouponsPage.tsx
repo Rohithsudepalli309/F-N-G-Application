@@ -47,9 +47,11 @@ export const CouponsPage: React.FC = () => {
     if (!form.code || !form.discount_value) return;
     await api.post('/admin/coupons', {
       ...form,
-      discount_value: parseInt(form.discount_value),
-      min_order_amount: parseInt(form.min_order_amount) || 0,
-      max_discount: form.max_discount ? parseInt(form.max_discount) : undefined,
+      discount_value: form.discount_type === 'flat'
+        ? (parseInt(form.discount_value) || 0) * 100
+        : parseInt(form.discount_value),
+      min_order_amount: (parseInt(form.min_order_amount) || 0) * 100,
+      max_discount: form.max_discount ? parseInt(form.max_discount) * 100 : undefined,
       max_uses: parseInt(form.max_uses) || 1000,
       valid_until: form.valid_until || undefined,
     });
@@ -196,9 +198,9 @@ export const CouponsPage: React.FC = () => {
                     </span>
                   </td>
                   <td className="px-4 py-3 font-semibold text-slate-700">
-                    {c.discount_type === 'flat' ? `₹${c.discount_value / 100}` : `${c.discount_value}%`}
+                    {c.discount_type === 'flat' ? `₹${(c.discount_value / 100).toLocaleString('en-IN')}` : `${c.discount_value}%`}
                   </td>
-                  <td className="px-4 py-3 text-slate-500">₹{c.min_order_amount / 100}</td>
+                  <td className="px-4 py-3 text-slate-500">₹{(c.min_order_amount / 100).toLocaleString('en-IN')}</td>
                   <td className="px-4 py-3 text-slate-500">{c.used_count}/{c.max_uses}</td>
                   <td className="px-4 py-3 text-slate-500 text-xs">{c.valid_until ? new Date(c.valid_until).toLocaleDateString('en-IN') : '∞'}</td>
                   <td className="px-4 py-3">

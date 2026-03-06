@@ -48,7 +48,7 @@ export const GroceryCartScreen = () => {
       setCouponError('');
       const { data } = await api.post('/coupons/validate', {
         code,
-        orderAmount: cartTotal,
+        orderTotal: cartTotal,
       });
       setCouponDiscount(data.discount ?? 0);
     } catch (e: any) {
@@ -78,11 +78,11 @@ export const GroceryCartScreen = () => {
     if (groceryItems.length === 0) return;
     setLoading(true);
     try {
-      // 1. Create order on backend
+      // 1. Create internal order
       const addressString = address
         ? `${address.address_line}, ${address.city} - ${address.pincode}`
         : '';
-      const { data: order } = await api.post('/orders', {
+      const { data: internalOrder } = await api.post('/orders', {
         type: 'grocery',
         items: groceryItems.map(i => ({
           id: i.productId,
@@ -95,10 +95,22 @@ export const GroceryCartScreen = () => {
         address: addressString,
       });
 
-      if (!order?.razorpayOrderId) {
+      // 2. Create Razorpay payment order
+      let paymentOrder: any = null;
+      try {
+        const { data } = await api.post('/payments/orders', {
+          amount: grandTotal,
+          orderId: internalOrder.id,
+        });
+        paymentOrder = data;
+      } catch {
+        // Razorpay unavailable — fall through to COD
+      }
+
+      if (!paymentOrder?.order_id) {
         // COD fallback
         navigation.replace('OrderConfirmed', {
-          orderId: order.id ?? `FNG-GROC-${Date.now()}`,
+          orderId: internalOrder.id,
           totalAmount: grandTotal / 100,
           eta: 30,
         });
@@ -106,30 +118,36 @@ export const GroceryCartScreen = () => {
         return;
       }
 
-      // 2. Open Razorpay
+      // 3. Open Razorpay SDK
       const options = {
         description: 'F&G Grocery Order',
-        image: 'https://i.ibb.co/your-logo',
-        currency: 'INR',
-        key: order.razorpayKeyId,
-        amount: String(grandTotal),
+        image: 'https://i.imgur.com/3g7nmJC.png',
+        currency: paymentOrder.currency,
+        key: paymentOrder.key_id,
+        amount: paymentOrder.amount,
         name: 'F&G Delivery',
-        order_id: order.razorpayOrderId,
+        order_id: paymentOrder.order_id,
         prefill: { email: 'customer@fng.in', contact: '' },
         theme: { color: '#163D26' },
       };
 
       const paymentData = await RazorpayCheckout.open(options);
-      await api.post('/payments/verify', {
-        orderId: order.id,
-        razorpayOrderId: paymentData.razorpay_order_id,
-        razorpayPaymentId: paymentData.razorpay_payment_id,
-        razorpaySignature: paymentData.razorpay_signature,
-      });
+
+      // 4. Verify signature client-side (webhook is fallback)
+      try {
+        await api.post('/payments/verify', {
+          razorpay_order_id: paymentData.razorpay_order_id,
+          razorpay_payment_id: paymentData.razorpay_payment_id,
+          razorpay_signature: paymentData.razorpay_signature,
+          orderId: internalOrder.id,
+        });
+      } catch {
+        console.warn('[GroceryCart] Client-side payment verification failed — webhook fallback active');
+      }
 
       clearCart();
       navigation.replace('OrderConfirmed', {
-        orderId: order.id,
+        orderId: internalOrder.id,
         totalAmount: grandTotal / 100,
         eta: 30,
       });

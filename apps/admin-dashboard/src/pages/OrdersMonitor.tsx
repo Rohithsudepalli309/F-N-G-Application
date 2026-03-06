@@ -120,7 +120,7 @@ export const OrdersMonitor = () => {
                   <td className="px-6 py-4 font-mono text-sm text-gray-600">#{order.id.slice(0, 8)}</td>
                   <td className="px-6 py-4 font-medium text-gray-800">{order.customer_name}</td>
                   <td className="px-6 py-4 text-gray-600">{order.store_name}</td>
-                  <td className="px-6 py-4 font-semibold text-gray-800">₹{order.total_amount / 100}</td>
+                  <td className="px-6 py-4 font-semibold text-gray-800">₹{(order.total_amount / 100).toLocaleString('en-IN')}</td>
                   <td className="px-6 py-4">
                     <span className={`px-3 py-1 rounded-full text-xs font-bold uppercase ${getStatusColor(order.status)}`}>
                       {order.status}
