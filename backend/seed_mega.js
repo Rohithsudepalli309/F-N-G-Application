@@ -591,6 +591,10 @@ async function seed() {
   console.log(`🏪  Stores: ${storeIds.join(', ')}`);
   console.log(`📦  Seeding ${PRODUCTS.length} unique lines × up to 3 stores…`);
 
+  // Build category → stable Unsplash image map
+  const CAT_IMG = {};
+  for (const c of CATEGORIES) CAT_IMG[c.name] = c.img;
+
   // Clear existing products
   for (const sid of storeIds) {
     try { await db.query('DELETE FROM products WHERE store_id = $1', [sid]); } catch (e) {}
@@ -601,7 +605,8 @@ async function seed() {
   for (const p of PRODUCTS) {
     const pid = 'p_mg_' + Math.random().toString(36).substr(2, 9);
     const desc = p.desc || `Premium ${p.name}`;
-    const img  = `https://source.unsplash.com/400x300/?${encodeURIComponent(p.name + ' grocery food')}`;
+    // Use the category's stable Unsplash image — avoids deprecated source.unsplash.com
+    const img  = CAT_IMG[p.cat] || 'https://images.unsplash.com/photo-1504674900247-0877df9cc836?w=400&q=80';
 
     try {
       await db.query(

@@ -31,8 +31,12 @@ class CatalogService {
 
   async getProducts(filters = {}) {
     try {
-      const { storeId, category, search } = filters;
-      let query = 'SELECT * FROM products';
+      const { storeId, category, search, limit } = filters;
+
+      // Use DISTINCT ON (name) when no specific store is requested to avoid
+      // returning the same product multiple times (seeded across stores).
+      const distinctOn = !storeId ? 'DISTINCT ON (LOWER(name)) ' : '';
+      let query = `SELECT ${distinctOn}* FROM products`;
       const params = [];
 
       const conditions = [];
@@ -51,6 +55,17 @@ class CatalogService {
 
       if (conditions.length > 0) {
         query += ' WHERE ' + conditions.join(' AND ');
+      }
+
+      // DISTINCT ON requires its expression first in ORDER BY
+      query += distinctOn ? ' ORDER BY LOWER(name), id' : ' ORDER BY id';
+
+      if (limit) {
+        const n = parseInt(limit, 10);
+        if (n > 0) {
+          params.push(n);
+          query += ` LIMIT $${params.length}`;
+        }
       }
 
       const result = await db.query(query, params);

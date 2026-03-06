@@ -16,8 +16,8 @@ router.get('/stores', async (req, res, next) => {
 // GET /products
 router.get('/products', async (req, res, next) => {
     try {
-        const { storeId, category, search } = req.query;
-        const products = await catalogService.getProducts({ storeId, category, search });
+        const { storeId, category, search, limit } = req.query;
+        const products = await catalogService.getProducts({ storeId, category, search, limit });
         res.json(products);
     } catch (err) {
         next(err);

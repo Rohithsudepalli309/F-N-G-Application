@@ -76,7 +76,7 @@ const CustomTooltip = ({ active, payload, label }: any) => {
             <svg width="10" height="10" viewBox="0 0 10 10" aria-hidden="true">
               <circle cx="5" cy="5" r="5" fill={p.color} />
             </svg>
-            {p.name}: {p.value}
+            {p.name === 'revenue' ? `revenue: ₹${Math.round(p.value / 100).toLocaleString('en-IN')}` : `${p.name}: ${p.value}`}
           </p>
         ))}
       </div>
@@ -179,7 +179,7 @@ export const Dashboard = () => {
         <div className="bg-white p-6 rounded-xl shadow-sm border border-slate-100 animate-slide-up delay-300">
           <div className="flex items-center justify-between mb-6">
             <h3 className="text-base font-semibold text-slate-800">Revenue Growth</h3>
-            <span className="text-xs bg-purple-50 text-purple-600 font-medium px-2.5 py-1 rounded-full">INR (paisa)</span>
+            <span className="text-xs bg-purple-50 text-purple-600 font-medium px-2.5 py-1 rounded-full">₹ INR</span>
           </div>
           <div className="h-72">
             <ResponsiveContainer width="100%" height="100%">
@@ -192,7 +192,7 @@ export const Dashboard = () => {
                 </defs>
                 <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f5f9" />
                 <XAxis dataKey="name" tick={{ fontSize: 12, fill: '#94a3b8' }} axisLine={false} tickLine={false} />
-                <YAxis tick={{ fontSize: 12, fill: '#94a3b8' }} axisLine={false} tickLine={false} />
+                <YAxis tick={{ fontSize: 12, fill: '#94a3b8' }} axisLine={false} tickLine={false} tickFormatter={(v: number) => `₹${Math.round(v / 100).toLocaleString('en-IN')}`} />
                 <Tooltip content={<CustomTooltip />} />
                 <Area
                   type="monotone"
