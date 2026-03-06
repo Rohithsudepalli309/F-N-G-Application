@@ -110,3 +110,46 @@
 ### TypeScript
 - [x] `customer-app` `tsc --noEmit` passes with **0 errors**
 
+## Step 13: Missing Routes — Favorites, Payment Methods, Referrals & BuyAgain (Completed) ✅
+
+### Problem
+Gap analysis revealed four screens hitting non-existent backend routes plus three missing DB tables.
+
+### DB Schema (init_db.js — v4)
+- [x] `user_favorites` table — `(id, user_id FK, target_type CHECK('store'|'product'), target_id, created_at)`
+      with `UNIQUE (user_id, target_type, target_id)` constraint
+- [x] `payment_methods` table — `(id, user_id FK, type CHECK('upi'|'card'|'wallet'), identifier, provider, is_default, created_at)`
+- [x] `referrals` table — `(id, referrer_id FK, referred_id FK, code, status CHECK('pending'|'completed'), coins_awarded, created_at)`
+      with unique index on `referred_id` (each user can only be referred once)
+- [x] `ALTER TABLE users ADD COLUMN IF NOT EXISTS referral_code VARCHAR(30)` — unique partial index for non-null codes
+- [x] Version bumped: `v3` → `v4 — favorites + payment methods + referrals`
+
+### Backend Fixes
+
+**users.routes.js — `GET /users/favorites`** (was broken)
+- [x] Rewrote SELECT to return full store shape: `cuisine_tags`, `rating`,
+      `delivery_time_min AS delivery_time`, `is_active` via `COALESCE(s.name, p.name)` JOIN
+- [x] `FavoritesScreen.tsx` interface `{ name, cuisine_tags, rating, delivery_time, image_url, is_active }` now satisfied
+
+**New: `backend/src/routes/referrals.routes.js`**
+- [x] `GET /referrals` — returns `{ code, totalInvites, successfulInvites, coinsEarned, pendingCoins }`;
+      auto-generates a deterministic code (`FNG-{userId padded}`) and persists it if none exists
+- [x] `POST /referrals/apply` — validates code, prevents self-referral + double-apply, inserts completed referral
+      row with 50 coins awarded
+
+**New: `backend/src/routes/payment_methods.routes.js`**
+- [x] `GET /payment-methods` — lists user's saved methods ordered by `is_default DESC`
+- [x] `POST /payment-methods` — inserts new method; atomically clears existing default if `is_default: true`
+- [x] `DELETE /payment-methods/:id` — deletes by id + user_id guard (404 if not found or not owned)
+
+**app.js — route registration**
+- [x] `/api/v1/referrals` → `referrals.routes.js`
+- [x] `/api/v1/payment-methods` → `payment_methods.routes.js`
+
+### Frontend — BuyAgainScreen.tsx
+- [x] Removed hardcoded `RECENT_ITEMS` mock array
+- [x] Added `useEffect` → `GET /orders`, filters delivered orders, flattens `order_items` across all orders,
+      deduplicates by item name (most-recent order wins), maps to `ProductCard`-compatible shape
+      (fallback `image` = flaticon icon, `weight: ''`, `deliveryTime: '15 mins'`)
+- [x] Loading spinner, error state with **Retry** button, empty-state message
+- [x] TypeScript: **0 new errors** (`BuyAgainScreen.tsx` clean, pre-existing `HomeScreen` style issues unchanged)

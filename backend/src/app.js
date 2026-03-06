@@ -16,6 +16,8 @@ const merchantRoutes = require('./routes/merchant.routes');
 const notificationRoutes = require('./routes/notifications.routes');
 const userRoutes = require('./routes/users.routes');
 const proRoutes = require('./routes/pro.routes');
+const referralsRoutes = require('./routes/referrals.routes');
+const paymentMethodsRoutes = require('./routes/payment_methods.routes');
 const { initSocketServer } = require('./services/socket.service');
 const priceEngine = require('./services/priceEngine.service');
 const { initDb } = require('./config/init_db');
@@ -49,6 +51,8 @@ app.use('/api/v1/merchant', merchantRoutes);
 app.use('/api/v1/notifications', notificationRoutes);
 app.use('/api/v1/users', userRoutes);
 app.use('/api/v1/pro', proRoutes);
+app.use('/api/v1/referrals', referralsRoutes);
+app.use('/api/v1/payment-methods', paymentMethodsRoutes);
 app.use('/api/v1', catalogRoutes); // /api/v1/stores + /api/v1/products
 
 // 3. Health Check

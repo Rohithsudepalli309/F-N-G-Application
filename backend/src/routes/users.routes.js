@@ -68,17 +68,19 @@ router.get('/favorites', async (req, res, next) => {
   try {
     const userId = req.user.id;
     const { rows } = await db.query(
-      `SELECT f.id, f.target_type, f.target_id, f.created_at,
-              CASE
-                WHEN f.target_type = 'store'   THEN s.name
-                WHEN f.target_type = 'product' THEN p.name
-              END AS name,
-              CASE
-                WHEN f.target_type = 'store'   THEN s.image_url
-                WHEN f.target_type = 'product' THEN p.image_url
-              END AS image_url
+      `SELECT
+         f.id,
+         f.target_type,
+         f.target_id,
+         f.created_at,
+         COALESCE(s.name, p.name)           AS name,
+         COALESCE(s.image_url, p.image_url) AS image_url,
+         s.cuisine_tags,
+         s.rating,
+         s.delivery_time_min                AS delivery_time,
+         s.is_active
        FROM user_favorites f
-       LEFT JOIN stores  s ON f.target_type = 'store'   AND f.target_id = s.id::text
+       LEFT JOIN stores   s ON f.target_type = 'store'   AND f.target_id = s.id::text
        LEFT JOIN products p ON f.target_type = 'product' AND f.target_id = p.id::text
        WHERE f.user_id = $1
        ORDER BY f.created_at DESC`,

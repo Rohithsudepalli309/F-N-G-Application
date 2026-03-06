@@ -260,6 +260,44 @@ const initDb = async () => {
       );
     `);
 
+    // 16. User Favorites
+    await db.query(`
+      CREATE TABLE IF NOT EXISTS user_favorites (
+        id SERIAL PRIMARY KEY,
+        user_id INTEGER REFERENCES users(id) ON DELETE CASCADE,
+        target_type VARCHAR(20) NOT NULL CHECK (target_type IN ('store','product')),
+        target_id VARCHAR(50) NOT NULL,
+        created_at TIMESTAMP DEFAULT NOW(),
+        UNIQUE (user_id, target_type, target_id)
+      );
+    `);
+
+    // 17. Payment Methods
+    await db.query(`
+      CREATE TABLE IF NOT EXISTS payment_methods (
+        id SERIAL PRIMARY KEY,
+        user_id INTEGER REFERENCES users(id) ON DELETE CASCADE,
+        type VARCHAR(20) NOT NULL CHECK (type IN ('upi','card','wallet')),
+        identifier VARCHAR(100) NOT NULL,
+        provider VARCHAR(50),
+        is_default BOOLEAN DEFAULT FALSE,
+        created_at TIMESTAMP DEFAULT NOW()
+      );
+    `);
+
+    // 18. Referrals
+    await db.query(`
+      CREATE TABLE IF NOT EXISTS referrals (
+        id SERIAL PRIMARY KEY,
+        referrer_id INTEGER REFERENCES users(id),
+        referred_id INTEGER REFERENCES users(id),
+        code VARCHAR(30) NOT NULL,
+        status VARCHAR(20) DEFAULT 'pending' CHECK (status IN ('pending','completed')),
+        coins_awarded INTEGER DEFAULT 0,
+        created_at TIMESTAMP DEFAULT NOW()
+      );
+    `);
+
     // ── Schema migrations (idempotent ADD COLUMN IF NOT EXISTS) ──
     // v3 — Grocery order type discriminator + review tags + pro membership
     await db.query(`ALTER TABLE users ADD COLUMN IF NOT EXISTS is_pro BOOLEAN DEFAULT FALSE;`);
@@ -273,8 +311,18 @@ const initDb = async () => {
         CHECK (order_type IN ('food','grocery'));
     `);
     await db.query(`ALTER TABLE reviews ADD COLUMN IF NOT EXISTS tags TEXT[];`);
+    // v4 — Referral codes + unique index on referrals
+    await db.query(`ALTER TABLE users ADD COLUMN IF NOT EXISTS referral_code VARCHAR(30);`);
+    await db.query(`
+      CREATE UNIQUE INDEX IF NOT EXISTS idx_users_referral_code ON users (referral_code)
+        WHERE referral_code IS NOT NULL;
+    `);
+    await db.query(`
+      CREATE UNIQUE INDEX IF NOT EXISTS idx_referrals_referred
+        ON referrals (referred_id);
+    `);
 
-    logger.info('Database schema initialized successfully (v3 — grocery + review tags).');
+    logger.info('Database schema initialized successfully (v4 — favorites + payment methods + referrals).');
   } catch (err) {
     logger.error('Database initialization failed:', err);
     throw err;
