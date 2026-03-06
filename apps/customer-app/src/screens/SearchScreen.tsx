@@ -8,6 +8,7 @@ import {
   View, Text, TextInput, StyleSheet, FlatList,
   TouchableOpacity, ActivityIndicator, StatusBar, SafeAreaView, Image,
 } from 'react-native';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useNavigation } from '@react-navigation/native';
 import { api } from '../services/api';
 import { theme } from '../theme';
@@ -38,11 +39,14 @@ export const SearchScreen = () => {
   const [query, setQuery] = useState('');
   const [results, setResults] = useState<SearchResult[]>([]);
   const [loading, setLoading] = useState(false);
-  const [recent, setRecent] = useState<string[]>(['Milk', 'Atta', 'Maggi', 'Coke']);
+  const [recent, setRecent] = useState<string[]>([]);
   const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const inputRef = useRef<TextInput>(null);
 
   useEffect(() => {
+    AsyncStorage.getItem('recent_searches').then(v => {
+      if (v) setRecent(JSON.parse(v));
+    });
     setTimeout(() => inputRef.current?.focus(), 300);
   }, []);
 
@@ -59,6 +63,13 @@ export const SearchScreen = () => {
         const products = (data.products || []).map((p: any) => ({ ...p, type: 'product' }));
         setResults([...stores, ...products]);
       }
+      // Persist this search term
+      const term = q.trim();
+      setRecent(prev => {
+        const updated = [term, ...prev.filter(r => r !== term)].slice(0, 8);
+        AsyncStorage.setItem('recent_searches', JSON.stringify(updated));
+        return updated;
+      });
     } catch {
       setResults([]);
     } finally {

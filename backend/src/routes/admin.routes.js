@@ -1,9 +1,36 @@
 const express = require('express');
 const router = express.Router();
 const db = require('../config/db');
+const bcrypt = require('bcryptjs');
 const { authenticate, authorize } = require('../middleware/auth');
 
 const isAdmin = [authenticate, authorize(['admin'])];
+
+// POST /api/v1/admin/drivers — register a new driver account
+router.post('/drivers', ...isAdmin, async (req, res) => {
+  const { name, phone, password } = req.body;
+  if (!name || !phone || !password) {
+    return res.status(400).json({ error: 'name, phone and password are required' });
+  }
+  if (password.length < 6) {
+    return res.status(400).json({ error: 'Password must be at least 6 characters' });
+  }
+  try {
+    const passwordHash = await bcrypt.hash(password, 10);
+    const { rows } = await db.query(
+      `INSERT INTO users (name, phone, password_hash, role)
+       VALUES ($1, $2, $3, 'driver')
+       RETURNING id, name, phone, role, created_at`,
+      [name.trim(), phone.trim(), passwordHash]
+    );
+    res.status(201).json({ driver: rows[0] });
+  } catch (err) {
+    if (err.code === '23505') {
+      return res.status(409).json({ error: 'A user with this phone number already exists' });
+    }
+    res.status(500).json({ error: 'Failed to register driver' });
+  }
+});
 
 // GET /api/v1/admin/stats — dashboard key metrics
 router.get('/stats', ...isAdmin, async (req, res) => {

@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { Truck, MapPin, Shield, Phone, Activity } from 'lucide-react';
+import { Truck, MapPin, Shield, Phone, Activity, X } from 'lucide-react';
 import api from '../services/api';
 
 interface Driver {
@@ -16,20 +16,44 @@ interface Driver {
 export const FleetManagement = () => {
   const [fleet, setFleet] = useState<Driver[]>([]);
   const [loading, setLoading] = useState(true);
+  const [showForm, setShowForm] = useState(false);
+  const [formName, setFormName] = useState('');
+  const [formPhone, setFormPhone] = useState('');
+  const [formPassword, setFormPassword] = useState('');
+  const [submitting, setSubmitting] = useState(false);
+  const [formError, setFormError] = useState('');
 
-  useEffect(() => {
-    const fetchFleet = async () => {
-      try {
-        const { data } = await api.get('/analytics/fleet');
-        setFleet(data);
-      } catch (err) {
-        console.error('Failed to fetch fleet:', err);
-      } finally {
-        setLoading(false);
-      }
-    };
-    fetchFleet();
-  }, []);
+  const fetchFleet = async () => {
+    try {
+      const { data } = await api.get('/analytics/fleet');
+      setFleet(data);
+    } catch (err) {
+      console.error('Failed to fetch fleet:', err);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => { fetchFleet(); }, []);
+
+  const handleRegister = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setFormError('');
+    setSubmitting(true);
+    try {
+      await api.post('/admin/drivers', { name: formName, phone: formPhone, password: formPassword });
+      setShowForm(false);
+      setFormName('');
+      setFormPhone('');
+      setFormPassword('');
+      setLoading(true);
+      fetchFleet();
+    } catch (err: any) {
+      setFormError(err?.response?.data?.error ?? 'Failed to register driver');
+    } finally {
+      setSubmitting(false);
+    }
+  };
 
   return (
     <div className="space-y-6">
@@ -38,11 +62,83 @@ export const FleetManagement = () => {
           <h2 className="text-2xl font-bold text-slate-800">Fleet Management</h2>
           <p className="text-sm text-slate-500">Monitor and manage your delivery partners</p>
         </div>
-        <button className="bg-emerald-600 text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-emerald-700 transition-colors shadow-sm flex items-center gap-2">
+        <button
+          onClick={() => { setShowForm(true); setFormError(''); }}
+          className="bg-emerald-600 text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-emerald-700 transition-colors shadow-sm flex items-center gap-2"
+        >
           <Truck size={16} />
           Register New Driver
         </button>
       </div>
+
+      {showForm && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40">
+          <div className="bg-white rounded-xl shadow-xl w-full max-w-md p-6">
+            <div className="flex items-center justify-between mb-5">
+              <h3 className="text-lg font-bold text-slate-800">Register New Driver</h3>
+              <button onClick={() => setShowForm(false)} aria-label="Close" className="text-slate-400 hover:text-slate-600">
+                <X size={20} />
+              </button>
+            </div>
+            <form onSubmit={handleRegister} className="space-y-4">
+              <div>
+                <label className="block text-sm font-medium text-slate-700 mb-1">Full Name</label>
+                <input
+                  type="text"
+                  value={formName}
+                  onChange={e => setFormName(e.target.value)}
+                  required
+                  className="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500"
+                  placeholder="e.g. Rahul Sharma"
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-slate-700 mb-1">Phone Number</label>
+                <input
+                  type="tel"
+                  value={formPhone}
+                  onChange={e => setFormPhone(e.target.value)}
+                  required
+                  className="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500"
+                  placeholder="e.g. 9876543210"
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-slate-700 mb-1">Password</label>
+                <input
+                  type="password"
+                  value={formPassword}
+                  onChange={e => setFormPassword(e.target.value)}
+                  required
+                  minLength={6}
+                  className="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500"
+                  placeholder="Min. 6 characters"
+                />
+              </div>
+              {formError && (
+                <p className="text-sm text-red-600 bg-red-50 border border-red-100 rounded-lg px-3 py-2">{formError}</p>
+              )}
+              <div className="flex gap-3 pt-2">
+                <button
+                  type="button"
+                  onClick={() => setShowForm(false)}
+                  className="flex-1 py-2 rounded-lg border border-slate-200 text-sm text-slate-600 hover:bg-slate-50 transition-colors"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  disabled={submitting}
+                  className="flex-1 py-2 rounded-lg bg-emerald-600 text-white text-sm font-medium hover:bg-emerald-700 disabled:opacity-60 transition-colors"
+                >
+                  {submitting ? 'Registering…' : 'Register Driver'}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
 
       {loading ? (
         <div className="bg-white p-12 rounded-xl border border-slate-100 flex flex-col items-center justify-center text-slate-400">

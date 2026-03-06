@@ -68,7 +68,7 @@ export const CheckoutScreen = () => {
       setCouponError('');
       const { data } = await api.post('/coupons/validate', {
         code,
-        orderAmount: Math.round(billTotal * 100),
+        orderTotal: Math.round(billTotal * 100),
       });
       setCouponDiscount(data.discount / 100);
     } catch (e: any) {

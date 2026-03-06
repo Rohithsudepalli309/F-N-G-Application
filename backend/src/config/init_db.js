@@ -199,7 +199,22 @@ const initDb = async () => {
       );
     `);
 
-    // 10. Order items
+    // 10. Transactions (Razorpay payment log)
+    await db.query(`
+      CREATE TABLE IF NOT EXISTS transactions (
+        id SERIAL PRIMARY KEY,
+        order_id VARCHAR(50) REFERENCES orders(id),
+        razorpay_payment_id VARCHAR(100),
+        razorpay_order_id VARCHAR(100),
+        razorpay_signature TEXT,
+        amount INTEGER NOT NULL,
+        status VARCHAR(20) NOT NULL DEFAULT 'pending'
+          CHECK (status IN ('pending','success','failed')),
+        created_at TIMESTAMP DEFAULT NOW()
+      );
+    `);
+
+    // 11. Order items
     await db.query(`
       CREATE TABLE IF NOT EXISTS order_items (
         id SERIAL PRIMARY KEY,
@@ -212,7 +227,7 @@ const initDb = async () => {
       );
     `);
 
-    // 11. Order assignments (driver)
+    // 12. Order assignments (driver)
     await db.query(`
       CREATE TABLE IF NOT EXISTS order_assignments (
         id SERIAL PRIMARY KEY,
@@ -225,7 +240,7 @@ const initDb = async () => {
       );
     `);
 
-    // 12. Agent locations
+    // 13. Agent locations
     await db.query(`
       CREATE TABLE IF NOT EXISTS agent_locations (
         user_id INTEGER PRIMARY KEY REFERENCES users(id),
@@ -237,7 +252,7 @@ const initDb = async () => {
       );
     `);
 
-    // 13. Reviews
+    // 14. Reviews
     await db.query(`
       CREATE TABLE IF NOT EXISTS reviews (
         id SERIAL PRIMARY KEY,
@@ -252,7 +267,7 @@ const initDb = async () => {
       );
     `);
 
-    // 14. Deliveries (delivery lifecycle — driver assignments)
+    // 15. Deliveries (delivery lifecycle — driver assignments)
     await db.query(`
       CREATE TABLE IF NOT EXISTS deliveries (
         id SERIAL PRIMARY KEY,
@@ -266,7 +281,7 @@ const initDb = async () => {
       );
     `);
 
-    // 15. Notifications
+    // 16. Notifications
     await db.query(`
       CREATE TABLE IF NOT EXISTS notifications (
         id SERIAL PRIMARY KEY,
@@ -280,7 +295,7 @@ const initDb = async () => {
       );
     `);
 
-    // 16. User Favorites
+    // 17. User Favorites
     await db.query(`
       CREATE TABLE IF NOT EXISTS user_favorites (
         id SERIAL PRIMARY KEY,
@@ -292,7 +307,7 @@ const initDb = async () => {
       );
     `);
 
-    // 17. Payment Methods
+    // 18. Payment Methods
     await db.query(`
       CREATE TABLE IF NOT EXISTS payment_methods (
         id SERIAL PRIMARY KEY,
@@ -342,7 +357,7 @@ const initDb = async () => {
         ON referrals (referred_id);
     `);
 
-    logger.info('Database schema initialized successfully (v4 — favorites + payment methods + referrals).');
+    logger.info('Database schema initialized successfully (v5 — transactions table added).');
   } catch (err) {
     logger.error('Database initialization failed:', err);
     throw err;

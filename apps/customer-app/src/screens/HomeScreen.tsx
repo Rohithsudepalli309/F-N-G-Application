@@ -119,6 +119,7 @@ export const HomeScreen = () => {
   const [cleaningProducts, setCleaningProducts] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [activeOrder, setActiveOrder] = useState<any>(null);
+  const [homeCategories, setHomeCategories] = useState(HOME_CATEGORIES);
   const scrollRef = useRef<ScrollView>(null);
 
   const fetchHomeData = async () => {
@@ -145,6 +146,17 @@ export const HomeScreen = () => {
       const cleaningRes = await api.get('/products', { params: { category: 'Cleaning Essentials' } });
       if (cleaningRes.data && Array.isArray(cleaningRes.data)) {
         setCleaningProducts(cleaningRes.data.slice(0, 6));
+      }
+
+      // 5. Fetch categories for Grocery & Kitchen grid
+      const catRes = await api.get('/grocery/categories');
+      if (catRes.data?.categories?.length) {
+        setHomeCategories(
+          catRes.data.categories
+            .filter((c: any) => c.section === 'grocery' || !c.section)
+            .slice(0, 8)
+            .map((c: any) => ({ id: String(c.id), title: c.name, image: c.image_url, price: '' }))
+        );
       }
 
       // REALISM: Poll for active order to show status bar
@@ -431,7 +443,7 @@ export const HomeScreen = () => {
             <Text style={styles.sectionTitle}>Grocery & Kitchen</Text>
           </View>
           <View style={styles.gridWrapper}>
-            {HOME_CATEGORIES.map(category => (
+            {homeCategories.map(category => (
               <TouchableOpacity 
                 key={category.id} 
                 style={styles.gridCard3D}

@@ -72,7 +72,12 @@ const CustomTooltip = ({ active, payload, label }: any) => {
       <div className="bg-slate-800 text-white text-xs px-3 py-2 rounded-lg shadow-xl">
         <p className="font-bold mb-1">{label}</p>
         {payload.map((p: any) => (
-          <p key={p.name} style={{ color: p.color }}>{p.name}: {p.value}</p>
+          <p key={p.name} className="flex items-center gap-1.5">
+            <svg width="10" height="10" viewBox="0 0 10 10" aria-hidden="true">
+              <circle cx="5" cy="5" r="5" fill={p.color} />
+            </svg>
+            {p.name}: {p.value}
+          </p>
         ))}
       </div>
     );
@@ -83,8 +88,9 @@ const CustomTooltip = ({ active, payload, label }: any) => {
 import { DashboardMap } from '../components/DashboardMap';
 
 export const Dashboard = () => {
-  const [stats, setStats] = useState(DEMO_STATS);
+  const [stats, setStats] = useState<typeof DEMO_STATS | null>(null);
   const [loaded, setLoaded] = useState(false);
+  const [error, setError] = useState(false);
 
   useEffect(() => {
     const fetchStats = async () => {
@@ -92,7 +98,7 @@ export const Dashboard = () => {
         const { data } = await api.get('/analytics/stats');
         setStats(data);
       } catch {
-        // Use demo data — backend not connected yet
+        setError(true);
       } finally {
         setLoaded(true);
       }
@@ -108,10 +114,16 @@ export const Dashboard = () => {
         <p className="text-sm text-slate-500 mt-0.5">Real-time overview of platform activity</p>
       </div>
 
+      {error && (
+        <div className="bg-amber-50 border border-amber-200 text-amber-800 text-sm px-4 py-3 rounded-lg">
+          Could not reach the backend — showing cached demo data. Check your API connection.
+        </div>
+      )}
+
       {/* KPI Cards */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-5">
         {KPI_CONFIG.map((kpi) => {
-          const rawValue = stats[kpi.key as keyof typeof stats] as number;
+          const rawValue = (stats ?? DEMO_STATS)[kpi.key as keyof typeof DEMO_STATS] as number;
           const displayValue = kpi.format ? kpi.format(rawValue) : rawValue;
           const Icon = kpi.icon;
 
@@ -152,7 +164,7 @@ export const Dashboard = () => {
           </div>
           <div className="h-72">
             <ResponsiveContainer width="100%" height="100%">
-              <BarChart data={stats.chartData} barSize={28}>
+              <BarChart data={(stats ?? DEMO_STATS).chartData} barSize={28}>
                 <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f5f9" />
                 <XAxis dataKey="name" tick={{ fontSize: 12, fill: '#94a3b8' }} axisLine={false} tickLine={false} />
                 <YAxis tick={{ fontSize: 12, fill: '#94a3b8' }} axisLine={false} tickLine={false} />
@@ -171,7 +183,7 @@ export const Dashboard = () => {
           </div>
           <div className="h-72">
             <ResponsiveContainer width="100%" height="100%">
-              <AreaChart data={stats.chartData}>
+              <AreaChart data={(stats ?? DEMO_STATS).chartData}>
                 <defs>
                   <linearGradient id="revenueGrad" x1="0" y1="0" x2="0" y2="1">
                     <stop offset="5%"  stopColor="#8b5cf6" stopOpacity={0.15} />

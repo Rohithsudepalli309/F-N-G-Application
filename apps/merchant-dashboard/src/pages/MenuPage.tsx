@@ -302,7 +302,7 @@ export default function MenuPage() {
               <h2 className="text-lg font-bold text-slate-100">
                 {editProduct ? 'Edit Product' : 'Add New Product'}
               </h2>
-              <button onClick={() => setShowForm(false)} className="text-slate-500 hover:text-slate-200 transition-colors">
+              <button onClick={() => setShowForm(false)} aria-label="Close" className="text-slate-500 hover:text-slate-200 transition-colors">
                 <X size={20} />
               </button>
             </div>
