@@ -35,7 +35,7 @@ router.post('/drivers', ...isAdmin, async (req, res) => {
 // GET /api/v1/admin/stats — dashboard key metrics
 router.get('/stats', ...isAdmin, async (req, res) => {
   try {
-    const [orders, users, drivers, revenue] = await Promise.all([
+    const [orders, users, drivers, revenue, products, stores] = await Promise.all([
       db.query(`SELECT COUNT(*) FROM orders WHERE created_at > NOW() - INTERVAL '24 hours'`),
       db.query(`SELECT COUNT(*) FROM users WHERE role = 'customer'`),
       db.query(`SELECT COUNT(*) FROM users WHERE role = 'driver'`),
@@ -43,6 +43,8 @@ router.get('/stats', ...isAdmin, async (req, res) => {
         `SELECT COALESCE(SUM(total_amount), 0) AS total
          FROM orders WHERE status = 'delivered' AND created_at > NOW() - INTERVAL '24 hours'`
       ),
+      db.query(`SELECT COUNT(DISTINCT LOWER(name)) FROM products`),
+      db.query(`SELECT COUNT(*) FROM stores`),
     ]);
 
     res.json({
@@ -50,6 +52,8 @@ router.get('/stats', ...isAdmin, async (req, res) => {
       totalCustomers: parseInt(users.rows[0].count),
       totalDrivers: parseInt(drivers.rows[0].count),
       revenueToday: parseInt(revenue.rows[0].total),
+      totalProducts: parseInt(products.rows[0].count),
+      totalStores: parseInt(stores.rows[0].count),
     });
   } catch (err) {
     res.status(500).json({ error: 'Failed to fetch stats' });
