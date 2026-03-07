@@ -67,7 +67,7 @@ export const OrderReviewScreen = () => {
         tags: [...selectedFoodTags, ...selectedDeliveryTags],
       });
       navigation.dispatch(
-        CommonActions.reset({ index: 0, routes: [{ name: 'MainTabs' }] })
+        CommonActions.reset({ index: 0, routes: [{ name: 'Main' }] })
       );
       Alert.alert('Thank you! 🙏', 'Your feedback helps us improve.');
     } catch (e: any) {

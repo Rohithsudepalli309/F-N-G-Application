@@ -2,7 +2,6 @@ import { useAuthStore } from '../useAuthStore';
 
 describe('useAuthStore', () => {
   beforeEach(() => {
-    // Clear store state before each test
     const { logout } = useAuthStore.getState();
     logout();
   });
@@ -16,7 +15,7 @@ describe('useAuthStore', () => {
   it('should update state on successful login', () => {
     const { login } = useAuthStore.getState();
     login('mock_jwt_token', { id: '1', name: 'Test User', role: 'customer' });
-    
+
     const state = useAuthStore.getState();
     expect(state.token).toBe('mock_jwt_token');
     expect(state.isAuthenticated).toBe(true);
@@ -26,7 +25,7 @@ describe('useAuthStore', () => {
     const { login, logout } = useAuthStore.getState();
     login('mock_jwt_token', { id: '1', name: 'Test User', role: 'customer' });
     logout();
-    
+
     const state = useAuthStore.getState();
     expect(state.token).toBeNull();
     expect(state.isAuthenticated).toBe(false);

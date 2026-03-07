@@ -28,8 +28,9 @@ class PaymentService {
       
       // Persist Transaction Ledger
       await db.query(
-        `INSERT INTO transactions (order_id, razorpay_order_id, amount, status) VALUES ($1, $2, $3, 'pending')`,
-        [orderId, rpOrder.id, amountInPaisa]
+        `INSERT INTO transactions (user_id, order_id, razorpay_order_id, amount, status)
+         VALUES ($1, $2, $3, $4, 'pending')`,
+        [userId, orderId, rpOrder.id, amountInPaisa]
       );
 
       logger.info(`Razorpay order ${rpOrder.id} created for F&G Order ${orderId}`);

@@ -61,7 +61,7 @@ export const OrderConfirmedScreen = () => {
 
   const handleHome = () => {
     navigation.dispatch(
-      CommonActions.reset({ index: 0, routes: [{ name: 'MainTabs' }] })
+      CommonActions.reset({ index: 0, routes: [{ name: 'Main' }] })
     );
   };
 

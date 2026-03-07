@@ -357,6 +357,30 @@ const initDb = async () => {
         ON referrals (referred_id);
     `);
 
+    // v5 — Payment transactions ledger
+    await db.query(`
+      CREATE TABLE IF NOT EXISTS transactions (
+        id SERIAL PRIMARY KEY,
+        user_id INTEGER REFERENCES users(id) ON DELETE SET NULL,
+        order_id VARCHAR(50) REFERENCES orders(id) ON DELETE SET NULL,
+        razorpay_order_id VARCHAR(100),
+        razorpay_payment_id VARCHAR(100),
+        razorpay_signature VARCHAR(200),
+        amount INTEGER NOT NULL,
+        currency VARCHAR(10) DEFAULT 'INR',
+        status VARCHAR(20) NOT NULL DEFAULT 'pending'
+          CHECK (status IN ('pending','success','failed','refunded')),
+        method VARCHAR(50),
+        created_at TIMESTAMP DEFAULT NOW()
+      );
+    `);
+    await db.query(`
+      CREATE INDEX IF NOT EXISTS idx_transactions_user ON transactions (user_id);
+    `);
+    await db.query(`
+      CREATE INDEX IF NOT EXISTS idx_transactions_order ON transactions (order_id);
+    `);
+
     logger.info('Database schema initialized successfully (v5 — transactions table added).');
   } catch (err) {
     logger.error('Database initialization failed:', err);

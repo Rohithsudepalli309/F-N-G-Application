@@ -153,3 +153,45 @@ Gap analysis revealed four screens hitting non-existent backend routes plus thre
       (fallback `image` = flaticon icon, `weight: ''`, `deliveryTime: '15 mins'`)
 - [x] Loading spinner, error state with **Retry** button, empty-state message
 - [x] TypeScript: **0 new errors** (`BuyAgainScreen.tsx` clean, pre-existing `HomeScreen` style issues unchanged)
+
+## Step 14: Navigation Bug Fixes, TypeScript Cleanup & DB Schema Completion (Completed) ✅
+
+### Navigation Bugs Fixed
+
+**`OrderConfirmedScreen.tsx` + `OrderReviewScreen.tsx`** — `CommonActions.reset`
+- [x] Both screens were reset-navigating to `'MainTabs'` which does not exist in the RootStack
+      (actual name is `'Main'`). Fixed both to `CommonActions.reset({ index: 0, routes: [{ name: 'Main' }] })`
+
+**`SettingsScreen.tsx`** — Broken catch-all navigation
+- [x] All 10 menu items (orders, profile, addresses, support, payment, rewards, notifications, gift, suggest, info)
+      now navigate to the correct ProfileStack screen:
+      - `support / gift / suggest / info` → `HelpSupport`
+      - `payment` → `PaymentMethods`
+      - `notifications` → `Notifications`
+      - `rewards` → `FngPro`
+      - `addresses` → `SavedAddresses` (was wrongly sending to `LocationSelect`)
+      - `orders` → `OrdersTab`
+      - `profile` → `ProfileMain`
+
+**`ProfileScreen.tsx`** — Cross-stack BuyAgain navigation
+- [x] `navigate('BuyAgain')` → `navigate('HomeTab', { screen: 'BuyAgain' })` — BuyAgain only exists
+      inside HomeStack, cross-stack navigation required
+
+### TypeScript Cleanup
+
+**`apps/customer-app/src/store/tests/useAuthStore.test.ts`**
+- [x] Removed `state.setToken` calls (property never existed in `AuthState`). Tests now use
+      `login()` / `logout()` which are the actual store actions. `tsc --noEmit` → **0 errors**
+
+### DB Schema Completion (init_db.js — v5)
+
+**`backend/src/config/init_db.js`**
+- [x] Added missing `transactions` table (was referenced in version comment but never created):
+      `(id, user_id FK, order_id FK, razorpay_order_id, razorpay_payment_id, razorpay_signature,
+       amount, currency, status CHECK('pending'|'success'|'failed'|'refunded'), method, created_at)`
+      + indexes on `user_id` and `order_id`
+
+**`backend/src/services/payment.service.js`**
+- [x] `createOrder()` INSERT now includes `user_id` column (was only inserting `order_id, razorpay_order_id,
+      amount, status`) — transaction ledger now records the paying user
+- [x] Status CHECK aligned with service values: `'success'` (was `'paid'` in schema but `'success'` in code)

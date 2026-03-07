@@ -109,7 +109,7 @@ export const ProfileScreen = () => {
             icon="♻️"
             label="Buy Again"
             sublabel="Reorder your favourites"
-            onPress={() => navigation.navigate('BuyAgain')}
+            onPress={() => navigation.navigate('HomeTab', { screen: 'BuyAgain' })}
           />
         </View>
 

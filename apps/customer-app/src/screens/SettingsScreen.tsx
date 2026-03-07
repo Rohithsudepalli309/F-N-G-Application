@@ -42,16 +42,25 @@ export const SettingsScreen = () => {
     logout();
   };
 
+  const nav = navigation as any;
+  const ROUTES: Record<string, () => void> = {
+    orders:        () => nav.navigate('OrdersTab'),
+    profile:       () => nav.navigate('ProfileMain'),
+    addresses:     () => nav.navigate('SavedAddresses'),
+    support:       () => nav.navigate('HelpSupport'),
+    payment:       () => nav.navigate('PaymentMethods'),
+    rewards:       () => nav.navigate('FngPro'),
+    notifications: () => nav.navigate('Notifications'),
+    gift:          () => nav.navigate('HelpSupport'),
+    suggest:       () => nav.navigate('HelpSupport'),
+    info:          () => nav.navigate('HelpSupport'),
+  };
+
   const renderMenuItem = (item: MenuItem) => (
-    <TouchableOpacity 
-      key={item.id} 
+    <TouchableOpacity
+      key={item.id}
       style={styles.menuItem}
-      onPress={() => {
-        if (item.id === 'orders') (navigation as any).navigate('MyOrders');
-        else if (item.id === 'profile') (navigation as any).navigate('ProfileSetup');
-        else if (item.id === 'addresses') (navigation as any).navigate('LocationSelect');
-        else (navigation as any).navigate('ProductList', { categoryName: item.label });
-      }}
+      onPress={() => (ROUTES[item.id] ?? (() => nav.navigate('HelpSupport')))()}
     >
       <View style={styles.menuLeft}>
         <View style={styles.iconContainer}>
