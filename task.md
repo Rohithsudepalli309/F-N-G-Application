@@ -233,3 +233,76 @@ but client listens for `order.status.updated`.
 
 ### TypeScript Validation
 - [x] All 5 changed files: `tsc` → **0 errors**
+
+## Step 16: Driver App — Order Acceptance Flow (Completed) ✅
+
+### Problem
+The driver app had no mechanism for receiving new order notifications. A driver would have to manually
+browse the list and tap into the detail view to see the Accept button — no alert, no countdown, no push.
+
+### Backend Changes
+
+**`backend/src/services/socket.service.js`**
+- [x] Auto-join `drivers` room on connect when `socket.user.role === 'driver'` (mirrors existing admin room join)
+- [x] `notifyDriversNewOrder(io, order)` — emits `order.new_assignment` event to the `drivers` room
+      with full order details (id, status, store name, pickup/delivery addresses, items count, amount)
+- [x] Exported in `module.exports`
+
+**`backend/src/routes/driver.routes.js`** — Enhanced `GET /driver/orders`
+- [x] Added `LEFT JOIN stores` + `LEFT JOIN order_items` to query
+- [x] Now returns: `store_name`, `pickup_address { text, lat, lng }`, `items_count`, `store_id`, `created_at`
+      alongside existing `id, status, total_amount, delivery_address`
+- [x] All fields returned as snake_case (CodingKeys in Swift model now match)
+- [x] Added `POST /driver/reject` — driver declines an order (backend just logs it; no status change so
+      other drivers remain eligible; designed for future ML/distribution analytics)
+
+**`backend/src/routes/merchant.routes.js`** — Ready endpoint notify drivers
+- [x] Imported `notifyDriversNewOrder` from `socket.service`
+- [x] Replaced `io.emit('delivery:order_ready', ...)` (wrong broadcast, stale event name) with a
+      non-blocking `notifyDrivers()` async function that queries store + item count, then calls
+      `notifyDriversNewOrder(io, fullOrderObject)` — fire-and-forget so backend response is not delayed
+
+### Swift Changes
+
+**`Sources/Models/Models.swift`**
+- [x] `AssignedOrder` — added `storeName?`, `pickupAddress?`, `itemsCount?`, `storeId?` (now optional),
+      `createdAt` CodingKey. Fixed ALL existing CodingKeys to use snake_case (matching actual backend
+      column names): `store_id`, `total_amount`, `delivery_address`, `created_at`, `store_name`,
+      `pickup_address`, `items_count`
+- [x] `OrderStatus` — added `.assigned` case (backend uses `'assigned'` for driver-claimed orders)
+
+**`Sources/Socket/SocketService.swift`**
+- [x] Added `newOrderHandler: ((AssignedOrder) -> Void)?` private property
+- [x] `onNewOrderAssignment(_ handler:)` — registers the callback
+- [x] `socket.on("order.new_assignment")` — decodes `payload["order"]` dict → `AssignedOrder` via
+      `JSONDecoder` and calls handler on main thread
+
+**`Sources/Orders/OrderStore.swift`**
+- [x] `@Published var incomingOrder: AssignedOrder?` — drives the full-screen incoming order sheet
+- [x] `setIncomingOrder(_ order:)` — sets `incomingOrder` and starts a 30-second `autoDeclineTimer`;
+      ignored if driver already has an active delivery
+- [x] `dismissIncoming()` — clears `incomingOrder` + invalidates timer
+- [x] `rejectOrder(_ order:)` — calls `dismissIncoming()` then POSTs to `/driver/reject` (fire-and-forget)
+- [x] `fetchOrders()` — fixed active order restore condition: `.pickup || .assigned` (was including
+      `.ready` which incorrectly marked unassigned pooled orders as the driver's active delivery)
+- [x] `acceptOrder()` — now calls `fetchOrders()` after accept to refresh list state
+
+**`Sources/Orders/IncomingOrderSheet.swift`** (NEW FILE)
+- [x] Full-screen dark modal featuring:
+  - Animated countdown ring (30 → 0, orange → red at 10 sec)
+  - Earnings badge (₹ amount) + Items badge
+  - Route card: pickup row (orange dot + store name/address) → delivery row (green dot + customer address)
+  - **Accept** (orange filled) and **Decline** (outlined red border) buttons
+  - Auto-calls `onDecline` when timer hits 0 (mimics Swiggy/Uber Eats driver UX)
+
+**`Sources/Orders/OrderListView.swift`**
+- [x] `.task {}` block now also registers `SocketService.shared.onNewOrderAssignment` callback after
+      initial fetch, routing incoming orders → `orderStore.setIncomingOrder`
+- [x] `.fullScreenCover(item: $orderStore.incomingOrder)` presents `IncomingOrderSheet` with Accept/Decline
+- [x] `StatusBadge.color(for:)` — added `.assigned → .indigo` case
+
+**`Sources/Orders/OrderDetailView.swift`**
+- [x] Added `@State var isAccepting: Bool` + `@State var isRejecting: Bool` for loading states
+- [x] Accept button: shows `ProgressView` while API call is in flight; re-enabled after completion
+- [x] Added **Decline** button below Accept: calls `orderStore.rejectOrder(order)`, shows spinner
+- [x] Accept condition extended: `.ready || .placed || .assigned` (was missing `.assigned`)

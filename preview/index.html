@@ -64,7 +64,7 @@
   .section-header{padding:14px 16px 8px;display:flex;justify-content:space-between;align-items:center}
   .section-title{font-size:15px;font-weight:800;color:var(--text)}
   .section-link{font-size:12px;color:var(--accent2);font-weight:700;cursor:pointer}
-  .product-row{display:flex;gap:10px;overflow-x:auto;padding:0 16px 14px;scrollbar-width:none}
+  .product-row{display:flex;gap:10px;overflow-x:auto;padding:0 16px 14px}
   .product-row::-webkit-scrollbar{display:none}
   .product-card{background:#fff;border-radius:14px;padding:10px;min-width:130px;max-width:130px;
     box-shadow:0 2px 8px rgba(0,0,0,.07);cursor:pointer;transition:.2s;flex-shrink:0}
@@ -161,7 +161,7 @@
   .profile-section{background:#fff;margin:0 16px 8px;border-radius:14px;overflow:hidden;border:1px solid var(--border)}
 
   /* ── Real-time ticker ── */
-  .rt-panel{width:220px;background:rgba(255,255,255,.06);border-radius:16px;padding:16px;color:#fff;border:1px solid rgba(255,255,255,.1);backdrop-filter:blur(8px)}
+  .rt-panel{width:220px;background:rgba(255,255,255,.06);border-radius:16px;padding:16px;color:#fff;border:1px solid rgba(255,255,255,.1);-webkit-backdrop-filter:blur(8px);backdrop-filter:blur(8px)}
   .rt-title{font-size:11px;font-weight:800;color:#F5A826;text-transform:uppercase;letter-spacing:.5px;margin-bottom:10px;display:flex;align-items:center;gap:6px}
   .rt-dot{width:8px;height:8px;border-radius:4px;background:#4CAF50;animation:blink 1s infinite}
   .rt-item{font-size:11px;color:rgba(255,255,255,.8);padding:6px 0;border-bottom:1px solid rgba(255,255,255,.07)}
@@ -200,7 +200,7 @@
 
   /* ── Admin Control Panel ── */
   .ctrl-panel{width:280px;display:flex;flex-direction:column;gap:12px;flex-shrink:0}
-  .ctrl-card{background:rgba(255,255,255,.06);border-radius:16px;padding:16px;color:#fff;border:1px solid rgba(255,255,255,.1);backdrop-filter:blur(8px)}
+  .ctrl-card{background:rgba(255,255,255,.06);border-radius:16px;padding:16px;color:#fff;border:1px solid rgba(255,255,255,.1);-webkit-backdrop-filter:blur(8px);backdrop-filter:blur(8px)}
   .ctrl-title{font-size:11px;font-weight:800;text-transform:uppercase;letter-spacing:.5px;margin-bottom:12px;display:flex;align-items:center;gap:6px}
   .ctrl-title .icon{font-size:14px}
   .revenue-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px}
@@ -230,7 +230,7 @@
   .send-notif-btn{width:100%;padding:9px;background:linear-gradient(135deg,#F5A826,#E45F10);border:none;border-radius:10px;color:#fff;font-size:12px;font-weight:800;cursor:pointer;transition:.2s}
   .send-notif-btn:hover{opacity:.9;transform:translateY(-1px)}
   /* Phone toast notification */
-  .phone-toast{position:absolute;top:52px;left:12px;right:12px;background:rgba(22,61,38,.96);border-radius:14px;padding:10px 14px;display:flex;align-items:flex-start;gap:10px;z-index:999;border:1px solid rgba(245,168,38,.3);backdrop-filter:blur(8px);transform:translateY(-80px);opacity:0;transition:all .4s cubic-bezier(.34,1.56,.64,1)}
+  .phone-toast{position:absolute;top:52px;left:12px;right:12px;background:rgba(22,61,38,.96);border-radius:14px;padding:10px 14px;display:flex;align-items:flex-start;gap:10px;z-index:999;border:1px solid rgba(245,168,38,.3);-webkit-backdrop-filter:blur(8px);backdrop-filter:blur(8px);transform:translateY(-80px);opacity:0;transition:all .4s cubic-bezier(.34,1.56,.64,1)}
   .phone-toast.show{transform:translateY(0);opacity:1}
   .toast-icon{font-size:22px;flex-shrink:0}
   .toast-title{font-size:12px;font-weight:800;color:#fff}
@@ -258,13 +258,54 @@
   .step-text{flex:1;padding-top:4px}
   .step-label{font-size:13px;font-weight:700;color:var(--text)}
   .step-time{font-size:11px;color:var(--muted)}
+
+  /* ── Utility classes (replace inline styles) ── */
+  .brand-wrap{text-align:center;margin-bottom:6px}
+  .brand-logo{height:30px;vertical-align:middle;margin-right:6px;border-radius:6px}
+  .subtitle-highlight{color:#81C784;font-weight:700}
+  .subtitle-live{color:#4CAF50;font-weight:700}
+  .status-bar-icons{display:flex;align-items:center;gap:5px;letter-spacing:.5px}
+  .home-header-logo{height:36px;border-radius:8px;margin-bottom:10px;display:block}
+  .spinner-h200{height:200px}
+  .spinner-h80{height:80px}
+  .loading-text{color:var(--muted);font-size:12px}
+  .hidden{display:none}
+  .spacer-v20{height:20px}
+  .store-subtitle{font-size:11px;opacity:.75}
+  .screen-title{font-size:17px;font-weight:800;color:#fff}
+  .cart-empty-wrap{text-align:center;padding:60px 20px}
+  .cart-empty-icon{font-size:60px;margin-bottom:12px}
+  .cart-empty-title{font-size:16px;font-weight:700;color:var(--text)}
+  .cart-empty-sub{font-size:13px;color:var(--muted);margin-top:6px}
+  .browse-stores-btn{margin-top:20px;background:var(--primary);color:#fff;border:none;border-radius:12px;padding:12px 24px;font-size:14px;font-weight:700;cursor:pointer}
+  .no-bottom-margin{margin-bottom:0}
+  .orders-list-inner{padding:8px 0}
+  .tracking-eta{font-size:11px;font-weight:400;color:#388E3C}
+  .tracking-status-hdr{font-size:14px;font-weight:800;margin-bottom:12px;color:var(--text)}
+  .pro-star{font-size:20px}
+  .pro-info{flex:1}
+  .badge-offset{margin-right:8px}
+  .item-borderless{border:none}
+  .icon-danger-bg{background:#FEE2E2}
+  .text-danger{color:#DC3545}
+  .app-version{text-align:center;font-size:11px;color:var(--muted);padding:20px}
+  .panel-label{font-size:10px;color:rgba(255,255,255,.5);text-transform:uppercase;letter-spacing:.5px;margin-bottom:6px}
+  .panel-label-sm{font-size:10px;color:rgba(255,255,255,.5);text-transform:uppercase;letter-spacing:.5px;margin:12px 0 6px}
+  .panel-label-md{font-size:10px;color:rgba(255,255,255,.5);text-transform:uppercase;letter-spacing:.5px;margin:14px 0 6px}
+  .rt-waiting{color:rgba(255,255,255,.4);font-size:11px}
+  .admin-panel-link{display:block;background:rgba(245,168,38,.15);border:1px solid rgba(245,168,38,.3);border-radius:8px;padding:8px 12px;color:#F5A826;font-size:11px;font-weight:700;text-decoration:none;text-align:center}
+  .rev-order-count{color:rgba(255,255,255,.5)}
+  .cats-loader{color:rgba(255,255,255,.3);font-size:11px}
+  .ctrl-card-grow{flex:1;min-height:0}
+  .console-hint{color:rgba(255,255,255,.35);font-weight:400;text-transform:none;letter-spacing:0;font-size:10px}
+  .notif-btn-sale{margin-top:8px;background:linear-gradient(135deg,#D32F2F,#E45F10)}
 </style>
 </head>
 <body>
 
-<div style="text-align:center;margin-bottom:6px">
-  <h1 class="brand"><img src="logo.png" style="height:30px;vertical-align:middle;margin-right:6px;border-radius:6px"> F&amp;G</h1>
-  <div class="subtitle">Fresh &amp; Grocery — <span style="color:#81C784;font-weight:700">Android Preview • Pixel 7</span> &nbsp;|&nbsp; Backend: <span style="color:#4CAF50;font-weight:700">●&nbsp;LIVE</span></div>
+<div class="brand-wrap">
+  <h1 class="brand"><img src="logo.png" class="brand-logo" alt="F&amp;G"> F&amp;G</h1>
+  <div class="subtitle">Fresh &amp; Grocery — <span class="subtitle-highlight">Android Preview • Pixel 7</span> &nbsp;|&nbsp; Backend: <span class="subtitle-live">●&nbsp;LIVE</span></div>
 </div>
 
 <div class="phone-wrap">
@@ -276,7 +317,7 @@
     <!-- Status Bar (Android) -->
     <div class="status-bar">
       <span>9:41</span>
-      <span style="display:flex;align-items:center;gap:5px;letter-spacing:.5px">▲▼&nbsp;●●●&nbsp;🔋87%</span>
+      <span class="status-bar-icons">▲▼&nbsp;●●●&nbsp;🔋87%</span>
     </div>
 
     <!-- Screen -->
@@ -285,7 +326,7 @@
       <!-- HOME -->
       <div class="view show" id="v-home">
         <div class="home-header">
-          <img src="logo.png" style="height:36px;border-radius:8px;margin-bottom:10px;display:block" alt="F&G Logo">
+          <img src="logo.png" class="home-header-logo" alt="F&amp;G Logo">
           <div class="speed-pill">⚡ <span>30-minute delivery</span></div>
           <div class="location-row">📍 Bachupally - 70</div>
           <div class="location-sub">Harithavanam Colony, Bachupally, Hyderabad</div>
@@ -306,8 +347,8 @@
           </div>
         </div>
 
-        <div id="home-loader" class="spinner-wrap" style="height:200px"><div class="spinner"></div><div style="color:var(--muted);font-size:12px">Loading products…</div></div>
-        <div id="home-content" style="display:none">
+        <div id="home-loader" class="spinner-wrap spinner-h200"><div class="spinner"></div><div class="loading-text">Loading products…</div></div>
+        <div id="home-content" class="hidden">
           <!-- 50% OFF TODAY Banner -->
           <div class="sale-hero" onclick="navigate('store','st_zepto_central','50% OFF Zone')" id="sale-banner">
             <div class="sale-confetti" id="confetti-wrap"></div>
@@ -361,7 +402,7 @@
             <span class="section-link">See all</span>
           </div>
           <div class="product-row" id="products-staples"></div>
-          <div style="height:20px"></div>
+          <div class="spacer-v20"></div>
         </div>
       </div>
 
@@ -371,11 +412,11 @@
           <span class="back-btn" onclick="goBack()">←</span>
           <div>
             <div class="store-name-text" id="store-title">Store</div>
-            <div style="font-size:11px;opacity:.75" id="store-count">Loading…</div>
+            <div class="store-subtitle" id="store-count">Loading…</div>
           </div>
         </div>
         <div id="store-items"></div>
-        <div id="store-cart-fab" style="display:none" class="cart-fab" onclick="switchTab('cart')">
+        <div id="store-cart-fab" class="cart-fab hidden" onclick="switchTab('cart')">
           <div class="cart-fab-left">
             <div class="cart-count-badge" id="fab-count">0</div>
             <span class="cart-fab-text">View Cart</span>
@@ -388,25 +429,25 @@
       <div class="view" id="v-cart">
         <div class="cart-header">
           <span class="back-btn" onclick="goBack()">←</span>
-          <span style="font-size:17px;font-weight:800;color:#fff">Your Cart</span>
+          <span class="screen-title">Your Cart</span>
           <span class="food-pill">🛒 Grocery</span>
         </div>
-        <div id="cart-empty" style="text-align:center;padding:60px 20px">
-          <div style="font-size:60px;margin-bottom:12px">🛒</div>
-          <div style="font-size:16px;font-weight:700;color:var(--text)">Cart is empty</div>
-          <div style="font-size:13px;color:var(--muted);margin-top:6px">Add items from a store</div>
-          <button onclick="navigate('store','st_fng_food_1','F&amp;G Kitchen')" style="margin-top:20px;background:var(--primary);color:#fff;border:none;border-radius:12px;padding:12px 24px;font-size:14px;font-weight:700;cursor:pointer">Browse Stores</button>
+        <div id="cart-empty" class="cart-empty-wrap">
+          <div class="cart-empty-icon">🛒</div>
+          <div class="cart-empty-title">Cart is empty</div>
+          <div class="cart-empty-sub">Add items from a store</div>
+          <button onclick="navigate('store','st_fng_food_1','F&amp;G Kitchen')" class="browse-stores-btn">Browse Stores</button>
         </div>
-        <div id="cart-items" style="display:none"></div>
+        <div id="cart-items" class="hidden"></div>
       </div>
 
       <!-- ORDERS -->
       <div class="view" id="v-orders">
-        <div class="cart-header" style="margin-bottom:0">
-          <span style="font-size:17px;font-weight:800;color:#fff">My Orders</span>
+        <div class="cart-header no-bottom-margin">
+          <span class="screen-title">My Orders</span>
         </div>
-        <div id="orders-loader" class="spinner-wrap" style="height:200px"><div class="spinner"></div></div>
-        <div id="orders-list" style="padding:8px 0;display:none"></div>
+        <div id="orders-loader" class="spinner-wrap spinner-h200"><div class="spinner"></div></div>
+        <div id="orders-list" class="orders-list-inner hidden"></div>
       </div>
 
       <!-- ORDER TRACKING -->
@@ -415,16 +456,16 @@
           <span class="back-btn" onclick="goBack()">←</span>
           <div>
             <div class="store-name-text">Order Tracking</div>
-            <div style="font-size:11px;opacity:.75" id="tracking-id">Live updates</div>
+            <div class="store-subtitle" id="tracking-id">Live updates</div>
           </div>
         </div>
         <div class="tracking-map">
           <div class="driver-pin">🛵</div>
           <div>Driver is on the way!</div>
-          <div style="font-size:11px;font-weight:400;color:#388E3C">Bachupally – ETA 4 mins</div>
+          <div class="tracking-eta">Bachupally – ETA 4 mins</div>
         </div>
         <div class="tracking-status">
-          <div style="font-size:14px;font-weight:800;margin-bottom:12px;color:var(--text)">Order Status</div>
+          <div class="tracking-status-hdr">Order Status</div>
           <div class="step"><div class="step-icon step-done">✓</div><div class="step-text"><div class="step-label">Order Placed</div><div class="step-time">Just now</div></div></div>
           <div class="step"><div class="step-icon step-done">✓</div><div class="step-text"><div class="step-label">Confirmed by Store</div><div class="step-time">1 min ago</div></div></div>
           <div class="step"><div class="step-icon step-active">🥘</div><div class="step-text"><div class="step-label">Preparing your order</div><div class="step-time">In progress…</div></div></div>
@@ -443,8 +484,8 @@
           </div>
         </div>
         <div class="pro-banner">
-          <span style="font-size:20px">⭐</span>
-          <div style="flex:1"><div class="pro-title">Get F&amp;G Pro</div><div class="pro-sub">Free delivery, member discounts &amp; more</div></div>
+          <span class="pro-star">⭐</span>
+          <div class="pro-info"><div class="pro-title">Get F&amp;G Pro</div><div class="pro-sub">Free delivery, member discounts &amp; more</div></div>
           <button class="explore-btn">Explore</button>
         </div>
         <div class="menu-section-title">Your Orders</div>
@@ -456,7 +497,7 @@
         <div class="profile-section">
           <div class="profile-item"><div class="p-icon-wrap">📍</div><div class="p-label">Saved Addresses</div><div class="p-arrow">›</div></div>
           <div class="profile-item"><div class="p-icon-wrap">💳</div><div class="p-label">Payment Methods</div><div class="p-arrow">›</div></div>
-          <div class="profile-item"><div class="p-icon-wrap">🔔</div><div class="p-label">Notifications</div><div style="margin-right:8px" class="p-badge">3</div><div class="p-arrow">›</div></div>
+          <div class="profile-item"><div class="p-icon-wrap">🔔</div><div class="p-label">Notifications</div><div class="p-badge badge-offset">3</div><div class="p-arrow">›</div></div>
           <div class="profile-item"><div class="p-icon-wrap">❤️</div><div class="p-label">Favourites</div><div class="p-arrow">›</div></div>
         </div>
         <div class="menu-section-title">Offers &amp; Rewards</div>
@@ -469,9 +510,9 @@
         <div class="profile-section">
           <div class="profile-item"><div class="p-icon-wrap">💬</div><div class="p-label">Chat with Support</div><div class="p-arrow">›</div></div>
           <div class="profile-item"><div class="p-icon-wrap">⚙️</div><div class="p-label">Settings</div><div class="p-arrow">›</div></div>
-          <div class="profile-item" style="border:none"><div class="p-icon-wrap" style="background:#FEE2E2">🚪</div><div class="p-label" style="color:#DC3545">Log Out</div></div>
+          <div class="profile-item item-borderless"><div class="p-icon-wrap icon-danger-bg">🚪</div><div class="p-label text-danger">Log Out</div></div>
         </div>
-        <div style="text-align:center;font-size:11px;color:var(--muted);padding:20px">F&amp;G v1.0.0 · Hyderabad, India</div>
+        <div class="app-version">F&amp;G v1.0.0 · Hyderabad, India</div>
       </div>
 
     </div><!-- /screen -->
@@ -487,7 +528,7 @@
       <div class="tab" id="tab-cart" onclick="switchTab('cart')">
         <div class="tab-icon">
           <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M7 18c-1.1 0-1.99.9-1.99 2S5.9 22 7 22s2-.9 2-2-.9-2-2-2zM1 2v2h2l3.6 7.59-1.35 2.45c-.16.28-.25.61-.25.96C5 16.1 6.9 18 9 18h12v-2H9.42c-.14 0-.25-.11-.25-.25l.03-.12.9-1.63H19c.75 0 1.41-.41 1.75-1.03l3.58-6.49A1 1 0 0023.43 5H5.21l-.94-2H1zm16 16c-1.1 0-1.99.9-1.99 2s.89 2 1.99 2 2-.9 2-2-.9-2-2-2z"/></svg>
-          <span class="tab-badge" id="food-badge" style="display:none">0</span>
+          <span class="tab-badge hidden" id="food-badge">0</span>
         </div>
         <div class="tab-label">Cart</div>
       </div>
@@ -513,12 +554,12 @@
     <div class="rt-title"><div class="rt-dot"></div>Real-time Feed</div>
     <div class="api-badge"><span class="notif-dot"></span>&nbsp;Backend LIVE&nbsp;<span id="backend-port-badge">:3000</span></div>
 
-    <div style="font-size:10px;color:rgba(255,255,255,.5);margin-bottom:6px;text-transform:uppercase;letter-spacing:.5px">Live Price Updates</div>
+    <div class="panel-label">Live Price Updates</div>
     <div id="rt-feed">
-      <div class="rt-item" style="color:rgba(255,255,255,.4);font-size:11px">Waiting for socket events…</div>
+      <div class="rt-item rt-waiting">Waiting for socket events…</div>
     </div>
 
-    <div style="font-size:10px;color:rgba(255,255,255,.5);margin:12px 0 6px;text-transform:uppercase;letter-spacing:.5px">Database Stats</div>
+    <div class="panel-label-sm">Database Stats</div>
     <div class="stats-grid">
       <div class="stat-box"><div class="stat-num" id="stat-products">—</div><div class="stat-label">Products</div></div>
       <div class="stat-box"><div class="stat-num" id="stat-orders">—</div><div class="stat-label">Orders</div></div>
@@ -526,11 +567,11 @@
       <div class="stat-box"><div class="stat-num" id="stat-users">—</div><div class="stat-label">Users</div></div>
     </div>
 
-    <div style="font-size:10px;color:rgba(255,255,255,.5);margin:14px 0 6px;text-transform:uppercase;letter-spacing:.5px">Recent Orders</div>
+    <div class="panel-label-md">Recent Orders</div>
     <div id="recent-orders-panel"></div>
 
-    <div style="font-size:10px;color:rgba(255,255,255,.5);margin:14px 0 6px;text-transform:uppercase;letter-spacing:.5px">Admin Dashboard</div>
-    <a href="http://localhost:8080" target="_blank" style="display:block;background:rgba(245,168,38,.15);border:1px solid rgba(245,168,38,.3);border-radius:8px;padding:8px 12px;color:#F5A826;font-size:11px;font-weight:700;text-decoration:none;text-align:center">Open Admin Panel →</a>
+    <div class="panel-label-md">Admin Dashboard</div>
+    <a href="http://localhost:8080" target="_blank" rel="noopener" class="admin-panel-link">Open Admin Panel →</a>
   </div>
 
   <!-- ── Admin Control Panel ── -->
@@ -541,7 +582,7 @@
       <div class="ctrl-title"><span class="icon">📊</span> Revenue Today<button class="refresh-btn" onclick="loadRevenue()">↻ Refresh</button></div>
       <div class="revenue-grid">
         <div class="rev-box"><div class="rev-num" id="rev-today">—</div><div class="rev-label">Today's Sales</div><div class="rev-delta delta-up" id="rev-delta">—</div></div>
-        <div class="rev-box"><div class="rev-num" id="rev-avg">—</div><div class="rev-label">Avg Order Value</div><div class="rev-delta" id="rev-count" style="color:rgba(255,255,255,.5)">— orders</div></div>
+        <div class="rev-box"><div class="rev-num" id="rev-avg">—</div><div class="rev-label">Avg Order Value</div><div class="rev-delta rev-order-count" id="rev-count">— orders</div></div>
         <div class="rev-box"><div class="rev-num" id="rev-delivered">—</div><div class="rev-label">Delivered</div></div>
         <div class="rev-box"><div class="rev-num" id="rev-pending">—</div><div class="rev-label">In Progress</div></div>
       </div>
@@ -550,13 +591,13 @@
     <!-- Top Categories -->
     <div class="ctrl-card">
       <div class="ctrl-title"><span class="icon">🏆</span> Top Categories</div>
-      <div class="category-bar" id="top-cats"><div style="color:rgba(255,255,255,.3);font-size:11px">Loading…</div></div>
+      <div class="category-bar" id="top-cats"><div class="cats-loader">Loading…</div></div>
     </div>
 
     <!-- Order Status Console -->
-    <div class="ctrl-card" style="flex:1;min-height:0">
-      <div class="ctrl-title"><span class="icon">🎛️</span> Order Console <span style="color:rgba(255,255,255,.35);font-weight:400;text-transform:none;letter-spacing:0;font-size:10px">— click to advance status</span></div>
-      <div id="order-console"><div class="spinner-wrap" style="height:80px"><div class="spinner"></div></div></div>
+    <div class="ctrl-card ctrl-card-grow">
+      <div class="ctrl-title"><span class="icon">🎛️</span> Order Console <span class="console-hint">— click to advance status</span></div>
+      <div id="order-console"><div class="spinner-wrap spinner-h80"><div class="spinner"></div></div></div>
     </div>
 
     <!-- Push Notification Sender -->
@@ -570,7 +611,7 @@
       </div>
       <input class="notif-input" id="notif-msg" placeholder="Type notification message…" value="Your order is being prepared!"/>
       <button class="send-notif-btn" onclick="sendToPhone()">Send to Phone 📲</button>
-      <button class="send-notif-btn" style="margin-top:8px;background:linear-gradient(135deg,#D32F2F,#E45F10)" onclick="launchSalePromo()">🔥 Launch 50% OFF TODAY</button>
+      <button class="send-notif-btn notif-btn-sale" onclick="launchSalePromo()">🔥 Launch 50% OFF TODAY</button>
     </div>
 
   </div>
@@ -579,15 +620,18 @@
 
 <script>
 // Auto-detect backend port: Docker maps :3002→:3000, direct run uses :3000
+// NOTE: resolved inside init() so the login call always uses the correct port.
 let API = 'http://localhost:3000/api/v1';
-(async () => {
+async function detectBackendPort() {
   try {
-    await fetch('http://localhost:3002/health', { signal: AbortSignal.timeout(800) });
+    await fetch('http://localhost:3002/health', { signal: AbortSignal.timeout(1200) });
     API = 'http://localhost:3002/api/v1';
     const badge = document.getElementById('backend-port-badge');
     if (badge) badge.textContent = ':3002 (Docker)';
-  } catch(_) { /* stays on :3000 */ }
-})();
+  } catch(_) {
+    // stays on :3000 (direct node run)
+  }
+}
 let TOKEN = '';
 let cart = {}; // productId -> {name, price, qty}
 let currentStoreId = '';
@@ -639,6 +683,7 @@ function statusBadge(s){
 // ── Auth ──
 async function init(){
   try {
+    await detectBackendPort();
     const r = await fetch(`${API}/auth/login`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({email:'admin@fng.com',password:'admin'})});
     const d = await r.json();
     TOKEN = d.tokens?.accessToken || '';

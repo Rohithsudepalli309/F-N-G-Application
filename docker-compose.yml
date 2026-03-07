@@ -26,6 +26,7 @@ services:
       context: ./backend
       dockerfile: Dockerfile
       target: production
+    image: fngapplication-backend:latest
     container_name: fng_backend
     restart: unless-stopped
     depends_on:
@@ -63,6 +64,7 @@ services:
       dockerfile: Dockerfile
       args:
         VITE_API_URL: ${VITE_API_URL:-http://localhost:3002/api/v1}
+    image: fngapplication-frontend-latest:admin
     container_name: fng_admin
     restart: unless-stopped
     depends_on:
@@ -91,6 +93,7 @@ services:
       args:
         VITE_API_URL: ${VITE_API_URL:-http://localhost:3002/api/v1}
         VITE_SOCKET_URL: ${VITE_SOCKET_URL:-http://localhost:3002}
+    image: fngapplication-frontend-latest:merchant
     container_name: fng_merchant
     restart: unless-stopped
     depends_on:
