@@ -86,7 +86,9 @@ router.post('/:id/cancel', authenticate, async (req, res) => {
 
     // Emit socket event
     const io = req.app.get('io');
-    if (io) io.to(`order_${req.params.id}`).emit('order_status_update', { orderId: req.params.id, status: 'cancelled' });
+    if (io) io.to(`order:${req.params.id}`).emit('order.status.updated', {
+      orderId: req.params.id, timestamp: Date.now(), payload: { status: 'cancelled' },
+    });
 
     res.json({ order: updated[0] });
   } catch (err) {
@@ -159,7 +161,9 @@ router.patch('/:id/status', authenticate, async (req, res) => {
     if (!rows.length) return res.status(404).json({ error: 'Order not found' });
 
     const io = req.app.get('io');
-    if (io) io.to(`order_${req.params.id}`).emit('order_status_update', { orderId: req.params.id, status });
+    if (io) io.to(`order:${req.params.id}`).emit('order.status.updated', {
+      orderId: req.params.id, timestamp: Date.now(), payload: { status },
+    });
 
     res.json({ order: rows[0] });
   } catch (err) {

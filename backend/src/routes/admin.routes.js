@@ -130,7 +130,9 @@ router.patch('/orders/:id/status', ...isAdmin, async (req, res) => {
     // Emit real-time socket event to order room
     const io = req.app.get('io');
     if (io) {
-      io.to(`order_${req.params.id}`).emit('order_status_update', { orderId: req.params.id, status });
+      io.to(`order:${req.params.id}`).emit('order.status.updated', {
+        orderId: req.params.id, timestamp: Date.now(), payload: { status },
+      });
       io.to('admin').emit('order.platform.update', rows[0]);
     }
 

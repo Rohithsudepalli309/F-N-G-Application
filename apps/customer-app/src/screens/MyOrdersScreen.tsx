@@ -84,7 +84,7 @@ export const MyOrdersScreen = () => {
       <Text style={styles.emptySubtitle}>You haven't placed any orders yet. Start shopping to fill this space!</Text>
       <TouchableOpacity 
         style={styles.browseBtn}
-        onPress={() => navigation.navigate('Home' as never)}
+        onPress={() => (navigation as any).navigate('HomeTab')}
       >
         <Text style={styles.browseBtnText}>Browse Products</Text>
       </TouchableOpacity>

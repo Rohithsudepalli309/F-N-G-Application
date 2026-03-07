@@ -195,3 +195,41 @@ Gap analysis revealed four screens hitting non-existent backend routes plus thre
 - [x] `createOrder()` INSERT now includes `user_id` column (was only inserting `order_id, razorpay_order_id,
       amount, status`) — transaction ledger now records the paying user
 - [x] Status CHECK aligned with service values: `'success'` (was `'paid'` in schema but `'success'` in code)
+
+## Step 15: Socket Consistency, Navigation Fixes & Razorpay Guards (Completed) ✅
+
+### Critical: Socket Room/Event Name Mismatch
+All merchant and admin status changes were silently dropping — sockets were emitting to the wrong rooms
+and wrong event names, so the customer's `useOrderSocket.ts` hook never received any updates.
+
+**Root cause**: `order.routes.js`, `admin.routes.js`, `merchant.routes.js` used `order_${id}` (underscore)
+but `socket.service.js` joins `order:${id}` (colon) rooms; similarly emitted `order_status_update`
+but client listens for `order.status.updated`.
+
+- [x] `backend/src/routes/order.routes.js` — 2 emits fixed:
+      `io.to('order_${id}').emit('order_status_update', ...)` →
+      `io.to('order:${id}').emit('order.status.updated', { orderId, timestamp, payload: { status } })`
+- [x] `backend/src/routes/admin.routes.js` — 1 emit fixed (same pattern)
+- [x] `backend/src/routes/merchant.routes.js` — 3 emits fixed (accept→preparing, reject→cancelled, ready→ready)
+      All now emit to `order:${id}` room with `order.status.updated` event + correct payload shape
+
+### Navigation Fixes
+- [x] `apps/customer-app/src/screens/MyOrdersScreen.tsx` — empty-state "Browse" button:
+      `navigate('Home')` → `navigate('HomeTab')` (non-existent screen → correct tab name)
+- [x] `apps/customer-app/src/screens/CartScreen.tsx` — empty-state "Browse" button: same fix
+
+### Checkout Payload Cleanup
+- [x] `apps/customer-app/src/screens/CheckoutScreen.tsx` — removed `id: \`ORD-${Date.now()}\`` from
+      `orderPayload`. Server generates its own order ID (`FNG-{FOOD|GRO}-{timestamp}-{rand}`) via
+      `order.service.js` `createOrder()` — client-provided ID was ignored but cluttered the payload.
+      Also changed `storeId: storeId || 'default-store'` → `storeId: storeId || undefined`
+      (server handles null `store_id` for grocery/generic orders).
+
+### Razorpay Cancel Guard
+- [x] `apps/customer-app/src/screens/GroceryCartScreen.tsx` — Razorpay `.catch()` block updated:
+      `if (error?.code === 0) return;` — user-initiated cancellation is now silent (no error alert),
+      consistent with the existing pattern in `FngProScreen.tsx` and Razorpay SDK docs (code 0 = dismiss).
+      Replaced stale `code !== 2` check which was wrong (code 2 = network error, not dismiss).
+
+### TypeScript Validation
+- [x] All 5 changed files: `tsc` → **0 errors**

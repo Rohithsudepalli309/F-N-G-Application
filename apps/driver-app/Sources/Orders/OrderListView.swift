@@ -45,11 +45,32 @@ struct OrderListView: View {
                         .foregroundColor(.red)
                 }
             }
-            .task { await orderStore.fetchOrders() }
+            .task {
+                await orderStore.fetchOrders()
+                // Wire socket → incoming order sheet
+                SocketService.shared.onNewOrderAssignment { order in
+                    orderStore.setIncomingOrder(order)
+                }
+            }
             .alert("Error", isPresented: .constant(orderStore.errorMessage != nil)) {
                 Button("OK") { orderStore.errorMessage = nil }
             } message: {
                 Text(orderStore.errorMessage ?? "")
+            }
+            // Incoming order card (pushed via socket when merchant marks order ready)
+            .fullScreenCover(item: $orderStore.incomingOrder) { incoming in
+                IncomingOrderSheet(
+                    order: incoming,
+                    onAccept: {
+                        Task {
+                            orderStore.dismissIncoming()
+                            await orderStore.acceptOrder(incoming)
+                        }
+                    },
+                    onDecline: {
+                        Task { await orderStore.rejectOrder(incoming) }
+                    }
+                )
             }
         }
     }
@@ -128,6 +149,7 @@ struct StatusBadge: View {
     private func color(for status: OrderStatus) -> Color {
         switch status {
         case .ready:     return .blue
+        case .assigned:  return .indigo
         case .pickup:    return .orange
         case .delivered: return .green
         case .cancelled: return .red

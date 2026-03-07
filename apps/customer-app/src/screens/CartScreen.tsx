@@ -72,7 +72,7 @@ export const CartScreen = () => {
           <Text style={styles.emptySub}>Add some items from the store to see them here.</Text>
           <TouchableOpacity 
             style={styles.browseBtn} 
-            onPress={() => navigation.navigate('Home' as never)}
+            onPress={() => (navigation as any).navigate('HomeTab')}
           >
             <Text style={styles.browseText}>Browse Products</Text>
           </TouchableOpacity>

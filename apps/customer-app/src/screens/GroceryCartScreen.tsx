@@ -152,9 +152,11 @@ export const GroceryCartScreen = () => {
         eta: 30,
       });
     } catch (e: any) {
-      if (e?.code !== 2) { // RZP dismiss = code 2
-        Alert.alert('Payment Failed', e?.response?.data?.error ?? e?.description ?? 'Something went wrong.');
+      if (e?.code === 0) {
+        // User cancelled Razorpay — not an error
+        return;
       }
+      Alert.alert('Payment Failed', e?.response?.data?.error ?? e?.description ?? 'Something went wrong.');
     } finally {
       setLoading(false);
     }

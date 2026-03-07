@@ -9,6 +9,7 @@ const express = require('express');
 const router = express.Router();
 const db = require('../config/db');
 const { authenticate, authorize } = require('../middleware/auth');
+const { notifyDriversNewOrder } = require('../services/socket.service');
 
 const isMerchant = [authenticate, authorize(['merchant', 'admin'])];
 
@@ -159,8 +160,8 @@ router.patch('/orders/:id/accept', ...isMerchant, async (req, res) => {
 
     const io = req.app.get('io');
     if (io) {
-      io.to(`order_${req.params.id}`).emit('order_status_update', {
-        orderId: req.params.id, status: 'preparing',
+      io.to(`order:${req.params.id}`).emit('order.status.updated', {
+        orderId: req.params.id, timestamp: Date.now(), payload: { status: 'preparing' },
       });
       io.to(`merchant_${storeId}`).emit('merchant:order_accepted', { orderId: req.params.id });
     }
@@ -189,8 +190,8 @@ router.patch('/orders/:id/reject', ...isMerchant, async (req, res) => {
 
     const io = req.app.get('io');
     if (io) {
-      io.to(`order_${req.params.id}`).emit('order_status_update', {
-        orderId: req.params.id, status: 'cancelled', reason,
+      io.to(`order:${req.params.id}`).emit('order.status.updated', {
+        orderId: req.params.id, timestamp: Date.now(), payload: { status: 'cancelled', reason },
       });
     }
 
@@ -217,11 +218,43 @@ router.patch('/orders/:id/ready', ...isMerchant, async (req, res) => {
 
     const io = req.app.get('io');
     if (io) {
-      io.to(`order_${req.params.id}`).emit('order_status_update', {
-        orderId: req.params.id, status: 'ready',
+      io.to(`order:${req.params.id}`).emit('order.status.updated', {
+        orderId: req.params.id, timestamp: Date.now(), payload: { status: 'ready' },
       });
-      // Notify available drivers that an order is ready for pickup
-      io.emit('delivery:order_ready', { orderId: req.params.id, storeId });
+
+      // Notify all online drivers with full order details for the incoming order card
+      const notifyDrivers = async () => {
+        try {
+          const [storeRes, itemsRes] = await Promise.all([
+            db.query('SELECT name, address, lat, lng FROM stores WHERE id = $1', [storeId]),
+            db.query('SELECT COUNT(*)::int AS count FROM order_items WHERE order_id = $1', [req.params.id]),
+          ]);
+          const store = storeRes.rows[0];
+          notifyDriversNewOrder(io, {
+            id: req.params.id,
+            status: 'ready',
+            store_id: storeId,
+            total_amount: rows[0].total_amount,
+            created_at: rows[0].created_at,
+            store_name: store?.name ?? 'FNG Store',
+            items_count: itemsRes.rows[0]?.count ?? 0,
+            delivery_address: {
+              text: rows[0].delivery_address ?? '',
+              lat: rows[0].delivery_lat ?? 0,
+              lng: rows[0].delivery_lng ?? 0,
+            },
+            pickup_address: {
+              text: store?.address ?? '',
+              lat: Number(store?.lat ?? 0),
+              lng: Number(store?.lng ?? 0),
+            },
+          });
+        } catch (e) {
+          // Non-critical — do not fail the request
+          require('../config/logger').warn('[merchant/ready] driver notify failed:', e.message);
+        }
+      };
+      notifyDrivers(); // fire-and-forget
     }
 
     res.json({ order: rows[0] });

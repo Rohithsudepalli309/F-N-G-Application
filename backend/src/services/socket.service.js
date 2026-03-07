@@ -143,13 +143,30 @@ function initSocketServer(httpServer) {
       logger.info(`Admin ${socket.user.id} joined admin management room`);
     }
 
-    // ── 2d. Disconnect ───────────────────────────────────────────────────
+    // ── 2d. DRIVER: Join drivers broadcast room ──────────────────────────
+    if (socket.authenticated && socket.user.role === 'driver') {
+      socket.join('drivers');
+      logger.info(`Driver ${socket.user.id} joined drivers room`);
+    }
+
+    // ── 2e. Disconnect ───────────────────────────────────────────────────
     socket.on('disconnect', (reason) => {
       logger.info(`Socket disconnected: ${socket.id} reason: ${reason}`);
     });
   });
 
   return io;
+}
+
+// ─── 4. DRIVER BROADCAST HELPER ──────────────────────────────────────────────
+// Called when a merchant marks their order as 'ready'. Pushes the full order
+// details to all connected (online) drivers so they can see the incoming card.
+function notifyDriversNewOrder(io, order) {
+  io.to('drivers').emit('order.new_assignment', {
+    timestamp: Date.now(),
+    order,
+  });
+  logger.info(`[socket] Notified drivers room of new order ${order.id}`);
 }
 
 // ─── 3. SERVER-SIDE BROADCAST HELPERS (called from OrderService) ─────────────
@@ -174,4 +191,4 @@ function notifyOtpSent(io, phone, otp) {
   io.emit('dev:otp', { phone, otp, timestamp: Date.now() });
 }
 
-module.exports = { initSocketServer, notifyOrderStatus, notifyOrderCompleted, notifyOtpSent };
+module.exports = { initSocketServer, notifyOrderStatus, notifyOrderCompleted, notifyOtpSent, notifyDriversNewOrder };

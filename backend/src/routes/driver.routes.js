@@ -8,29 +8,43 @@ const notificationService = require('../services/notification.service');
 
 /**
  * GET /api/v1/driver/orders
- * Returns active orders for this driver (assigned) OR ready orders waiting for pickup
+ * Returns orders assigned to this driver (pickup/assigned) OR unassigned ready orders.
+ * Includes store pickup address and item count for the incoming order card.
  */
 router.get('/orders', authenticate, authorize(['driver']), async (req, res, next) => {
   try {
-    // Return orders specifically assigned to this driver, or any 'ready' orders that are unassigned
     const result = await db.query(`
-      SELECT 
-        o.id, 
-        o.status, 
-        o.total_amount AS "totalAmount", 
+      SELECT
+        o.id,
+        o.status,
+        o.store_id,
+        o.total_amount,
+        o.created_at,
         json_build_object(
-          'text', o.delivery_address, 
-          'lat', o.delivery_lat, 
-          'lng', o.delivery_lng
-        ) as "deliveryAddress"
+          'text', COALESCE(o.delivery_address, ''),
+          'lat',  COALESCE(o.delivery_lat,  0),
+          'lng',  COALESCE(o.delivery_lng,  0)
+        ) AS delivery_address,
+        COALESCE(s.name, 'FNG Store') AS store_name,
+        json_build_object(
+          'text', COALESCE(s.address, ''),
+          'lat',  COALESCE(s.lat::float, 0),
+          'lng',  COALESCE(s.lng::float, 0)
+        ) AS pickup_address,
+        COUNT(oi.id)::int AS items_count
       FROM orders o
-      LEFT JOIN deliveries d ON o.id = d.order_id
+      LEFT JOIN stores       s  ON o.store_id   = s.id
+      LEFT JOIN order_items  oi ON o.id          = oi.order_id
+      LEFT JOIN deliveries   d  ON o.id          = d.order_id
       WHERE (d.driver_id = $1 AND o.status IN ('pickup', 'assigned'))
          OR (o.status = 'ready' AND d.id IS NULL)
+      GROUP BY o.id, o.status, o.store_id, o.total_amount, o.created_at,
+               o.delivery_address, o.delivery_lat, o.delivery_lng,
+               s.name, s.address, s.lat, s.lng
       ORDER BY o.created_at DESC
       LIMIT 20
     `, [req.user.id]);
-    
+
     res.json(result.rows);
   } catch (err) {
     next(err);
@@ -73,6 +87,17 @@ router.post('/location', authenticate, authorize(['driver']), async (req, res, n
   } catch (err) {
     next(err);
   }
+});
+
+/**
+ * POST /api/v1/driver/reject
+ * Driver explicitly declines an order (no status change — other drivers can still accept).
+ */
+router.post('/reject', authenticate, authorize(['driver']), async (req, res) => {
+  const { orderId } = req.body;
+  if (!orderId) return res.status(400).json({ error: 'orderId required' });
+  logger.info(`Driver ${req.user.id} declined order ${orderId}`);
+  res.json({ success: true });
 });
 
 /**

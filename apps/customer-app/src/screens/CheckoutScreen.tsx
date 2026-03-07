@@ -99,8 +99,7 @@ export const CheckoutScreen = () => {
         : 'Address not selected';
 
       const orderPayload = {
-        id: `ORD-${Date.now()}`,
-        storeId: storeId || 'default-store',
+        storeId: storeId || undefined,
         items: items.map(i => ({
           id: i.productId,
           name: i.name,

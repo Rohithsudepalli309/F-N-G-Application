@@ -15,17 +15,25 @@ struct DriverUser: Codable {
 // MARK: - Order
 struct AssignedOrder: Codable, Identifiable {
     let id: String
-    let storeId: String
+    let storeId: String?
     let status: OrderStatus
-    let totalAmount: Int          // cents/paisa
+    let totalAmount: Int          // paisa
     let deliveryAddress: Address
     let createdAt: String
+    // Fields added for incoming order card (populated by enhanced GET /driver/orders)
+    let storeName: String?
+    let pickupAddress: Address?
+    let itemsCount: Int?
 
     enum CodingKeys: String, CodingKey {
-        case id, status, totalAmount = "total_amount"
-        case storeId = "store_id"
-        case deliveryAddress = "delivery_address"
-        case createdAt = "created_at"
+        case id, status
+        case storeId          = "store_id"
+        case totalAmount      = "total_amount"
+        case deliveryAddress  = "delivery_address"
+        case createdAt        = "created_at"
+        case storeName        = "store_name"
+        case pickupAddress    = "pickup_address"
+        case itemsCount       = "items_count"
     }
 }
 
@@ -36,7 +44,7 @@ struct Address: Codable {
 }
 
 enum OrderStatus: String, Codable {
-    case pending, placed, preparing, ready, pickup, delivered, cancelled
+    case pending, placed, preparing, ready, assigned, pickup, delivered, cancelled
 }
 
 // MARK: - Location

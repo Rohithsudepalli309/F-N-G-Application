@@ -2,7 +2,7 @@ import Foundation
 import SocketIO
 
 /// Socket.IO client for Driver App.
-/// Driver emits ONLY `driver.location.emit` — no other events.
+/// Driver emits `driver.location.emit`; listens for `order.new_assignment`.
 final class SocketService: ObservableObject {
     static let shared = SocketService()
 
@@ -10,7 +10,15 @@ final class SocketService: ObservableObject {
     private var manager: SocketManager?
     private var socket: SocketIOClient?
 
+    /// Called when `order.new_assignment` arrives from server.
+    private var newOrderHandler: ((AssignedOrder) -> Void)?
+
     private init() {}
+
+    // MARK: - Register handler for incoming order notifications
+    func onNewOrderAssignment(_ handler: @escaping (AssignedOrder) -> Void) {
+        newOrderHandler = handler
+    }
 
     // MARK: - Connect (called after driver logs in and goes Online)
     func connect(token: String) {
@@ -39,6 +47,20 @@ final class SocketService: ObservableObject {
         }
         socket.on("error") { data, _ in
             print("[Socket] Error: \(data)")
+        }
+
+        // Incoming order notification from server (broadcast to 'drivers' room)
+        socket.on("order.new_assignment") { [weak self] data, _ in
+            guard let self = self,
+                  let payload = data.first as? [String: Any],
+                  let orderDict = payload["order"] as? [String: Any],
+                  let jsonData = try? JSONSerialization.data(withJSONObject: orderDict),
+                  let order = try? JSONDecoder().decode(AssignedOrder.self, from: jsonData)
+            else {
+                print("[Socket] Could not decode order.new_assignment payload")
+                return
+            }
+            DispatchQueue.main.async { self.newOrderHandler?(order) }
         }
 
         self.manager = manager
