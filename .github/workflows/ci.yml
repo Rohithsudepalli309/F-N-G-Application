@@ -1,0 +1,157 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  # ── Backend ─────────────────────────────────────────────────────────────────
+  backend:
+    name: Backend — type-check, test & build
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: backend
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Node.js 20
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+          cache-dependency-path: backend/package-lock.json
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: TypeScript check
+        run: npx tsc --noEmit
+
+      - name: Run tests
+        run: npm test
+
+      - name: Build
+        run: npm run build
+
+  # ── Admin Dashboard ──────────────────────────────────────────────────────────
+  admin-dashboard:
+    name: Admin Dashboard — type-check, test & build
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: apps/admin-dashboard
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Node.js 20
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 9
+          run_install: false
+
+      - name: Get pnpm store
+        id: pnpm-cache
+        run: echo "STORE=$(pnpm store path --silent)" >> $GITHUB_OUTPUT
+
+      - name: Cache pnpm modules
+        uses: actions/cache@v4
+        with:
+          path: ${{ steps.pnpm-cache.outputs.STORE }}
+          key: pnpm-admin-${{ hashFiles('apps/admin-dashboard/pnpm-lock.yaml') }}
+          restore-keys: pnpm-admin-
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: TypeScript check
+        run: pnpm exec tsc --noEmit
+
+      - name: Run tests
+        run: pnpm test
+
+      - name: Build
+        run: pnpm build
+        env:
+          VITE_API_URL: http://localhost:3002/api/v1
+
+  # ── Merchant Dashboard ───────────────────────────────────────────────────────
+  merchant-dashboard:
+    name: Merchant Dashboard — type-check, test & build
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: apps/merchant-dashboard
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Node.js 20
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+          cache-dependency-path: apps/merchant-dashboard/package-lock.json
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: TypeScript check
+        run: npx tsc --noEmit
+
+      - name: Run tests
+        run: npm test
+
+      - name: Build
+        run: npm run build
+        env:
+          VITE_API_URL: http://localhost:3002/api/v1
+          VITE_SOCKET_URL: http://localhost:3002
+
+  # ── Customer App ─────────────────────────────────────────────────────────────
+  customer-app:
+    name: Customer App — type-check
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: apps/customer-app
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Node.js 20
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 9
+          run_install: false
+
+      - name: Get pnpm store
+        id: pnpm-cache
+        run: echo "STORE=$(pnpm store path --silent)" >> $GITHUB_OUTPUT
+
+      - name: Cache pnpm modules
+        uses: actions/cache@v4
+        with:
+          path: ${{ steps.pnpm-cache.outputs.STORE }}
+          key: pnpm-customer-${{ hashFiles('apps/customer-app/pnpm-lock.yaml') }}
+          restore-keys: pnpm-customer-
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: TypeScript check
+        run: pnpm exec tsc --noEmit

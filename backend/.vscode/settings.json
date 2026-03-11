@@ -1,0 +1,10 @@
+{
+    // Re-enable Jest only for this folder (overrides workspace-root jest.enable: false).
+    "jest.enable": true,
+    "jest.jestCommandLine": "npx jest",
+    "jest.rootPath": ".",
+    "jest.autoRun": {
+        "watch": false,
+        "onStartup": ["all-tests"]
+    }
+}

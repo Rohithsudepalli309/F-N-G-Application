@@ -1,0 +1,47 @@
+import { io, Socket } from 'socket.io-client';
+import { SOCKET_BASE } from './api';
+
+class SocketService {
+  private socket: Socket | null = null;
+
+  connect(token?: string) {
+    if (this.socket?.connected) {
+      console.log('[SOCKET] Already connected.');
+      return;
+    }
+
+    const socketUrl = SOCKET_BASE;
+    console.log('[SOCKET] Connecting to:', socketUrl);
+
+    this.socket = io(socketUrl, {
+      auth: { token },
+      transports: ['websocket', 'polling'],
+      reconnection: true,
+      reconnectionAttempts: Infinity,
+      reconnectionDelay: 1000,
+    });
+
+    this.socket.on('connect', () => {
+      console.log('Socket Connected');
+    });
+
+    this.socket.on('connect_error', (err) => {
+      console.warn('Socket Connection Error:', err.message);
+    });
+  }
+
+  on(event: string, callback: (data: any) => void) {
+    this.socket?.on(event, callback);
+  }
+
+  off(event: string) {
+    this.socket?.off(event);
+  }
+
+  disconnect() {
+    this.socket?.disconnect();
+    this.socket = null;
+  }
+}
+
+export const socketService = new SocketService();
