@@ -61,7 +61,7 @@ const MiniCard = React.memo(({ item }: { item: any }) => {
           ) : (
             <View style={mc.stepper}>
               <TouchableOpacity style={mc.stepBtn} onPress={handleDec}>
-                <Text style={mc.stepBtnText}>{qty === 1 ? '🗑' : '−'}</Text>
+                <Text style={mc.stepBtnText}>{qty === 1 ? '×' : '−'}</Text>
               </TouchableOpacity>
               <Text style={mc.stepNum}>{qty}</Text>
               <TouchableOpacity style={mc.stepBtn} onPress={handleInc}>

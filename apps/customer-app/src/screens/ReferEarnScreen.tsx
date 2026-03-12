@@ -91,7 +91,7 @@ export const ReferEarnScreen = () => {
       <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={styles.scroll}>
         {/* Hero */}
         <View style={styles.hero}>
-          <Text style={styles.heroIcon}>🎁</Text>
+          <Image source={{ uri: 'https://img.icons8.com/color/96/give-gift--v1.png' }} style={styles.heroImg} resizeMode="contain" />
           <Text style={styles.heroTitle}>Invite friends,{'\n'}earn F&G Coins!</Text>
           <Text style={styles.heroSub}>
             Get <Text style={styles.heroHighlight}>200 coins</Text> for every friend who places their first order
@@ -111,7 +111,7 @@ export const ReferEarnScreen = () => {
 
         {/* Share button */}
         <TouchableOpacity style={styles.shareBtn} onPress={handleShare} activeOpacity={0.85}>
-          <Text style={styles.shareBtnIcon}>📤</Text>
+          <Image source={{ uri: 'https://img.icons8.com/color/96/share--v1.png' }} style={styles.shareBtnImg} resizeMode="contain" />
           <Text style={styles.shareBtnText}>Share with Friends</Text>
         </TouchableOpacity>
 
@@ -138,7 +138,6 @@ export const ReferEarnScreen = () => {
             <View style={styles.stepBubble}>
               <Text style={styles.stepNum}>{s.step}</Text>
             </View>
-            <Text style={styles.stepIcon}>{s.icon}</Text>
             <View style={styles.stepInfo}>
               <Text style={styles.stepTitle}>{s.title}</Text>
               <Text style={styles.stepDesc}>{s.desc}</Text>
@@ -174,7 +173,7 @@ const styles = StyleSheet.create({
   scroll: { padding: 20, paddingBottom: 40 },
 
   hero: { alignItems: 'center', marginBottom: 28 },
-  heroIcon: { fontSize: 64, marginBottom: 12 },
+  heroImg: { width: 80, height: 80, marginBottom: 12 },
   heroTitle: { fontSize: 26, fontWeight: '800', color: theme.colors.text.primary, textAlign: 'center', lineHeight: 34, marginBottom: 10 },
   heroSub: { fontSize: 15, color: theme.colors.text.secondary, textAlign: 'center', lineHeight: 22 },
   heroHighlight: { color: '#F5A826', fontWeight: '800' },
@@ -193,7 +192,7 @@ const styles = StyleSheet.create({
     backgroundColor: '#F5A826', borderRadius: 14, paddingVertical: 16, marginBottom: 24,
     shadowColor: '#F5A826', shadowOffset: { width: 0, height: 6 }, shadowOpacity: 0.28, shadowRadius: 12, elevation: 6,
   },
-  shareBtnIcon: { fontSize: 20 },
+  shareBtnImg: { width: 22, height: 22 },
   shareBtnText: { color: '#fff', fontWeight: '800', fontSize: 16 },
 
   statsRow: { flexDirection: 'row', gap: 10, marginBottom: 28 },

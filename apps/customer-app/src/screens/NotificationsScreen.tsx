@@ -6,7 +6,7 @@
 import React, { useEffect, useState, useCallback } from 'react';
 import {
   View, Text, StyleSheet, SafeAreaView, StatusBar, FlatList,
-  TouchableOpacity, ActivityIndicator, RefreshControl,
+  TouchableOpacity, ActivityIndicator, RefreshControl, Image,
 } from 'react-native';
 import { useNavigation, useFocusEffect } from '@react-navigation/native';
 import { api } from '../services/api';
@@ -22,8 +22,12 @@ interface Notification {
   data?: { orderId?: string };
 }
 
-const TYPE_ICONS: Record<string, string> = {
-  order: '📦', offer: '🏷️', system: '🔔', delivery: '🛵',
+const TYPE_IMGS: Record<string, string> = {
+  order:    'https://img.icons8.com/color/96/box--v1.png',
+  offer:    'https://img.icons8.com/color/96/discount--v1.png',
+  system:   'https://img.icons8.com/color/96/appointment-reminders--v1.png',
+  delivery: 'https://img.icons8.com/color/96/motorcycle-delivery--v1.png',
+  default:  'https://img.icons8.com/color/96/appointment-reminders--v1.png',
 };
 
 const TYPE_COLORS: Record<string, string> = {
@@ -86,7 +90,7 @@ export const NotificationsScreen = () => {
       activeOpacity={0.75}
     >
       <View style={[styles.iconWrap, { backgroundColor: TYPE_COLORS[item.type] + '18' }]}>
-        <Text style={styles.icon}>{TYPE_ICONS[item.type] ?? '🔔'}</Text>
+        <Image source={{ uri: TYPE_IMGS[item.type] ?? TYPE_IMGS.default }} style={styles.iconImg} resizeMode="contain" />
       </View>
       <View style={styles.content}>
         <Text style={[styles.title, !item.is_read && styles.titleUnread]}>{item.title}</Text>
@@ -140,7 +144,7 @@ export const NotificationsScreen = () => {
           contentContainerStyle={styles.list}
           ListEmptyComponent={
             <View style={styles.empty}>
-              <Text style={styles.emptyIcon}>🔕</Text>
+              <Image source={{ uri: 'https://img.icons8.com/color/96/no-bell--v1.png' }} style={styles.emptyImg} resizeMode="contain" />
               <Text style={styles.emptyTitle}>No notifications yet</Text>
               <Text style={styles.emptySubtitle}>
                 Order updates, exclusive deals, and delivery alerts will appear here
@@ -180,7 +184,7 @@ const styles = StyleSheet.create({
   },
   notifUnread: { backgroundColor: '#163D2604' },
   iconWrap: { width: 44, height: 44, borderRadius: 22, alignItems: 'center', justifyContent: 'center' },
-  icon: { fontSize: 20 },
+  iconImg: { width: 24, height: 24 },
   content: { flex: 1 },
   title: { fontSize: 14, fontWeight: '500', color: theme.colors.text.primary, marginBottom: 3 },
   titleUnread: { fontWeight: '700' },
@@ -189,7 +193,7 @@ const styles = StyleSheet.create({
   unreadDot: { width: 8, height: 8, borderRadius: 4, backgroundColor: '#F5A826', marginTop: 6 },
 
   empty: { alignItems: 'center', paddingTop: 100, paddingHorizontal: 40 },
-  emptyIcon: { fontSize: 64, marginBottom: 16 },
+  emptyImg: { width: 72, height: 72, marginBottom: 16 },
   emptyTitle: { fontSize: 18, fontWeight: '700', color: theme.colors.text.primary, marginBottom: 8 },
   emptySubtitle: { fontSize: 14, color: theme.colors.text.secondary, textAlign: 'center', lineHeight: 22 },
 });

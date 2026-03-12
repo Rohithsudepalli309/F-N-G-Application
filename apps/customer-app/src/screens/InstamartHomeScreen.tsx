@@ -275,13 +275,13 @@ export const InstamartHomeScreen = () => {
         {/* Promise row */}
         <View style={s.promises}>
           {[
-            { icon:'⚡', t:'Super Fast', s:'Under 40 min' },
-            { icon:'🌿', t:'100% Fresh', s:'Daily sourced' },
-            { icon:'🏷️', t:'Best Price', s:'Lowest rates' },
-            { icon:'↩️', t:'Easy Return', s:'No questions' },
+            { img:'https://img.icons8.com/color/96/express-delivery--v1.png', t:'Super Fast', s:'Under 40 min' },
+            { img:'https://img.icons8.com/color/96/leaf.png',                t:'100% Fresh', s:'Daily sourced' },
+            { img:'https://img.icons8.com/color/96/price-tag--v1.png',       t:'Best Price', s:'Lowest rates' },
+            { img:'https://img.icons8.com/color/96/return-purchase--v1.png', t:'Easy Return', s:'No questions' },
           ].map(p => (
             <View key={p.t} style={s.promise}>
-              <Text style={s.promiseIcon}>{p.icon}</Text>
+              <Image source={{ uri: p.img }} style={s.promiseImg} resizeMode="contain" />
               <Text style={s.promiseTitle}>{p.t}</Text>
               <Text style={s.promiseSub}>{p.s}</Text>
             </View>
@@ -383,7 +383,7 @@ const s = StyleSheet.create({
 
   promises:      { flexDirection: 'row', justifyContent: 'space-around', backgroundColor: '#FFF', marginTop: 8, paddingVertical: 18, marginHorizontal: 16, borderRadius: 16 },
   promise:       { alignItems: 'center' },
-  promiseIcon:   { fontSize: 22, marginBottom: 5 },
+  promiseImg:   { width: 26, height: 26, marginBottom: 5 },
   promiseTitle:  { fontSize: 11, fontWeight: '800', color: '#0D1B14', textAlign: 'center' },
   promiseSub:    { fontSize: 10, color: '#9E9E9E', textAlign: 'center', marginTop: 2 },
 

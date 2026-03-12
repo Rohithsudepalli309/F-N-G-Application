@@ -7,6 +7,7 @@ import {
   TouchableOpacity,
   SafeAreaView,
   StatusBar,
+  Image,
 } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { theme } from '../theme';
@@ -18,20 +19,33 @@ interface MenuItem {
   icon: string;
 }
 
+const SETTING_IMGS: Record<string, string> = {
+  orders:        'https://img.icons8.com/color/96/online-order--v1.png',
+  gift:          'https://img.icons8.com/color/96/gift-card.png',
+  support:       'https://img.icons8.com/color/96/customer-support--v1.png',
+  addresses:     'https://img.icons8.com/color/96/place-marker--v1.png',
+  profile:       'https://img.icons8.com/color/96/user-male-circle--v1.png',
+  rewards:       'https://img.icons8.com/color/96/loyalty-card--v1.png',
+  payment:       'https://img.icons8.com/color/96/bank-card-back-side.png',
+  suggest:       'https://img.icons8.com/color/96/star--v1.png',
+  notifications: 'https://img.icons8.com/color/96/appointment-reminders--v1.png',
+  info:          'https://img.icons8.com/color/96/info--v1.png',
+};
+
 const PRIMARY_MENU: MenuItem[] = [
-  { id: 'orders', label: 'My Orders', icon: '🛍️' },
-  { id: 'gift', label: 'E-Gift Cards', icon: '🎫' },
-  { id: 'support', label: 'Help & Support', icon: '💬' },
-  { id: 'addresses', label: 'Saved Addresses', icon: '📍' },
-  { id: 'profile', label: 'Profile', icon: '👤' },
-  { id: 'rewards', label: 'Rewards', icon: '🎁' },
-  { id: 'payment', label: 'Payment Management', icon: '💳' },
+  { id: 'orders',    label: 'My Orders',            icon: 'orders' },
+  { id: 'gift',      label: 'E-Gift Cards',          icon: 'gift' },
+  { id: 'support',   label: 'Help & Support',        icon: 'support' },
+  { id: 'addresses', label: 'Saved Addresses',       icon: 'addresses' },
+  { id: 'profile',   label: 'Profile',               icon: 'profile' },
+  { id: 'rewards',   label: 'Rewards',               icon: 'rewards' },
+  { id: 'payment',   label: 'Payment Management',    icon: 'payment' },
 ];
 
 const OTHER_MENU: MenuItem[] = [
-  { id: 'suggest', label: 'Suggest Products', icon: '⭐' },
-  { id: 'notifications', label: 'Notifications', icon: '🔔' },
-  { id: 'info', label: 'General Info', icon: 'ℹ️' },
+  { id: 'suggest',       label: 'Suggest Products', icon: 'suggest' },
+  { id: 'notifications', label: 'Notifications',    icon: 'notifications' },
+  { id: 'info',          label: 'General Info',     icon: 'info' },
 ];
 
 export const SettingsScreen = () => {
@@ -64,7 +78,7 @@ export const SettingsScreen = () => {
     >
       <View style={styles.menuLeft}>
         <View style={styles.iconContainer}>
-          <Text style={styles.menuIcon}>{item.icon}</Text>
+          <Image source={{ uri: SETTING_IMGS[item.id] ?? SETTING_IMGS.info }} style={styles.menuImg} resizeMode="contain" />
         </View>
         <View style={styles.textContainer}>
           <Text style={styles.menuLabel}>{item.label}</Text>
@@ -175,8 +189,9 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     marginRight: 12,
   },
-  menuIcon: {
-    fontSize: 20,
+  menuImg: {
+    width: 24,
+    height: 24,
   },
   textContainer: {
     justifyContent: 'center',

@@ -1,7 +1,7 @@
 import React, { useEffect, useState, useCallback } from 'react';
 import {
   View, Text, StyleSheet, SafeAreaView, ScrollView,
-  ActivityIndicator, TouchableOpacity,
+  ActivityIndicator, TouchableOpacity, Image,
 } from 'react-native';
 import { theme } from '../theme';
 import { ProductCard } from '../components/ProductCard';
@@ -75,7 +75,7 @@ export const BuyAgainScreen = () => {
 
       <ScrollView contentContainerStyle={styles.content}>
         <View style={styles.infoBox}>
-          <Text style={styles.infoEmoji}>🛍️</Text>
+          <Image source={{ uri: 'https://img.icons8.com/color/96/shopping-bag--v1.png' }} style={styles.infoImg} resizeMode="contain" />
           <Text style={styles.infoTitle}>Your Recent Staples</Text>
           <Text style={styles.infoSubtitle}>Quickly add your most-ordered items back to cart.</Text>
         </View>
@@ -143,8 +143,9 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     marginBottom: 24,
   },
-  infoEmoji: {
-    fontSize: 40,
+  infoImg: {
+    width: 64,
+    height: 64,
     marginBottom: 12,
   },
   infoTitle: {

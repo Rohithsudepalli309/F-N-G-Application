@@ -2,7 +2,7 @@ import React, { useEffect, useState, useCallback } from 'react';
 import {
   View, Text, StyleSheet, SafeAreaView, StatusBar,
   ScrollView, TouchableOpacity, ActivityIndicator, RefreshControl,
-  Dimensions,
+  Dimensions, Image,
 } from 'react-native';
 import { useNavigation, useIsFocused } from '@react-navigation/native';
 import { theme } from '../theme';
@@ -12,15 +12,26 @@ import { useGroceryCartStore } from '../store/useGroceryCartStore';
 
 const { width } = Dimensions.get('window');
 
-const STATUS_META: Record<string, { label: string; color: string; bg: string; emoji: string }> = {
-  placed:    { label: 'Order Placed',     color: '#1565C0', bg: '#E3F2FD', emoji: '📋' },
-  confirmed: { label: 'Confirmed',        color: '#2E7D32', bg: '#E8F5E9', emoji: '✅' },
-  preparing: { label: 'Preparing',        color: '#F57F17', bg: '#FFF8E1', emoji: '👨‍🍳' },
-  ready:     { label: 'Ready',            color: '#6A1B9A', bg: '#F3E5F5', emoji: '📦' },
-  pickup:    { label: 'Out for Delivery', color: '#00695C', bg: '#E0F2F1', emoji: '🛵' },
-  delivered: { label: 'Delivered',        color: '#1B5E20', bg: '#E8F5E9', emoji: '🎉' },
-  cancelled: { label: 'Cancelled',        color: '#C62828', bg: '#FFEBEE', emoji: '✖' },
-  rejected:  { label: 'Rejected',         color: '#BF360C', bg: '#FBE9E7', emoji: '✖' },
+const STATUS_META: Record<string, { label: string; color: string; bg: string }> = {
+  placed:    { label: 'Order Placed',     color: '#1565C0', bg: '#E3F2FD' },
+  confirmed: { label: 'Confirmed',        color: '#2E7D32', bg: '#E8F5E9' },
+  preparing: { label: 'Preparing',        color: '#F57F17', bg: '#FFF8E1' },
+  ready:     { label: 'Ready',            color: '#6A1B9A', bg: '#F3E5F5' },
+  pickup:    { label: 'Out for Delivery', color: '#00695C', bg: '#E0F2F1' },
+  delivered: { label: 'Delivered',        color: '#1B5E20', bg: '#E8F5E9' },
+  cancelled: { label: 'Cancelled',        color: '#C62828', bg: '#FFEBEE' },
+  rejected:  { label: 'Rejected',         color: '#BF360C', bg: '#FBE9E7' },
+};
+
+const STATUS_IMG: Record<string, string> = {
+  placed:    'https://img.icons8.com/color/96/overtime--v1.png',
+  confirmed: 'https://img.icons8.com/color/96/checkmark--v1.png',
+  preparing: 'https://img.icons8.com/color/96/cooking.png',
+  ready:     'https://img.icons8.com/color/96/box--v1.png',
+  pickup:    'https://img.icons8.com/color/96/motorcycle-delivery--v1.png',
+  delivered: 'https://img.icons8.com/color/96/checked--v1.png',
+  cancelled: 'https://img.icons8.com/color/96/cancel--v1.png',
+  rejected:  'https://img.icons8.com/color/96/cancel--v1.png',
 };
 
 const FILTER_TABS = ['All', 'Active', 'Delivered', 'Cancelled'];
@@ -82,7 +93,7 @@ export const MyOrdersScreen = () => {
 
   const EmptyState = () => (
     <View style={s.empty}>
-      <Text style={s.emptyEmoji}>🛒</Text>
+      <Image source={{ uri: 'https://img.icons8.com/color/96/shopping-cart--v1.png' }} style={s.emptyImg} resizeMode="contain" />
       <Text style={s.emptyTitle}>No orders yet</Text>
       <Text style={s.emptySub}>
         {filter === 'All'
@@ -176,7 +187,11 @@ export const MyOrdersScreen = () => {
                   {/* Card top */}
                   <View style={s.cardTop}>
                     <View style={[s.statusEmojiBg, { backgroundColor: meta.bg }]}>
-                      <Text style={s.statusEmoji}>{meta.emoji}</Text>
+                      <Image
+                        source={{ uri: STATUS_IMG[order.status] ?? STATUS_IMG.placed }}
+                        style={s.statusImg}
+                        resizeMode="contain"
+                      />
                     </View>
                     <View style={s.cardTopMid}>
                       <View style={s.cardTopRow}>
@@ -209,7 +224,7 @@ export const MyOrdersScreen = () => {
                   {/* Items */}
                   <View style={s.itemsRow}>
                     <View style={[s.typeBadge, order.type === 'grocery' ? s.typeBG : s.typeFD]}>
-                      <Text style={s.typeText}>{order.type === 'grocery' ? '🛒 Grocery' : '🍔 Food'}</Text>
+                      <Text style={s.typeText}>{order.type === 'grocery' ? 'Grocery' : 'Food'}</Text>
                     </View>
                     <Text style={s.itemsList} numberOfLines={1}>
                       {order.items?.map((i: any) => i.name).slice(0, 3).join(' · ') || 'No items'}
@@ -231,7 +246,7 @@ export const MyOrdersScreen = () => {
                         : navigation.navigate('OrderDetail', { orderId: order.id })
                       }
                     >
-                      <Text style={s.detailText}>{live ? '🛵 Track Order' : 'View Details'}</Text>
+                      <Text style={s.detailText}>{live ? '→ Track Order' : 'View Details'}</Text>
                     </TouchableOpacity>
                   </View>
                 </TouchableOpacity>
@@ -271,7 +286,7 @@ const s = StyleSheet.create({
   loaderText: { color: '#9E9E9E', fontSize: 13 },
 
   empty:      { flex: 1, alignItems: 'center', justifyContent: 'center', paddingHorizontal: 40 },
-  emptyEmoji: { fontSize: 60, marginBottom: 16 },
+  emptyImg: { width: 72, height: 72, marginBottom: 16 },
   emptyTitle: { fontSize: 20, fontWeight: '800', color: '#0D1B14', marginBottom: 8 },
   emptySub:   { fontSize: 14, color: '#9E9E9E', textAlign: 'center', lineHeight: 21 },
   emptyBtn:   { marginTop: 24, backgroundColor: theme.colors.primary, paddingHorizontal: 32, paddingVertical: 13, borderRadius: 30 },
@@ -282,7 +297,7 @@ const s = StyleSheet.create({
 
   cardTop:      { flexDirection: 'row', alignItems: 'flex-start', gap: 10, marginBottom: 12 },
   statusEmojiBg:{ width: 44, height: 44, borderRadius: 12, alignItems: 'center', justifyContent: 'center' },
-  statusEmoji:  { fontSize: 22 },
+  statusImg:    { width: 26, height: 26 },
   cardTopMid:   { flex: 1 },
   cardTopRow:   { flexDirection: 'row', alignItems: 'center', gap: 8, marginBottom: 4 },
   statusPill:   { paddingHorizontal: 10, paddingVertical: 4, borderRadius: 20 },

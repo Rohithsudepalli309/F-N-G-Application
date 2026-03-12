@@ -6,7 +6,7 @@
 import React, { useEffect, useState } from 'react';
 import {
   View, Text, StyleSheet, SafeAreaView, StatusBar, FlatList,
-  TouchableOpacity, ActivityIndicator, Alert,
+  TouchableOpacity, ActivityIndicator, Alert, Image,
 } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { api } from '../services/api';
@@ -20,10 +20,16 @@ interface PaymentMethod {
   is_default: boolean;
 }
 
-const METHOD_ICONS: Record<string, string> = {
-  upi: '📲', card: '💳', wallet: '👛',
-  gpay: '🟦', phonepe: '🟣', paytm: '🔵',
-  visa: '💳', mastercard: '💳',
+const PAYMENT_IMGS: Record<string, string> = {
+  upi:        'https://img.icons8.com/color/96/bhim.png',
+  card:       'https://img.icons8.com/color/96/bank-card-back-side.png',
+  wallet:     'https://img.icons8.com/color/96/wallet--v1.png',
+  gpay:       'https://img.icons8.com/color/96/google-pay.png',
+  phonepe:    'https://img.icons8.com/color/96/phonepe.png',
+  paytm:      'https://img.icons8.com/color/96/paytm.png',
+  visa:       'https://img.icons8.com/color/96/visa.png',
+  mastercard: 'https://img.icons8.com/color/96/mastercard.png',
+  default:    'https://img.icons8.com/color/96/bank-card-back-side.png',
 };
 
 const PROVIDER_COLORS: Record<string, string> = {
@@ -69,9 +75,11 @@ export const PaymentMethodsScreen = () => {
     return (
       <View style={[styles.card, item.is_default && styles.cardDefault]}>
         <View style={[styles.methodIconWrap, { backgroundColor: color + '18' }]}>
-          <Text style={styles.methodIcon}>
-            {METHOD_ICONS[providerKey] ?? METHOD_ICONS[item.type]}
-          </Text>
+          <Image
+            source={{ uri: PAYMENT_IMGS[providerKey] ?? PAYMENT_IMGS[item.type] ?? PAYMENT_IMGS.default }}
+            style={styles.methodImg}
+            resizeMode="contain"
+          />
         </View>
         <View style={styles.methodInfo}>
           <Text style={styles.methodProvider}>{item.provider ?? item.type.toUpperCase()}</Text>
@@ -176,7 +184,7 @@ const styles = StyleSheet.create({
   },
   cardDefault: { borderColor: '#163D26' },
   methodIconWrap: { width: 46, height: 46, borderRadius: 23, alignItems: 'center', justifyContent: 'center' },
-  methodIcon: { fontSize: 22 },
+  methodImg: { width: 32, height: 32 },
   methodInfo: { flex: 1 },
   methodProvider: { fontSize: 14, fontWeight: '700', color: theme.colors.text.primary },
   methodIdentifier: { fontSize: 13, color: theme.colors.text.secondary, marginTop: 2 },

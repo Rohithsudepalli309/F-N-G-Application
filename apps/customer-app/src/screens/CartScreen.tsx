@@ -95,7 +95,7 @@ export const CartScreen = () => {
                 <View style={styles.titleRow}>
                   <Text style={styles.headerTitle}>Your Cart</Text>
                   <View style={styles.foodPill}>
-                    <Text style={styles.foodPillText}>🍔 Food</Text>
+                    <Text style={styles.foodPillText}>Food</Text>
                   </View>
                 </View>
                 <Text style={styles.headerSub}>{items.length} Items</Text>
@@ -121,15 +121,15 @@ export const CartScreen = () => {
             <Text style={styles.sectionTitle}>Delivery Instructions</Text>
             <ScrollView horizontal showsHorizontalScrollIndicator={false}>
                 <TouchableOpacity style={styles.instrCard}>
-                    <Text style={styles.instrEmoji}>🔕</Text>
+                    <Image source={{ uri: 'https://img.icons8.com/color/96/no-bell--v1.png' }} style={styles.instrImg} resizeMode="contain" />
                     <Text style={styles.instrText}>Don't ring the bell</Text>
                 </TouchableOpacity>
                 <TouchableOpacity style={styles.instrCard}>
-                    <Text style={styles.instrEmoji}>📦</Text>
+                    <Image source={{ uri: 'https://img.icons8.com/color/96/box--v1.png' }} style={styles.instrImg} resizeMode="contain" />
                     <Text style={styles.instrText}>Leave at the gate</Text>
                 </TouchableOpacity>
                 <TouchableOpacity style={styles.instrCard}>
-                    <Text style={styles.instrEmoji}>🤳</Text>
+                    <Image source={{ uri: 'https://img.icons8.com/color/96/no-phone--v1.png' }} style={styles.instrImg} resizeMode="contain" />
                     <Text style={styles.instrText}>Avoid calling</Text>
                 </TouchableOpacity>
             </ScrollView>
@@ -327,8 +327,9 @@ const styles = StyleSheet.create({
       borderWidth: 1,
       borderColor: '#F0F0F0',
   },
-  instrEmoji: {
-      fontSize: 20,
+  instrImg: {
+      width: 24,
+      height: 24,
       marginBottom: 6,
   },
   instrText: {

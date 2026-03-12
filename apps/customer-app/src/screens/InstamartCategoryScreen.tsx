@@ -55,7 +55,7 @@ const ProductCard = ({ product, storeId }: { product: GroceryProduct; storeId: s
           <Image source={{ uri: product.image }} style={pStyles.image} resizeMode="contain" />
         ) : (
           <View style={[pStyles.image, pStyles.imagePlaceholder]}>
-            <Text style={{ fontSize: 32 }}>📦</Text>
+            <Image source={{ uri: 'https://img.icons8.com/color/96/box--v1.png' }} style={{ width: 48, height: 48 }} resizeMode="contain" />
           </View>
         )}
         {discountPct > 0 && (
@@ -181,7 +181,7 @@ export const InstamartCategoryScreen = () => {
         </TouchableOpacity>
         <Text style={styles.headerTitle} numberOfLines={1}>{categoryName}</Text>
         <TouchableOpacity style={styles.cartBtn} onPress={() => navigation.navigate('GroceryCart')}>
-          <Text style={styles.cartIcon}>🛒</Text>
+          <Image source={{ uri: 'https://img.icons8.com/color/96/shopping-cart--v1.png' }} style={styles.cartImg} resizeMode="contain" />
           {cartItems.length > 0 && (
             <View style={styles.cartBadge}>
               <Text style={styles.cartBadgeText}>{cartItems.length}</Text>
@@ -220,7 +220,7 @@ export const InstamartCategoryScreen = () => {
           showsVerticalScrollIndicator={false}
           ListEmptyComponent={
             <View style={styles.empty}>
-              <Text style={styles.emptyEmoji}>🏪</Text>
+              <Image source={{ uri: 'https://img.icons8.com/color/96/shop--v1.png' }} style={styles.emptyImg} resizeMode="contain" />
               <Text style={styles.emptyText}>No products found</Text>
             </View>
           }
@@ -245,7 +245,7 @@ const styles = StyleSheet.create({
   backIcon: { fontSize: 22, fontWeight: '600', color: theme.colors.text.primary },
   headerTitle: { flex: 1, fontSize: 17, fontWeight: '800', color: theme.colors.text.primary, marginLeft: 6 },
   cartBtn: { position: 'relative', padding: 8 },
-  cartIcon: { fontSize: 22 },
+  cartImg: { width: 26, height: 26 },
   cartBadge: { position: 'absolute', top: 4, right: 4, width: 16, height: 16, borderRadius: 8, backgroundColor: theme.colors.accent, alignItems: 'center', justifyContent: 'center' },
   cartBadgeText: { fontSize: 9, fontWeight: '800', color: theme.colors.primary },
   sortRow: { flexDirection: 'row', paddingHorizontal: 12, paddingVertical: 8, gap: 8, borderBottomWidth: 1, borderBottomColor: theme.colors.border },
@@ -255,7 +255,7 @@ const styles = StyleSheet.create({
   sortTextActive: { color: '#FFF' },
   grid: { paddingHorizontal: 10, paddingTop: 10, paddingBottom: 100 },
   empty: { alignItems: 'center', marginTop: 60 },
-  emptyEmoji: { fontSize: 48 },
+  emptyImg: { width: 56, height: 56 },
   emptyText: { fontSize: 16, color: theme.colors.text.secondary, marginTop: 12 },
   cartBar: { position: 'absolute', bottom: 16, left: 16, right: 16, backgroundColor: theme.colors.primary, borderRadius: theme.borderRadius.l, padding: 16, flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
   cartBarLeft: { color: '#FFF', fontSize: 14, fontWeight: '600' },

@@ -168,7 +168,7 @@ export const GroceryCartScreen = () => {
           <View style={{ width: 40 }} />
         </View>
         <View style={styles.empty}>
-          <Text style={styles.emptyIcon}>🛒</Text>
+          <Image source={{ uri: 'https://img.icons8.com/color/96/shopping-cart--v1.png' }} style={styles.emptyImg} resizeMode="contain" />
           <Text style={styles.emptyTitle}>Your basket is empty</Text>
           <Text style={styles.emptySubtitle}>Add grocery items to start your order</Text>
           <TouchableOpacity
@@ -201,7 +201,7 @@ export const GroceryCartScreen = () => {
 
       {/* Delivery promise banner */}
       <View style={styles.promiseBanner}>
-        <Text style={styles.promiseIcon}>⚡</Text>
+        <Image source={{ uri: 'https://img.icons8.com/color/96/express-delivery--v1.png' }} style={styles.promiseImg} resizeMode="contain" />
         <Text style={styles.promiseText}>Delivery in <Text style={styles.promiseBold}>30 minutes</Text></Text>
       </View>
 
@@ -213,7 +213,7 @@ export const GroceryCartScreen = () => {
               {item.image
                 ? <Image source={{ uri: item.image }} style={styles.itemImage} />
                 : <View style={[styles.itemImage, styles.itemImagePlaceholder]}>
-                    <Text style={{ fontSize: 24 }}>🥦</Text>
+                    <Image source={{ uri: 'https://img.icons8.com/color/96/broccoli--v1.png' }} style={{ width: 36, height: 36 }} resizeMode="contain" />
                   </View>
               }
               <View style={styles.itemInfo}>
@@ -228,7 +228,7 @@ export const GroceryCartScreen = () => {
                     : updateQty(item.productId, item.quantity - 1)
                   }
                 >
-                  <Text style={styles.qtyBtnText}>{item.quantity <= 1 ? '🗑' : '−'}</Text>
+                  <Text style={styles.qtyBtnText}>{item.quantity <= 1 ? '×' : '−'}</Text>
                 </TouchableOpacity>
                 <Text style={styles.qtyNum}>{item.quantity}</Text>
                 <TouchableOpacity
@@ -245,7 +245,7 @@ export const GroceryCartScreen = () => {
         {/* Delivery Address */}
         <View style={styles.addressCard}>
           <View style={styles.addressHeader}>
-            <Text style={styles.addressTitle}>📍  Deliver to</Text>
+            <Text style={styles.addressTitle}>Deliver to</Text>
             <TouchableOpacity
               onPress={() => navigation.navigate('SavedAddresses', { selectMode: true })}
             >
@@ -268,7 +268,7 @@ export const GroceryCartScreen = () => {
 
         {/* Coupon */}
         <View style={styles.couponCard}>
-          <Text style={styles.couponTitle}>🏷️  Coupon Code</Text>
+          <Text style={styles.couponTitle}>Coupon Code</Text>
           {couponDiscount > 0 ? (
             <View style={styles.couponAppliedRow}>
               <View>
@@ -345,7 +345,7 @@ export const GroceryCartScreen = () => {
         {/* Savings note */}
         {cartTotal > 0 && (
           <View style={styles.savingsBar}>
-            <Text style={styles.savingsText}>🎉  You're saving on this order!</Text>
+            <Text style={styles.savingsText}>You're saving on this order!</Text>
           </View>
         )}
       </ScrollView>
@@ -391,7 +391,7 @@ const styles = StyleSheet.create({
     backgroundColor: '#F0FDF4', padding: 12, paddingHorizontal: 16,
     borderBottomWidth: 1, borderBottomColor: '#D1FAE5',
   },
-  promiseIcon: { fontSize: 18 },
+  promiseImg: { width: 22, height: 22 },
   promiseText: { fontSize: 14, color: '#163D26' },
   promiseBold: { fontWeight: '800' },
 
@@ -452,7 +452,7 @@ const styles = StyleSheet.create({
   checkoutBtnText: { color: '#fff', fontWeight: '800', fontSize: 15 },
 
   empty: { flex: 1, alignItems: 'center', justifyContent: 'center', padding: 40 },
-  emptyIcon: { fontSize: 72, marginBottom: 16 },
+  emptyImg: { width: 80, height: 80, marginBottom: 16 },
   emptyTitle: { fontSize: 20, fontWeight: '700', color: theme.colors.text.primary, marginBottom: 8 },
   emptySubtitle: { fontSize: 14, color: theme.colors.text.secondary, textAlign: 'center', marginBottom: 24 },
   shopBtn: {

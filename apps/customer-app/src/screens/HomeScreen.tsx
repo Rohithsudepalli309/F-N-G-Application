@@ -17,7 +17,7 @@ const BANNER_DATA = [
   {
     id: '1',
     bg: '#0C3B2E',
-    tag: '⚡ LIGHTNING DEAL',
+    tag: 'LIGHTNING DEAL',
     title: 'Grocery\nDelivered\nin 10 Mins',
     sub: 'Fresh produce at your door',
     badge: '40% OFF',
@@ -27,7 +27,7 @@ const BANNER_DATA = [
   {
     id: '2',
     bg: '#1B3A5C',
-    tag: '🛒 TOP BRANDS',
+    tag: 'TOP BRANDS',
     title: 'Munchies &\nSnacks',
     sub: 'Lays, Oreo, Kurkure & more',
     badge: '₹99 Store',
@@ -37,7 +37,7 @@ const BANNER_DATA = [
   {
     id: '3',
     bg: '#4A1942',
-    tag: '🥛 DAILY ESSENTIALS',
+    tag: 'DAILY ESSENTIALS',
     title: 'Dairy &\nBreakfast',
     sub: 'Milk, eggs, bread & butter',
     badge: '15% OFF',
@@ -58,9 +58,9 @@ const QUICK_CATS = [
 ];
 
 const OFFERS = [
-  { id: 'o1', text: 'FREE delivery on orders above ₹299', icon: '🚚' },
-  { id: 'o2', text: 'Use WELCOME50 — Flat ₹50 off', icon: '🎁' },
-  { id: 'o3', text: 'Pay with UPI, get ₹20 cashback', icon: '💸' },
+  { id: 'o1', text: 'FREE delivery on orders above ₹299', img: 'https://img.icons8.com/color/96/in-transit--v1.png' },
+  { id: 'o2', text: 'Use WELCOME50 — Flat ₹50 off',       img: 'https://img.icons8.com/color/96/give-gift--v1.png' },
+  { id: 'o3', text: 'Pay with UPI, get ₹20 cashback',       img: 'https://img.icons8.com/color/96/coin--v1.png' },
 ];
 
 const CATEGORY_GRID = [
@@ -227,7 +227,7 @@ const ProductRow = ({ products, loading, onSeeAll }: ProductRowProps) => {
       })}
       {onSeeAll && (
         <TouchableOpacity style={pr.seeAllCard} onPress={onSeeAll}>
-          <Text style={pr.seeAllEmoji}>🛒</Text>
+          <Image source={{ uri: 'https://img.icons8.com/color/96/shopping-cart--v1.png' }} style={pr.seeAllImg} resizeMode="contain" />
           <Text style={pr.seeAllText}>See{'\n'}All</Text>
           <Text style={pr.seeAllArrow}>→</Text>
         </TouchableOpacity>
@@ -237,7 +237,7 @@ const ProductRow = ({ products, loading, onSeeAll }: ProductRowProps) => {
 };
 const pr = StyleSheet.create({
   seeAllCard:  { width: 110, height: 185, borderRadius: 14, backgroundColor: '#F0F7F2', alignItems: 'center', justifyContent: 'center', marginRight: 8, borderWidth: 1.5, borderColor: theme.colors.primary, borderStyle: 'dashed' },
-  seeAllEmoji: { fontSize: 28, marginBottom: 6 },
+  seeAllImg:  { width: 32, height: 32, marginBottom: 6 },
   seeAllText:  { fontSize: 13, fontWeight: '800', color: theme.colors.primary, textAlign: 'center', lineHeight: 17 },
   seeAllArrow: { fontSize: 18, color: theme.colors.primary, marginTop: 4 },
 });
@@ -304,7 +304,7 @@ export const HomeScreen = () => {
         <View style={s.headerRow1}>
           <TouchableOpacity style={s.locationBtn} activeOpacity={0.8}>
             <View style={s.locationIcon}>
-              <Text style={{ fontSize: 14 }}>📍</Text>
+              <Image source={{ uri: 'https://img.icons8.com/color/96/place-marker--v1.png' }} style={{ width: 18, height: 18 }} resizeMode="contain" />
             </View>
             <View style={s.locationTexts}>
               <Text style={s.locationLabel}>DELIVER TO</Text>
@@ -319,7 +319,7 @@ export const HomeScreen = () => {
 
           <View style={s.headerRight}>
             <View style={s.deliveryBadge}>
-              <Text style={s.deliveryBolt}>⚡</Text>
+              <Image source={{ uri: 'https://img.icons8.com/color/96/express-delivery--v1.png' }} style={s.deliveryBoltImg} resizeMode="contain" />
               <Text style={s.deliveryTime}>10 min</Text>
             </View>
             <TouchableOpacity style={s.avatarBtn} onPress={() => goTo('Settings')}>
@@ -332,16 +332,16 @@ export const HomeScreen = () => {
 
         {/* Row 2: Search bar */}
         <TouchableOpacity style={s.searchBar} onPress={() => goTo('SearchTab')} activeOpacity={0.8}>
-          <Text style={s.searchIcon}>🔍</Text>
+          <Image source={{ uri: 'https://img.icons8.com/color/96/search--v1.png' }} style={s.searchIconImg} resizeMode="contain" />
           <Text style={s.searchPlaceholder}>Search "milk", "chips", "atta"…</Text>
           <View style={s.micBtn}>
-            <Text style={{ fontSize: 14 }}>🎙️</Text>
+            <Image source={{ uri: 'https://img.icons8.com/color/96/microphone--v1.png' }} style={{ width: 18, height: 18 }} resizeMode="contain" />
           </View>
         </TouchableOpacity>
 
         {/* Row 3: Offer ticker */}
         <View style={s.offerTicker}>
-          <Text style={s.offerIcon}>{OFFERS[offerIndex].icon}</Text>
+          <Image source={{ uri: OFFERS[offerIndex].img }} style={s.offerIconImg} resizeMode="contain" />
           <Text style={s.offerText}>{OFFERS[offerIndex].text}</Text>
         </View>
       </View>
@@ -356,13 +356,15 @@ export const HomeScreen = () => {
             onPress={() => goTo('OrderTracking', { orderId: activeOrder.id })}
           >
             <View style={s.liveOrderLeft}>
-              <Text style={s.liveOrderEmoji}>
-                {activeOrder.status === 'pickup'
-                  ? '🛵'
+              <Image
+                source={{ uri: activeOrder.status === 'pickup'
+                  ? 'https://img.icons8.com/color/96/motorcycle-delivery--v1.png'
                   : activeOrder.status === 'ready'
-                  ? '📦'
-                  : '🥘'}
-              </Text>
+                  ? 'https://img.icons8.com/color/96/box--v1.png'
+                  : 'https://img.icons8.com/color/96/cooking.png' }}
+                style={s.liveOrderImg}
+                resizeMode="contain"
+              />
               <View>
                 <Text style={s.liveOrderTitle}>
                   {activeOrder.status === 'pickup'
@@ -462,7 +464,7 @@ export const HomeScreen = () => {
 
         {/* Zero fee bar */}
         <View style={s.zeroFeeBar}>
-          <Text style={s.zeroFeeIcon}>🚚</Text>
+          <Image source={{ uri: 'https://img.icons8.com/color/96/in-transit--v1.png' }} style={s.zeroFeeIconImg} resizeMode="contain" />
           <Text style={s.zeroFeeText}>FREE delivery  ·  Zero handling fee  ·  Zero surge pricing</Text>
         </View>
 
@@ -486,7 +488,7 @@ export const HomeScreen = () => {
             style={[s.promoCard, { backgroundColor: '#E8F5E9' }]}
             onPress={() => goTo('ProductList', { categoryName: 'Dairy, Bread & Eggs' })}
           >
-            <Text style={s.promoTitle}>🥛 Dairy & Eggs</Text>
+            <Text style={s.promoTitle}>Dairy & Eggs</Text>
             <Text style={s.promoSub}>Fresh every morning</Text>
             <Text style={s.promoDiscount}>15% OFF</Text>
           </TouchableOpacity>
@@ -494,7 +496,7 @@ export const HomeScreen = () => {
             style={[s.promoCard, { backgroundColor: '#FFF8E1' }]}
             onPress={() => goTo('ProductList', { categoryName: 'Cleaning Essentials' })}
           >
-            <Text style={s.promoTitle}>🧹 Home Care</Text>
+            <Text style={s.promoTitle}>Home Care</Text>
             <Text style={s.promoSub}>Top brands, best prices</Text>
             <Text style={s.promoDiscount}>Up to 30% OFF</Text>
           </TouchableOpacity>
@@ -531,13 +533,13 @@ export const HomeScreen = () => {
         {/* Trust footer */}
         <View style={s.trustStrip}>
           {[
-            { icon: '🌿', label: '100%\nFresh' },
-            { icon: '⚡', label: '10 Min\nDelivery' },
-            { icon: '🏷️', label: 'Best\nPrices' },
-            { icon: '↩️', label: 'Easy\nReturns' },
+            { img: 'https://img.icons8.com/color/96/leaf.png',                     label: '100%\nFresh' },
+            { img: 'https://img.icons8.com/color/96/express-delivery--v1.png',     label: '10 Min\nDelivery' },
+            { img: 'https://img.icons8.com/color/96/price-tag--v1.png',            label: 'Best\nPrices' },
+            { img: 'https://img.icons8.com/color/96/return-purchase--v1.png',      label: 'Easy\nReturns' },
           ].map(t => (
             <View key={t.label} style={s.trustItem}>
-              <Text style={s.trustIcon}>{t.icon}</Text>
+              <Image source={{ uri: t.img }} style={s.trustImg} resizeMode="contain" />
               <Text style={s.trustLabel}>{t.label}</Text>
             </View>
           ))}
@@ -575,24 +577,24 @@ const s = StyleSheet.create({
   chevron:       { fontSize: 11, color: theme.colors.primary, fontWeight: '900' },
   headerRight:   { flexDirection: 'row', alignItems: 'center', gap: 10 },
   deliveryBadge: { flexDirection: 'row', alignItems: 'center', backgroundColor: theme.colors.primary, paddingHorizontal: 10, paddingVertical: 5, borderRadius: 20 },
-  deliveryBolt:  { fontSize: 12, marginRight: 3 },
+  deliveryBoltImg: { width: 14, height: 14, marginRight: 3, tintColor: '#FFF' },
   deliveryTime:  { color: '#FFF', fontSize: 12, fontWeight: '800' },
   avatarBtn:     {},
   avatar:        { width: 34, height: 34, borderRadius: 17, backgroundColor: theme.colors.primary, alignItems: 'center', justifyContent: 'center' },
   avatarText:    { color: '#FFF', fontSize: 14, fontWeight: '900' },
 
   searchBar:         { flexDirection: 'row', alignItems: 'center', backgroundColor: '#F7F7F7', marginHorizontal: 16, marginBottom: 10, height: 44, borderRadius: 10, paddingHorizontal: 14, borderWidth: 1, borderColor: '#EBEBEB' },
-  searchIcon:        { fontSize: 15, marginRight: 8 },
+  searchIconImg:     { width: 18, height: 18, marginRight: 8 },
   searchPlaceholder: { flex: 1, fontSize: 13, color: '#9E9E9E', fontWeight: '500' },
   micBtn:            { width: 32, height: 32, borderRadius: 16, backgroundColor: '#F0F4EF', alignItems: 'center', justifyContent: 'center' },
 
   offerTicker: { backgroundColor: theme.colors.primary, paddingHorizontal: 16, paddingVertical: 7, flexDirection: 'row', alignItems: 'center' },
-  offerIcon:   { fontSize: 13, marginRight: 8 },
+  offerIconImg: { width: 16, height: 16, marginRight: 8, tintColor: '#FFF' },
   offerText:   { color: '#FFFFFF', fontSize: 11, fontWeight: '600', flex: 1 },
 
   liveOrder:      { marginHorizontal: 16, marginTop: 14, backgroundColor: '#0D1B14', borderRadius: 14, padding: 14, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', elevation: 4 },
   liveOrderLeft:  { flexDirection: 'row', alignItems: 'center', flex: 1 },
-  liveOrderEmoji: { fontSize: 28, marginRight: 12 },
+  liveOrderImg:   { width: 30, height: 30, marginRight: 12 },
   liveOrderTitle: { color: '#FFF', fontSize: 14, fontWeight: '700' },
   liveOrderSub:   { color: '#9E9E9E', fontSize: 11, marginTop: 2 },
   trackPill:      { backgroundColor: '#F5A826', paddingHorizontal: 14, paddingVertical: 7, borderRadius: 20 },
@@ -623,7 +625,7 @@ const s = StyleSheet.create({
   section: { marginTop: 24, backgroundColor: '#FFFFFF', paddingTop: 16, paddingBottom: 4 },
 
   zeroFeeBar:  { backgroundColor: '#E8F5E9', paddingHorizontal: 16, paddingVertical: 10, flexDirection: 'row', alignItems: 'center' },
-  zeroFeeIcon: { fontSize: 16, marginRight: 8 },
+  zeroFeeIconImg: { width: 20, height: 20, marginRight: 8 },
   zeroFeeText: { fontSize: 12, fontWeight: '700', color: '#2E7D32', flex: 1 },
 
   promoRow:      { flexDirection: 'row', paddingHorizontal: 16, marginTop: 16, gap: 12 },
@@ -634,6 +636,6 @@ const s = StyleSheet.create({
 
   trustStrip: { flexDirection: 'row', justifyContent: 'space-around', paddingVertical: 20, marginTop: 16, backgroundColor: '#FFFFFF', marginHorizontal: 16, borderRadius: 16 },
   trustItem:  { alignItems: 'center' },
-  trustIcon:  { fontSize: 24, marginBottom: 6 },
+  trustImg:  { width: 28, height: 28, marginBottom: 6 },
   trustLabel: { fontSize: 11, fontWeight: '700', color: '#0D1B14', textAlign: 'center', lineHeight: 15 },
 });
