@@ -47,14 +47,14 @@ const BANNER_DATA = [
 ];
 
 const QUICK_CATS = [
-  { id: '1', label: 'Fruits & Veg',  cat: 'Fruits & Vegetables',    emoji: '🥦', bg: '#E8F5E9', color: '#2E7D32' },
-  { id: '2', label: 'Dairy & Eggs',  cat: 'Dairy, Bread & Eggs',    emoji: '🥛', bg: '#E3F2FD', color: '#1565C0' },
-  { id: '3', label: 'Snacks',        cat: 'Munchies',               emoji: '🍟', bg: '#FFF8E1', color: '#F57F17' },
-  { id: '4', label: 'Beverages',     cat: 'Beverages',              emoji: '🧃', bg: '#E8F5E9', color: '#1B5E20' },
-  { id: '5', label: 'Breakfast',     cat: 'Breakfast & Sauces',     emoji: '🍞', bg: '#FBE9E7', color: '#BF360C' },
-  { id: '6', label: 'Atta & Rice',   cat: 'Atta, Rice, Oil & Dals', emoji: '🌾', bg: '#FFF3E0', color: '#E65100' },
-  { id: '7', label: 'Cleaning',      cat: 'Cleaning Essentials',    emoji: '🧹', bg: '#F3E5F5', color: '#6A1B9A' },
-  { id: '8', label: 'Personal Care', cat: 'Personal Care',          emoji: '🧴', bg: '#E0F7FA', color: '#006064' },
+  { id: '1', label: 'Fruits & Veg',  cat: 'Fruits & Vegetables',    image: 'https://images.unsplash.com/photo-1540420773420-3366772f4999?w=120&q=80', bg: '#E8F5E9', color: '#2E7D32' },
+  { id: '2', label: 'Dairy & Eggs',  cat: 'Dairy, Bread & Eggs',    image: 'https://images.unsplash.com/photo-1628088062854-d1870b4553da?w=120&q=80', bg: '#E3F2FD', color: '#1565C0' },
+  { id: '3', label: 'Snacks',        cat: 'Munchies',               image: 'https://images.unsplash.com/photo-1599490659213-e2b9527bd087?w=120&q=80', bg: '#FFF8E1', color: '#F57F17' },
+  { id: '4', label: 'Beverages',     cat: 'Beverages',              image: 'https://images.unsplash.com/photo-1622483767028-3f66f32aef97?w=120&q=80', bg: '#E8F5E9', color: '#1B5E20' },
+  { id: '5', label: 'Breakfast',     cat: 'Breakfast & Sauces',     image: 'https://images.unsplash.com/photo-1533920379810-6bedac9c1d22?w=120&q=80', bg: '#FBE9E7', color: '#BF360C' },
+  { id: '6', label: 'Atta & Rice',   cat: 'Atta, Rice, Oil & Dals', image: 'https://images.unsplash.com/photo-1586201375761-83865001e31c?w=120&q=80', bg: '#FFF3E0', color: '#E65100' },
+  { id: '7', label: 'Cleaning',      cat: 'Cleaning Essentials',    image: 'https://images.unsplash.com/photo-1585421514738-01798e348b17?w=120&q=80', bg: '#F3E5F5', color: '#6A1B9A' },
+  { id: '8', label: 'Personal Care', cat: 'Personal Care',          image: 'https://images.unsplash.com/photo-1584308666744-24d5c474f2ae?w=120&q=80', bg: '#E0F7FA', color: '#006064' },
 ];
 
 const OFFERS = [
@@ -64,10 +64,10 @@ const OFFERS = [
 ];
 
 const CATEGORY_GRID = [
-  { id: 'g1', label: 'Fruits & Veg',    image: 'https://images.unsplash.com/photo-1610832958506-aa56368176cf?w=200&q=80', cat: 'Fruits & Vegetables' },
-  { id: 'g2', label: 'Dairy & Eggs',    image: 'https://images.unsplash.com/photo-1628088062854-d1870b4553da?w=200&q=80', cat: 'Dairy, Bread & Eggs' },
-  { id: 'g3', label: 'Snacks',          image: 'https://images.unsplash.com/photo-1599490659213-e2b9527bd087?w=200&q=80', cat: 'Munchies' },
-  { id: 'g4', label: 'Atta & Rice',     image: 'https://images.unsplash.com/photo-1586201375761-83865001e31c?w=200&q=80', cat: 'Atta, Rice, Oil & Dals' },
+  { id: 'g1', label: 'Fruits & Veg',    image: 'https://images.unsplash.com/photo-1540420773420-3366772f4999?w=300&q=80', cat: 'Fruits & Vegetables' },
+  { id: 'g2', label: 'Dairy & Eggs',    image: 'https://images.unsplash.com/photo-1628088062854-d1870b4553da?w=300&q=80', cat: 'Dairy, Bread & Eggs' },
+  { id: 'g3', label: 'Snacks',          image: 'https://images.unsplash.com/photo-1599490659213-e2b9527bd087?w=300&q=80', cat: 'Munchies' },
+  { id: 'g4', label: 'Atta & Rice',     image: 'https://images.unsplash.com/photo-1586201375761-83865001e31c?w=300&q=80', cat: 'Atta, Rice, Oil & Dals' },
   { id: 'g5', label: 'Beverages',       image: 'https://images.unsplash.com/photo-1629203851122-3726ecdf080e?w=200&q=80', cat: 'Beverages' },
   { id: 'g6', label: 'Home & Cleaning', image: 'https://images.unsplash.com/photo-1585421514738-01798e348b17?w=200&q=80', cat: 'Cleaning Essentials' },
   { id: 'g7', label: 'Personal Care',   image: 'https://images.unsplash.com/photo-1584308666744-24d5c474f2ae?w=200&q=80', cat: 'Personal Care' },
@@ -398,7 +398,7 @@ export const HomeScreen = () => {
                 onPress={() => goTo('ProductList', { categoryName: q.cat })}
                 activeOpacity={0.8}
               >
-                <Text style={s.quickCatEmoji}>{q.emoji}</Text>
+                <Image source={{ uri: q.image }} style={s.quickCatImg} resizeMode="cover" />
                 <Text style={[s.quickCatLabel, { color: q.color }]}>{q.label}</Text>
               </TouchableOpacity>
             ))}
@@ -595,8 +595,8 @@ const s = StyleSheet.create({
   trackText:      { color: '#0D1B14', fontSize: 11, fontWeight: '900', letterSpacing: 0.5 },
 
   quickCatRow:   { paddingHorizontal: 16, paddingBottom: 4, gap: 8 },
-  quickCat:      { alignItems: 'center', justifyContent: 'center', paddingHorizontal: 14, paddingVertical: 10, borderRadius: 12, minWidth: 72 },
-  quickCatEmoji: { fontSize: 24, marginBottom: 4 },
+  quickCat:      { alignItems: 'center', justifyContent: 'center', paddingHorizontal: 10, paddingVertical: 10, borderRadius: 12, minWidth: 72 },
+  quickCatImg:   { width: 44, height: 44, borderRadius: 10, marginBottom: 6, overflow: 'hidden' } as any,
   quickCatLabel: { fontSize: 11, fontWeight: '700', textAlign: 'center' },
 
   catGridSection:  { marginHorizontal: 16, marginTop: 20, marginBottom: 4 },
