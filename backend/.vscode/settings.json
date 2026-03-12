@@ -6,5 +6,11 @@
     "jest.autoRun": {
         "watch": false,
         "onStartup": ["all-tests"]
-    }
+    },
+
+    // SQL dialect — migrations target PostgreSQL, not T-SQL.
+    // This suppresses false-positive errors for PostgreSQL-only syntax such as
+    // "ADD COLUMN IF NOT EXISTS" which is perfectly valid in Postgres but unknown
+    // to the SQL Server lint engine that VS Code uses by default.
+    "sql.lintingEnabled": false
 }
