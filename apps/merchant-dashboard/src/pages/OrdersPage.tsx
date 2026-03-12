@@ -101,7 +101,7 @@ export default function OrdersPage() {
   const doAction = async (orderId: number, action: 'accept' | 'reject' | 'ready') => {
     setActionLoading(orderId);
     try {
-      await api.patch(`/merchant/orders/${orderId}/${action}`);
+      await api.patch(`/merchant/orders/${orderId}/status`, { action });
       toast('success', ACTION_LABEL[action]);
       await fetchOrders();
     } catch {

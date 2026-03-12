@@ -50,10 +50,9 @@ export default function ActiveOrderScreen(): React.JSX.Element {
   async function handlePickup(): Promise<void> {
     try {
       setLoading(true);
-      await api.post(`/driver/pickup/${activeOrder!.id}`);
-      // Refresh active order to get updated status
-      const res = await api.get<{order: typeof activeOrder}>(`/driver/orders/${activeOrder!.id}`);
-      setActiveOrder(res.data.order);
+      await api.post('/driver/pickup', { orderId: activeOrder!.id });
+      // Update status locally — backend confirmed success
+      setActiveOrder({ ...activeOrder!, status: 'out_for_delivery' });
     } catch (e: unknown) {
       const msg = (e as {response?: {data?: {error?: string}}}).response?.data?.error ?? 'Could not confirm pickup.';
       Alert.alert('Error', msg);
@@ -71,7 +70,7 @@ export default function ActiveOrderScreen(): React.JSX.Element {
     }
     try {
       setLoading(true);
-      await api.post(`/driver/complete/${activeOrder!.id}`, {deliveryOtp: cleaned});
+      await api.post('/driver/complete', { orderId: activeOrder!.id, otp: cleaned });
       stopGpsBroadcast();
       setActiveOrder(null);
       // Navigate to home tab

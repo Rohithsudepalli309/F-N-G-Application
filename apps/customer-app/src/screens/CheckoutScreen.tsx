@@ -105,7 +105,8 @@ export const CheckoutScreen = () => {
         couponCode: couponDiscount > 0 ? couponCode.trim().toUpperCase() : undefined,
       };
 
-      const { data: internalOrder } = await api.post('/orders', orderPayload);
+      const { data: orderResponse } = await api.post('/orders', orderPayload);
+      const internalOrder = orderResponse.order; // { id, orderNumber, ... }
       
       if (isCOD) {
         // Handle COD flow (Status would likely be 'Placed' directly in a real COD flow)
@@ -118,8 +119,7 @@ export const CheckoutScreen = () => {
 
       // 2. Create Razorpay Order on Backend (Linked to internal ID)
       const { data: paymentOrder } = await api.post('/payments/orders', {
-        amount: Math.round(grandTotal * 100),
-        orderId: internalOrder.id
+        orderId: internalOrder.id  // amount is taken server-side from order.total_amount
       });
 
       // 3. Trigger Razorpay Checkout

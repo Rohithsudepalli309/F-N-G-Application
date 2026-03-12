@@ -80,7 +80,7 @@ export default function HomeScreen(): React.JSX.Element {
   // ── Accept order ─────────────────────────────────────────────────────
   async function handleAccept(order: AvailableOrder): Promise<void> {
     try {
-      const res = await api.post<{order: object}>(`/driver/accept/${order.id}`);
+      const res = await api.post<{order: object}>('/driver/accept', { orderId: order.id });
       removeAvailable(order.id);
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       setActiveOrder(res.data.order as any);
@@ -93,7 +93,7 @@ export default function HomeScreen(): React.JSX.Element {
   // ── Reject order ─────────────────────────────────────────────────────
   async function handleReject(orderId: number): Promise<void> {
     try {
-      await api.post(`/driver/reject/${orderId}`);
+      await api.post('/driver/reject', { orderId });
       removeAvailable(orderId);
     } catch {/* ignore */}
   }

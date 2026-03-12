@@ -21,22 +21,26 @@ router.get('/orders', async (req: AuthRequest, res) => {
     }
     const driverId: number = driverRes.rows[0].id;
 
-    // Return orders assigned to this driver that are not yet delivered/cancelled
     const result = await pool.query(
       `SELECT
          o.id,
+         o.order_number,
          o.store_id,
          o.store_name,
          o.status,
          o.total_amount,
          o.delivery_address,
          o.created_at,
-         s.lat  AS pickup_lat,
-         s.lng  AS pickup_lng,
-         s.address AS pickup_address_text,
+         o.metadata->>'delivery_otp' AS delivery_otp,
+         u.name  AS customer_name,
+         u.phone AS customer_phone,
+         s.lat   AS store_lat,
+         s.lng   AS store_lng,
+         s.address AS store_address,
          (SELECT COUNT(*) FROM order_items oi WHERE oi.order_id = o.id) AS items_count
        FROM orders o
        LEFT JOIN stores s ON s.id = o.store_id
+       LEFT JOIN users u ON u.id = o.customer_id
        WHERE o.driver_id = $1
          AND o.status NOT IN ('delivered', 'cancelled', 'refunded')
        ORDER BY o.created_at DESC
@@ -44,19 +48,25 @@ router.get('/orders', async (req: AuthRequest, res) => {
       [driverId]
     );
 
-    // Shape response to match Swift AssignedOrder model
+    // Return camelCase to match AvailableOrder / ActiveOrder store interfaces
     const orders = result.rows.map((r) => ({
-      id: String(r.id),
-      store_id: r.store_id ? String(r.store_id) : null,
-      store_name: r.store_name ?? null,
-      status: r.status,
-      total_amount: r.total_amount,
-      delivery_address: r.delivery_address,
-      created_at: r.created_at,
-      items_count: Number(r.items_count),
-      pickup_address: r.pickup_lat
-        ? { lat: Number(r.pickup_lat), lng: Number(r.pickup_lng), text: r.pickup_address_text ?? '' }
-        : null,
+      id:              r.id,
+      orderNumber:     r.order_number ?? '',
+      storeName:       r.store_name ?? '',
+      storeAddress:    r.store_address ?? '',
+      storeLat:        r.store_lat ? Number(r.store_lat) : 0,
+      storeLng:        r.store_lng ? Number(r.store_lng) : 0,
+      deliveryAddress: r.delivery_address ?? '',
+      deliveryLat:     0,  // geospatial lookup not available; default 0
+      deliveryLng:     0,
+      totalAmount:     r.total_amount,
+      itemCount:       Number(r.items_count),
+      estimatedKm:     0,  // requires geospatial calculation
+      driverPayout:    Math.round(r.total_amount * 0.2),  // 20% of order value as delivery fee
+      status:          r.status,
+      customerName:    r.customer_name ?? '',
+      customerPhone:   r.customer_phone ?? '',
+      deliveryOtp:     r.delivery_otp ?? '',
     }));
 
     res.json(orders);
@@ -156,7 +166,42 @@ router.post('/accept', async (req: AuthRequest, res) => {
       );
     }
 
-    res.json({ success: true });
+    // Fetch updated order to return full ActiveOrder shape to the app
+    const updatedOrder = await pool.query(
+      `SELECT
+         o.id, o.order_number, o.store_name, o.status, o.total_amount,
+         o.delivery_address, o.metadata->>'delivery_otp' AS delivery_otp,
+         u.name AS customer_name, u.phone AS customer_phone,
+         s.lat AS store_lat, s.lng AS store_lng, s.address AS store_address,
+         (SELECT COUNT(*) FROM order_items oi WHERE oi.order_id = o.id) AS items_count
+       FROM orders o
+       LEFT JOIN stores s ON s.id = o.store_id
+       LEFT JOIN users u ON u.id = o.customer_id
+       WHERE o.id = $1`,
+      [orderId]
+    );
+    const r = updatedOrder.rows[0];
+    const orderOut = r ? {
+      id:              r.id,
+      orderNumber:     r.order_number ?? '',
+      storeName:       r.store_name ?? '',
+      storeAddress:    r.store_address ?? '',
+      storeLat:        r.store_lat ? Number(r.store_lat) : 0,
+      storeLng:        r.store_lng ? Number(r.store_lng) : 0,
+      deliveryAddress: r.delivery_address ?? '',
+      deliveryLat:     0,
+      deliveryLng:     0,
+      totalAmount:     r.total_amount,
+      itemCount:       Number(r.items_count),
+      estimatedKm:     0,
+      driverPayout:    Math.round(r.total_amount * 0.2),
+      status:          r.status,
+      customerName:    r.customer_name ?? '',
+      customerPhone:   r.customer_phone ?? '',
+      deliveryOtp:     r.delivery_otp ?? '',
+    } : null;
+
+    res.json({ success: true, order: orderOut });
   } catch (err) {
     await client.query('ROLLBACK');
     console.error('[driver/accept] error:', err);
@@ -344,6 +389,85 @@ router.post('/complete', async (req: AuthRequest, res) => {
     res.status(500).json({ error: 'Could not complete delivery.' });
   } finally {
     client.release();
+  }
+});
+
+// ─── PATCH /driver/status ─── Toggle driver online/offline ─────────────────
+router.patch('/status', async (req: AuthRequest, res) => {
+  const { isOnline } = req.body as { isOnline?: boolean };
+  if (typeof isOnline !== 'boolean') {
+    res.status(400).json({ error: 'isOnline (boolean) is required.' });
+    return;
+  }
+  try {
+    const upd = await pool.query(
+      `UPDATE drivers SET is_available=$1 WHERE user_id=$2 RETURNING id`,
+      [isOnline, req.user!.id]
+    );
+    if (!upd.rows[0]) {
+      res.status(404).json({ error: 'Driver profile not found.' });
+      return;
+    }
+    res.json({ success: true, isOnline });
+  } catch (err) {
+    console.error('[driver/status] error:', err);
+    res.status(500).json({ error: 'Could not update driver status.' });
+  }
+});
+
+// ─── GET /driver/earnings ─── Earnings summary by period ────────────────────
+router.get('/earnings', async (req: AuthRequest, res) => {
+  const { period = 'today' } = req.query as { period?: string };
+
+  let dateFilter: string;
+  if (period === 'today') {
+    dateFilter = `AND o.delivered_at >= CURRENT_DATE`;
+  } else if (period === 'week') {
+    dateFilter = `AND o.delivered_at >= CURRENT_DATE - INTERVAL '7 days'`;
+  } else if (period === 'month') {
+    dateFilter = `AND o.delivered_at >= CURRENT_DATE - INTERVAL '30 days'`;
+  } else {
+    dateFilter = '';
+  }
+
+  try {
+    const driverRes = await pool.query(
+      `SELECT id FROM drivers WHERE user_id=$1 LIMIT 1`,
+      [req.user!.id]
+    );
+    if (!driverRes.rows[0]) {
+      res.status(404).json({ error: 'Driver profile not found.' });
+      return;
+    }
+    const driverId: number = driverRes.rows[0].id;
+
+    const result = await pool.query(
+      `SELECT
+         COUNT(*) AS deliveries,
+         COALESCE(SUM(o.total_amount * 0.2), 0) AS total_payout
+       FROM orders o
+       WHERE o.driver_id = $1
+         AND o.status = 'delivered'
+         ${dateFilter}`,
+      [driverId]
+    );
+
+    const row = result.rows[0];
+    const deliveries = Number(row.deliveries);
+    const totalPayout = Math.round(Number(row.total_payout));
+    const avgPerDelivery = deliveries > 0 ? Math.round(totalPayout / deliveries) : 0;
+
+    res.json({
+      earnings: {
+        period,
+        totalPayout,
+        deliveries,
+        avgPerDelivery,
+      },
+    });
+  } catch (err) {
+    console.error('[driver/earnings] error:', err);
+    res.status(500).json({ error: 'Could not fetch earnings.' });
   }
 });
 
