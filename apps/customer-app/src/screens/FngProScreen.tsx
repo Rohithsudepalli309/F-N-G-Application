@@ -4,7 +4,7 @@
  * POST /api/v1/pro/subscribe  → get Razorpay order
  * POST /api/v1/pro/verify     → confirm payment + upgrade
  */
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   View, Text, StyleSheet, SafeAreaView, StatusBar, ScrollView,
   TouchableOpacity, ActivityIndicator, Alert, Image,
@@ -34,6 +34,17 @@ export const FngProScreen = () => {
   const [selectedPlan, setSelectedPlan] = useState('quarterly');
   const [loading, setLoading] = useState(false);
   const [subscribed, setSubscribed] = useState(false);
+  const [checkingStatus, setCheckingStatus] = useState(true);
+  const [alreadyPro, setAlreadyPro] = useState(false);
+
+  useEffect(() => {
+    api.get('/pro/status')
+      .then(({ data }) => {
+        if (data.isPro) setAlreadyPro(true);
+      })
+      .catch(() => { /* non-critical */ })
+      .finally(() => setCheckingStatus(false));
+  }, []);
 
   const plan = PLANS.find(p => p.id === selectedPlan)!;
 
@@ -158,21 +169,29 @@ export const FngProScreen = () => {
 
       {/* Subscribe CTA */}
       <View style={styles.bottomBar}>
-        <View style={styles.ctaInfo}>
-          <Text style={styles.ctaPrice}>₹{plan.price}<Text style={styles.ctaPeriod}> / {plan.label.toLowerCase()}</Text></Text>
-          <Text style={styles.ctaSaving}>{plan.savings}</Text>
-        </View>
-        <TouchableOpacity
-          style={[styles.subscribeBtn, loading && { opacity: 0.7 }]}
-          onPress={handleSubscribe}
-          disabled={loading}
-          activeOpacity={0.85}
-        >
-          {loading
-            ? <ActivityIndicator color="#163D26" />
-            : <Text style={styles.subscribeBtnText}>Start F&G Pro →</Text>
-          }
-        </TouchableOpacity>
+        {alreadyPro ? (
+          <View style={styles.alreadyProBanner}>
+            <Text style={styles.alreadyProText}>✓ You're already a Pro member!</Text>
+          </View>
+        ) : (
+          <>
+            <View style={styles.ctaInfo}>
+              <Text style={styles.ctaPrice}>₹{plan.price}<Text style={styles.ctaPeriod}> / {plan.label.toLowerCase()}</Text></Text>
+              <Text style={styles.ctaSaving}>{plan.savings}</Text>
+            </View>
+            <TouchableOpacity
+              style={[styles.subscribeBtn, (loading || checkingStatus) && { opacity: 0.7 }]}
+              onPress={handleSubscribe}
+              disabled={loading || checkingStatus}
+              activeOpacity={0.85}
+            >
+              {loading || checkingStatus
+                ? <ActivityIndicator color="#163D26" />
+                : <Text style={styles.subscribeBtnText}>Start F&G Pro →</Text>
+              }
+            </TouchableOpacity>
+          </>
+        )}
       </View>
     </SafeAreaView>
   );

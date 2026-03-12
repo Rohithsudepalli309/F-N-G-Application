@@ -168,12 +168,16 @@ router.post('/accept', async (req: AuthRequest, res) => {
       [orderId]
     ).catch(() => ({ rows: [] as { customer_id: number }[] }));
     if (custRes.rows[0]?.customer_id) {
+      const custId: number = custRes.rows[0].customer_id;
       sendPushToUser(
-        custRes.rows[0].customer_id,
+        custId,
         '🛵 Driver Assigned',
         'Your delivery partner is on the way to collect your order.',
         { screen: 'OrderTracking', orderId: String(orderId) }
       );
+      notifyUser(custId, '🛵 Driver Assigned',
+        'Your delivery partner is on the way to collect your order.',
+        'order', { screen: 'OrderTracking', orderId: String(orderId) });
     }
 
     // Fetch updated order to return full ActiveOrder shape to the app
@@ -390,6 +394,9 @@ router.post('/complete', async (req: AuthRequest, res) => {
         'Your order has been delivered. Enjoy your meal!',
         { screen: 'OrderDetail', orderId: String(orderId) }
       );
+      notifyUser(order.customer_id, '🎉 Order Delivered!',
+        'Your order has been delivered. Enjoy your meal!',
+        'delivery', { screen: 'OrderDetail', orderId: String(orderId) });
     }
 
     res.json({ success: true });

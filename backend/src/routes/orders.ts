@@ -4,6 +4,7 @@ import { requireAuth, requireRole, AuthRequest } from '../middleware/auth';
 import { io } from '../server';
 import { publishOrderEvent } from '../services/eventBus';
 import { getSurgeMultiplier } from '../services/surge';
+import { isEnabled } from '../services/featureFlags';
 import { redis, DRIVER_GEO_KEY } from '../redis';
 
 const router = Router();
@@ -99,8 +100,17 @@ router.post('/', async (req: AuthRequest, res) => {
     }
 
     // Delivery fee: free for orders > ₹499 (49900 paise)
-    const deliveryFee = subtotal > 49900 ? 0 : 2500; // ₹25
+    let deliveryFee = subtotal > 49900 ? 0 : 2500; // ₹25
     const handlingFee = 500; // ₹5
+
+    // Apply surge pricing if feature flag is on for this user
+    const surgeEnabled = await isEnabled('surge_pricing', req.user!.id);
+    if (surgeEnabled && deliveryFee > 0) {
+      const multiplier = await getSurgeMultiplier(resolvedStoreId);
+      if (multiplier > 1) {
+        deliveryFee = Math.round(deliveryFee * multiplier);
+      }
+    }
 
     // Apply coupon
     let discountAmount = 0;

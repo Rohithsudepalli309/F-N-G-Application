@@ -3,6 +3,7 @@ import crypto from 'crypto';
 import Razorpay from 'razorpay';
 import pool from '../db';
 import { requireAuth, AuthRequest } from '../middleware/auth';
+import { createBreaker } from '../services/circuitBreaker';
 
 const router = Router();
 router.use(requireAuth);
@@ -21,6 +22,18 @@ function getRazorpay(): Razorpay {
   }
   return new Razorpay({ key_id: keyId, key_secret: keySecret });
 }
+
+async function createRazorpayOrder(amount: number, receipt: string, notes: Record<string, string>) {
+  const rzp = getRazorpay();
+  return rzp.orders.create({ amount, currency: 'INR', receipt, notes });
+}
+
+const razorpayBreaker = createBreaker('razorpay-orders', createRazorpayOrder, {
+  timeout: 8_000,
+  errorThresholdPercentage: 50,
+  resetTimeout: 30_000,
+  volumeThreshold: 3,
+});
 
 // ─── GET /pro/status ──────────────────────────────────────────────────────────
 router.get('/status', async (req: AuthRequest, res) => {
@@ -43,13 +56,11 @@ router.post('/subscribe', async (req: AuthRequest, res) => {
     return;
   }
   try {
-    const rzp = getRazorpay();
-    const rzpOrder = await rzp.orders.create({
-      amount:   plan.priceRupees * 100,   // paise
-      currency: 'INR',
-      receipt:  `pro-${req.user!.id}-${planId}`,
-      notes:    { userId: String(req.user!.id), planId: planId! },
-    });
+    const rzpOrder = await razorpayBreaker.fire(
+      plan.priceRupees * 100,
+      `pro-${req.user!.id}-${planId}`,
+      { userId: String(req.user!.id), planId: planId! },
+    );
     res.json({
       razorpayOrderId: rzpOrder.id,
       currency:        rzpOrder.currency,

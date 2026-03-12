@@ -16,6 +16,7 @@ export const OrdersMonitor = () => {
   const [orders, setOrders] = useState<Order[]>([]);
   const [refreshing, setRefreshing] = useState(false);
   const [lastRefreshed, setLastRefreshed] = useState<Date | null>(null);
+  const [socketConnected, setSocketConnected] = useState(false);
   const token = useAuthStore((state: any) => state.token);
 
   const fetchOrders = async (silent = false) => {
@@ -41,6 +42,13 @@ export const OrdersMonitor = () => {
     if (token) {
       socketService.connect(token);
       
+      // Track connect/disconnect for the Live Feed indicator
+      const onConnect = () => setSocketConnected(true);
+      const onDisconnect = () => setSocketConnected(false);
+      (socketService as any).socket?.on('connect', onConnect);
+      (socketService as any).socket?.on('disconnect', onDisconnect);
+      setSocketConnected(socketService.isConnected());
+
       socketService.on('order.platform.update', (updatedOrder: Order) => {
         setOrders((prev: Order[]) => {
           const index = prev.findIndex((o: Order) => o.id === updatedOrder.id);
@@ -65,9 +73,15 @@ export const OrdersMonitor = () => {
     switch (status) {
       case 'pending': return 'bg-yellow-100 text-yellow-800';
       case 'placed': return 'bg-blue-100 text-blue-800';
-      case 'preparing': return 'bg-purple-100 text-purple-800';
-      case 'delivered': return 'bg-green-100 text-green-800';
-      case 'cancelled': return 'bg-red-100 text-red-800';
+    case 'accepted': return 'bg-indigo-100 text-indigo-800';
+    case 'assigned': return 'bg-indigo-100 text-indigo-800';
+    case 'preparing': return 'bg-purple-100 text-purple-800';
+    case 'ready': return 'bg-teal-100 text-teal-800';
+    case 'pickup': return 'bg-amber-100 text-amber-800';
+    case 'out_for_delivery': return 'bg-orange-100 text-orange-800';
+    case 'delivered': return 'bg-green-100 text-green-800';
+    case 'cancelled': return 'bg-red-100 text-red-800';
+    case 'refunded': return 'bg-slate-100 text-slate-600';
       default: return 'bg-gray-100 text-gray-800';
     }
   };
@@ -91,9 +105,9 @@ export const OrdersMonitor = () => {
           >
             {refreshing ? 'Refreshing…' : 'Refresh'}
           </button>
-          <span className="flex items-center text-sm text-green-600 font-medium">
-            <span className="w-2 h-2 bg-green-500 rounded-full mr-2 animate-pulse"></span>
-            Live Feed Active
+          <span className={`flex items-center text-sm font-medium ${socketConnected ? 'text-green-600' : 'text-gray-400'}`}>
+            <span className={`w-2 h-2 rounded-full mr-2 ${socketConnected ? 'bg-green-500 animate-pulse' : 'bg-gray-400'}`}></span>
+            {socketConnected ? 'Live Feed Active' : 'Live Feed Off'}
           </span>
         </div>
       </div>
