@@ -135,7 +135,9 @@ router.patch('/drivers/:id', async (req, res) => {
 
 // ─── GET /admin/orders ────────────────────────────────────────────────────
 router.get('/orders', async (req, res) => {
-  const { status, limit = '50', offset = '0' } = req.query as Record<string, string>;
+  const { status, offset = '0' } = req.query as Record<string, string>;
+  // MED-7: cap limit to prevent resource exhaustion
+  const limit = Math.min(Math.max(Number(req.query.limit) || 50, 1), 200);
   let query = `
     SELECT o.id, o.order_number, o.status, o.total_amount, o.payment_method,
            o.payment_status, o.created_at, o.store_name,
@@ -251,7 +253,8 @@ router.get('/analytics', async (_req, res) => {
 // ─── GET /admin/payouts?period=week|month ─────────────────────────────────
 router.get('/payouts', async (req, res) => {
   const { period = 'week' } = req.query as { period?: string };
-  const interval = period === 'month' ? '30 days' : '7 days';
+  // MED-1: whitelist the period value to prevent SQL injection via INTERVAL string interpolation
+  const intervalLiteral = period === 'month' ? '30 days' : '7 days';
 
   const result = await pool.query(
     `SELECT
@@ -265,10 +268,10 @@ router.get('/payouts', async (req, res) => {
      FROM drivers d
      LEFT JOIN orders o ON o.driver_id = d.id
        AND o.status = 'delivered'
-       AND o.delivered_at >= NOW() - INTERVAL '${interval}'
+       AND o.delivered_at >= NOW() - $1::interval
      GROUP BY d.id, d.name, d.phone
      ORDER BY net_payout DESC`,
-    []
+    [intervalLiteral]
   );
   res.json({ payouts: result.rows });
 });

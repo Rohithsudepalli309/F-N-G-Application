@@ -104,6 +104,13 @@ router.post('/accept', async (req: AuthRequest, res) => {
       res.status(409).json({ error: `Order cannot be accepted in status '${order.status}'.` });
       return;
     }
+    // HIGH-1: verify this order was actually dispatched to this driver
+    // (or is unassigned and open for nearest-driver assignment, but only if driver_id is null)
+    if (order.driver_id !== null && order.driver_id !== driverId) {
+      await client.query('ROLLBACK');
+      res.status(403).json({ error: 'This order is not assigned to you.' });
+      return;
+    }
     // Check driver doesn't already have an active order
     const activeCheck = await client.query(
       `SELECT id FROM orders

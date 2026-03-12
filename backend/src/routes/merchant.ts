@@ -159,7 +159,9 @@ router.get('/orders', async (req: AuthRequest, res) => {
     return;
   }
 
-  const { status, limit = '50', offset = '0' } = req.query as Record<string, string>;
+  const { status, offset = '0' } = req.query as Record<string, string>;
+  // MED-7: cap limit to prevent resource exhaustion
+  const limit = Math.min(Math.max(Number(req.query.limit) || 50, 1), 200);
 
   let query = `
     SELECT o.id, o.order_number, o.status, o.total_amount,
@@ -365,8 +367,9 @@ router.get('/analytics', async (req: AuthRequest, res) => {
   if (!storeId) { res.status(404).json({ error: 'No store found.' }); return; }
 
   const { period = 'week' } = req.query as { period?: string };
-  const interval = period === 'month' ? '30 days' : '7 days';
-  const groupBy  = period === 'month' ? 'day' : 'day';
+  // MED-1: whitelist period to prevent SQL injection via INTERVAL string interpolation
+  const intervalLiteral = period === 'month' ? '30 days' : '7 days';
+  const groupBy = 'day';
 
   const [kpiRes, chartRes, topRes, storeRes] = await Promise.all([
     // Today's KPIs
@@ -387,10 +390,10 @@ router.get('/analytics', async (req: AuthRequest, res) => {
        FROM orders
        WHERE store_id=$1
          AND status NOT IN ('cancelled')
-         AND created_at >= NOW() - INTERVAL '${interval}'
+         AND created_at >= NOW() - $2::interval
        GROUP BY DATE_TRUNC('${groupBy}', created_at AT TIME ZONE 'Asia/Kolkata'), label
        ORDER BY DATE_TRUNC('${groupBy}', created_at AT TIME ZONE 'Asia/Kolkata')`,
-      [storeId]
+      [storeId, intervalLiteral]
     ),
     // Top products
     pool.query(
@@ -399,10 +402,10 @@ router.get('/analytics', async (req: AuthRequest, res) => {
        JOIN orders o ON o.id = oi.order_id
        WHERE o.store_id=$1
          AND o.status='delivered'
-         AND o.created_at >= NOW() - INTERVAL '${interval}'
+         AND o.created_at >= NOW() - $2::interval
        GROUP BY oi.name
        ORDER BY units_sold DESC LIMIT 5`,
-      [storeId]
+      [storeId, intervalLiteral]
     ),
     // Avg rating
     pool.query(`SELECT rating FROM stores WHERE id=$1`, [storeId]),

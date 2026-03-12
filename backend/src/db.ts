@@ -8,7 +8,13 @@ const pool = new Pool({
   max: 20,
   idleTimeoutMillis: 30000,
   connectionTimeoutMillis: 5000,
-  ssl: process.env.DATABASE_SSL === 'true' ? { rejectUnauthorized: false } : false,
+  ssl: process.env.DATABASE_SSL === 'true'
+    ? {
+        // MED-5: always verify the server certificate to prevent MITM attacks
+        rejectUnauthorized: true,
+        ...(process.env.DATABASE_SSL_CA ? { ca: process.env.DATABASE_SSL_CA } : {}),
+      }
+    : false,
 });
 
 pool.on('error', (err) => {

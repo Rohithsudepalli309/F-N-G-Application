@@ -13,6 +13,13 @@ import { startOrderEventWorker } from './workers/orderEvents';
 
 dotenv.config();
 
+// LOW-1: Validate critical secrets at startup before touching any routes
+const jwtSecret = process.env.JWT_SECRET ?? '';
+if (jwtSecret.length < 32) {
+  throw new Error(
+    'JWT_SECRET must be at least 32 characters. Set a strong secret in your .env file.'
+  );
+}
 import { initSocket } from './socket';
 import authRouter          from './routes/auth';
 import storesRouter        from './routes/stores';
@@ -42,8 +49,19 @@ app.use(compressResponse);
 app.use(requestId);
 app.use(httpLogger);
 
+// HIGH-5: never fall back to wildcard CORS — fail loud in production, localhost in dev
+const rawAllowedOrigins = process.env.ALLOWED_ORIGINS;
+let corsOrigin: string | string[];
+if (rawAllowedOrigins) {
+  corsOrigin = rawAllowedOrigins.split(',').map((s) => s.trim());
+} else if (process.env.NODE_ENV === 'production') {
+  throw new Error('ALLOWED_ORIGINS must be set in production');
+} else {
+  corsOrigin = 'http://localhost:5173';
+}
+
 app.use(cors({
-  origin: process.env.ALLOWED_ORIGINS?.split(',') ?? '*',
+  origin: corsOrigin,
   credentials: true,
 }));
 

@@ -17,8 +17,8 @@ function signAccess(payload: { id: number; role: string; storeId?: number }) {
 }
 
 function generateOtp(): string {
-  // 6-digit numeric OTP
-  return String(Math.floor(100000 + Math.random() * 900000));
+  // HIGH-3: cryptographically secure 6-digit OTP
+  return String(crypto.randomInt(100000, 1000000));
 }
 
 // ─── POST /auth/otp ─── Send OTP ──────────────────────────────────────────
@@ -70,20 +70,34 @@ router.post('/otp/verify', async (req, res) => {
     return;
   }
 
-  const result = await pool.query(
+  // HIGH-4: fetch record first to enforce attempt lockout
+  const recordRes = await pool.query(
     `SELECT * FROM otp_records
-     WHERE phone=$1 AND otp=$2 AND verified=FALSE AND expires_at > NOW()
+     WHERE phone=$1 AND verified=FALSE AND expires_at > NOW()
      LIMIT 1`,
-    [phone, otp]
+    [phone]
   );
 
-  if (result.rows.length === 0) {
+  if (recordRes.rows.length === 0) {
+    res.status(400).json({ error: 'Invalid or expired OTP.' });
+    return;
+  }
+
+  const record = recordRes.rows[0];
+  if (record.attempts >= 5) {
+    res.status(429).json({ error: 'Too many OTP attempts. Please request a new OTP.' });
+    return;
+  }
+
+  if (record.otp !== otp) {
+    // Increment attempt counter on wrong guess
+    await pool.query(`UPDATE otp_records SET attempts = attempts + 1 WHERE id=$1`, [record.id]);
     res.status(400).json({ error: 'Invalid or expired OTP.' });
     return;
   }
 
   // Mark OTP as verified
-  await pool.query(`UPDATE otp_records SET verified=TRUE WHERE id=$1`, [result.rows[0].id]);
+  await pool.query(`UPDATE otp_records SET verified=TRUE WHERE id=$1`, [record.id]);
 
   // Upsert user
   let userRow;
@@ -110,17 +124,18 @@ router.post('/otp/verify', async (req, res) => {
 
   const accessToken = signAccess({ id: userRow.id, role: userRow.role, storeId });
 
-  // Issue refresh token
-  const refreshToken = crypto.randomBytes(40).toString('hex');
+  // MED-2: store SHA-256 hash of refresh token, return the raw token to client
+  const rawRefreshToken = crypto.randomBytes(40).toString('hex');
+  const hashedRefreshToken = crypto.createHash('sha256').update(rawRefreshToken).digest('hex');
   await pool.query(
     `INSERT INTO refresh_tokens (user_id, token, expires_at)
      VALUES ($1, $2, NOW() + INTERVAL '30 days')`,
-    [userRow.id, refreshToken]
+    [userRow.id, hashedRefreshToken]
   );
 
   res.json({
     accessToken,
-    refreshToken,
+    refreshToken: rawRefreshToken,
     user: {
       id: userRow.id,
       phone: userRow.phone,
@@ -169,16 +184,18 @@ router.post('/login', async (req, res) => {
 
   const accessToken = signAccess({ id: user.id, role: user.role, storeId });
 
-  const refreshToken = crypto.randomBytes(40).toString('hex');
+  // MED-2: store SHA-256 hash of refresh token, return the raw token to client
+  const rawRefreshLogin = crypto.randomBytes(40).toString('hex');
+  const hashedRefreshLogin = crypto.createHash('sha256').update(rawRefreshLogin).digest('hex');
   await pool.query(
     `INSERT INTO refresh_tokens (user_id, token, expires_at)
      VALUES ($1, $2, NOW() + INTERVAL '30 days')`,
-    [user.id, refreshToken]
+    [user.id, hashedRefreshLogin]
   );
 
   res.json({
     accessToken,
-    refreshToken,
+    refreshToken: rawRefreshLogin,
     user: {
       id: user.id,
       email: user.email,
@@ -197,11 +214,13 @@ router.post('/refresh', async (req, res) => {
     return;
   }
 
+  // MED-2: look up by SHA-256 hash of the raw token
+  const tokenHash = crypto.createHash('sha256').update(refreshToken).digest('hex');
   const result = await pool.query(
     `SELECT rt.*, u.role FROM refresh_tokens rt
      JOIN users u ON u.id = rt.user_id
      WHERE rt.token=$1 AND rt.expires_at > NOW()`,
-    [refreshToken]
+    [tokenHash]
   );
   if (result.rows.length === 0) {
     res.status(401).json({ error: 'Invalid or expired refresh token.' });
@@ -215,26 +234,29 @@ router.post('/refresh', async (req, res) => {
     storeId = sr.rows[0]?.id;
   }
 
-  // Rotate token
-  const newRefresh = crypto.randomBytes(40).toString('hex');
+  // Rotate token — store hash of the new token
+  const newRawRefresh = crypto.randomBytes(40).toString('hex');
+  const newHashedRefresh = crypto.createHash('sha256').update(newRawRefresh).digest('hex');
   await pool.query(`DELETE FROM refresh_tokens WHERE id=$1`, [row.id]);
   await pool.query(
     `INSERT INTO refresh_tokens (user_id, token, expires_at)
      VALUES ($1, $2, NOW() + INTERVAL '30 days')`,
-    [row.user_id, newRefresh]
+    [row.user_id, newHashedRefresh]
   );
 
   const accessToken = signAccess({ id: row.user_id, role: row.role, storeId });
-  res.json({ accessToken, refreshToken: newRefresh });
+  res.json({ accessToken, refreshToken: newRawRefresh });
 });
 
 // ─── POST /auth/logout ───────────────────────────────────────────────────
 router.post('/logout', requireAuth, async (req: AuthRequest, res) => {
   const { refreshToken } = req.body as { refreshToken?: string };
   if (refreshToken) {
+    // MED-2: look up by hash
+    const logoutHash = crypto.createHash('sha256').update(refreshToken).digest('hex');
     await pool.query(
       `DELETE FROM refresh_tokens WHERE token=$1 AND user_id=$2`,
-      [refreshToken, req.user!.id]
+      [logoutHash, req.user!.id]
     ).catch(() => {/* ignore */});
   }
   res.json({ message: 'Logged out.' });

@@ -34,14 +34,15 @@ const rzpCreateBreaker = createBreaker(
 
 // ── POST /payments/orders ─── Create a Razorpay order ──────────────────────
 router.post('/orders', async (req: AuthRequest, res) => {
-  const { amount, orderId } = req.body as { amount?: number; orderId?: number };
+  const { orderId } = req.body as { orderId?: number };
 
-  if (!amount || amount < 100 || !orderId) {
-    res.status(400).json({ error: 'amount (paise, min ₹1) and orderId are required.' });
+  if (!orderId) {
+    res.status(400).json({ error: 'orderId is required.' });
     return;
   }
 
-  // Verify the F&G order belongs to this user and is awaiting payment
+  // SECURITY: Always use the server-side total — never trust client-supplied amount.
+  // A malicious client could send amount=100 (₹1) for a ₹5,000 order.
   const orderRes = await pool.query(
     `SELECT id, total_amount, payment_status FROM orders WHERE id=$1 AND customer_id=$2`,
     [orderId, req.user!.id]
@@ -55,11 +56,16 @@ router.post('/orders', async (req: AuthRequest, res) => {
     res.status(400).json({ error: 'Order is already paid.' });
     return;
   }
+  const serverAmount: number = order.total_amount;
+  if (serverAmount < 100) {
+    res.status(400).json({ error: 'Order total is below minimum payment amount.' });
+    return;
+  }
 
   try {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const rzpOrder = await (rzpCreateBreaker as any).fire(
-      amount,
+      serverAmount,           // server-verified amount — never use client input
       `fng-${orderId}`,
       { fng_order_id: String(orderId) }
     ) as { id: string; currency: string; amount: number };
@@ -77,8 +83,12 @@ router.post('/orders', async (req: AuthRequest, res) => {
       key_id:    process.env.RAZORPAY_KEY_ID,
     });
   } catch (e) {
-    console.error('[Payments] Razorpay create order error:', e);
-    res.status(502).json({ error: (e as Error).message });
+    const isOpen = (e as Error).message?.includes('Circuit breaker is open');
+    if (isOpen) {
+      res.status(503).json({ error: 'Payment service temporarily unavailable. Please try again shortly.' });
+    } else {
+      res.status(502).json({ error: 'Could not create payment order. Please try again.' });
+    }
   }
 });
 
@@ -162,20 +172,30 @@ router.post('/verify', async (req: AuthRequest, res) => {
 });
 
 // ── POST /payments/webhook ─── Razorpay webhook (server-side fallback) ──────
-// Validate X-Razorpay-Signature header; update payment if client-side verify missed
+// SECURITY: Signature verification is MANDATORY. If RAZORPAY_WEBHOOK_SECRET is
+// not configured the endpoint is disabled (500) to prevent unsigned forgeries.
 router.post('/webhook', async (req, res) => {
-  const signature = req.headers['x-razorpay-signature'] as string | undefined;
-  const secret    = process.env.RAZORPAY_WEBHOOK_SECRET;
+  const secret = process.env.RAZORPAY_WEBHOOK_SECRET;
+  if (!secret) {
+    // Fail closed: do not process any webhook if the secret is missing.
+    res.status(500).json({ error: 'Webhook not configured.' });
+    return;
+  }
 
-  if (secret && signature) {
-    const digest = crypto
-      .createHmac('sha256', secret)
-      .update(JSON.stringify(req.body))
-      .digest('hex');
-    if (digest !== signature) {
-      res.status(400).json({ error: 'Invalid webhook signature.' });
-      return;
-    }
+  const signature = req.headers['x-razorpay-signature'] as string | undefined;
+  if (!signature) {
+    res.status(400).json({ error: 'Missing X-Razorpay-Signature header.' });
+    return;
+  }
+
+  const digest = crypto
+    .createHmac('sha256', secret)
+    .update(JSON.stringify(req.body))
+    .digest('hex');
+  // Constant-time comparison to prevent timing attacks
+  if (!crypto.timingSafeEqual(Buffer.from(digest), Buffer.from(signature))) {
+    res.status(400).json({ error: 'Invalid webhook signature.' });
+    return;
   }
 
   const event   = req.body as { event?: string; payload?: { payment?: { entity?: { id?: string; order_id?: string; notes?: { fng_order_id?: string } } } } };

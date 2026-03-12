@@ -37,9 +37,10 @@ router.get('/', async (req, res) => {
 // ─── GET /stores/:storeId ─── Store detail ────────────────────────────────
 router.get('/:storeId', async (req, res) => {
   const { storeId } = req.params;
+  // MED-4: owner_phone is PII; do not expose it on the public store detail endpoint
   const result = await pool.query(
-    `SELECT s.*, u.phone AS owner_phone
-     FROM stores s LEFT JOIN users u ON u.id = s.owner_id
+    `SELECT s.*
+     FROM stores s
      WHERE s.id=$1`,
     [storeId]
   );

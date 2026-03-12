@@ -39,8 +39,13 @@ router.post('/', async (req: AuthRequest, res) => {
     instructions?: string;
   };
 
+  // MED-6: cap items to prevent DoS via overly large orders
   if (!items?.length || !deliveryAddress) {
     res.status(400).json({ error: 'items and deliveryAddress are required.' });
+    return;
+  }
+  if (items.length > 50) {
+    res.status(400).json({ error: 'Orders may contain at most 50 distinct items.' });
     return;
   }
 
@@ -80,6 +85,12 @@ router.post('/', async (req: AuthRequest, res) => {
       if (!p.is_available) {
         await client.query('ROLLBACK');
         res.status(400).json({ error: `Product "${p.name}" is not available.` });
+        return;
+      }
+      // MED-6: enforce per-item quantity bounds
+      if (!Number.isInteger(item.quantity) || item.quantity < 1 || item.quantity > 100) {
+        await client.query('ROLLBACK');
+        res.status(400).json({ error: 'Each item quantity must be an integer between 1 and 100.' });
         return;
       }
       const lineTotal = p.price * item.quantity;
@@ -268,24 +279,42 @@ router.get('/:id', async (req: AuthRequest, res) => {
   }
 
   const order = result.rows[0];
-  // Only the customer who placed it, the assigned driver, or admin can see it
-  const uid = req.user!.id;
+  // SECURITY: Strict ownership check.
+  // - Customer: must own the order.
+  // - Driver: must be the assigned driver (no IDOR across all orders).
+  // - Admin: unrestricted.
+  const uid  = req.user!.id;
   const role = req.user!.role;
-  if (
-    role !== 'admin' &&
-    Number(order.customer_id) !== uid &&
-    (role !== 'driver' /* driver check below */)
-  ) {
+
+  if (role === 'driver') {
+    // Fetch this driver's profile id and compare to order's assigned driver_id
+    const driverRes = await pool.query(
+      `SELECT id FROM drivers WHERE user_id=$1 LIMIT 1`, [uid]
+    );
+    const driverId = driverRes.rows[0]?.id;
+    if (!driverId || order.driver_id !== driverId) {
+      res.status(403).json({ error: 'Forbidden.' });
+      return;
+    }
+  } else if (role !== 'admin' && Number(order.customer_id) !== uid) {
     res.status(403).json({ error: 'Forbidden.' });
     return;
   }
 
+  // SECURITY: Strip metadata (contains delivery_otp) before sending to any client.
+  // The delivery OTP was already returned at order creation time to the customer.
+  const {
+    metadata: _metadata,
+    driver_lat, driver_lng, driver_name, driver_phone, vehicle_type,
+    ...safeOrder
+  } = order;
+
   res.json({
     order: {
-      ...order,
-      driver: order.driver_lat
-        ? { lat: order.driver_lat, lng: order.driver_lng,
-            name: order.driver_name, phone: order.driver_phone }
+      ...safeOrder,
+      driver: driver_lat
+        ? { lat: driver_lat, lng: driver_lng,
+            name: driver_name, phone: driver_phone, vehicleType: vehicle_type }
         : null,
     },
   });

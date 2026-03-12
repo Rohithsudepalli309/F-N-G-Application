@@ -30,9 +30,20 @@ async function withinSpeedLimit(driverId: number, lat: number, lng: number): Pro
 }
 
 export function initSocket(httpServer: HttpServer): SocketServer {
+  // HIGH-5: never allow wildcard CORS; fall back to localhost dev origins, fail in prod
+  const rawOrigins = process.env.ALLOWED_ORIGINS;
+  let corsOrigin: string | string[];
+  if (rawOrigins) {
+    corsOrigin = rawOrigins.split(',').map((s) => s.trim());
+  } else if (process.env.NODE_ENV === 'production') {
+    throw new Error('ALLOWED_ORIGINS must be set in production');
+  } else {
+    corsOrigin = 'http://localhost:5173';
+  }
+
   const io = new SocketServer(httpServer, {
     cors: {
-      origin: process.env.ALLOWED_ORIGINS?.split(',') ?? '*',
+      origin: corsOrigin,
       methods: ['GET', 'POST'],
     },
     transports: ['websocket', 'polling'],
@@ -71,13 +82,42 @@ export function initSocket(httpServer: HttpServer): SocketServer {
     // ── Driver: join personal room for push notifications ─────────────────
     if (role === 'driver') socket.join(`driver:${userId}`);
 
-    // ── Customer: join order room ──────────────────────────────────────────
-    socket.on('join:order', (orderId: string) => {
-      if (orderId) socket.join(`order:${orderId}`);
+    // ── Customer: join order room (ownership verified) ──────────────────────
+    socket.on('join:order', async (orderId: string) => {
+      if (!orderId) return;
+      // HIGH-2: verify the caller owns or is assigned to this order
+      try {
+        const check = await pool.query(
+          `SELECT 1 FROM orders o
+           WHERE o.id = $1 AND (
+             o.customer_id = $2 OR
+             (o.driver_id IS NOT NULL AND o.driver_id = (
+               SELECT id FROM drivers WHERE user_id = $2 LIMIT 1
+             )) OR
+             $3 = 'admin'
+           ) LIMIT 1`,
+          [orderId, userId, role]
+        );
+        if (check.rows.length > 0) socket.join(`order:${orderId}`);
+      } catch {/* non-critical: deny join on error */}
     });
     // Legacy event name used by customer app
-    socket.on('subscribe_order', ({ orderId }: { orderId: string }) => {
-      if (orderId) socket.join(`order:${orderId}`);
+    socket.on('subscribe_order', async ({ orderId }: { orderId: string }) => {
+      if (!orderId) return;
+      try {
+        const check = await pool.query(
+          `SELECT 1 FROM orders o
+           WHERE o.id = $1 AND (
+             o.customer_id = $2 OR
+             (o.driver_id IS NOT NULL AND o.driver_id = (
+               SELECT id FROM drivers WHERE user_id = $2 LIMIT 1
+             )) OR
+             $3 = 'admin'
+           ) LIMIT 1`,
+          [orderId, userId, role]
+        );
+        if (check.rows.length > 0) socket.join(`order:${orderId}`);
+      } catch {/* non-critical */}
     });
 
     // ── Merchant: join store room ─────────────────────────────────────────

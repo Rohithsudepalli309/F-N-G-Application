@@ -93,7 +93,8 @@ export async function sendOtp(phone: string, otp: string): Promise<void> {
 
   // Always use console in test environment regardless of SMS_PROVIDER setting
   if (process.env.NODE_ENV === 'test' || provider === 'console') {
-    console.log(`[SMS/console] OTP for ${phone}: ${otp}`);
+    // LOW-2: never log plaintext OTP — mask the phone and omit the OTP value
+    console.log(`[SMS/console] OTP sent to ${phone.slice(0, 4)}****`);
     return;
   }
 
