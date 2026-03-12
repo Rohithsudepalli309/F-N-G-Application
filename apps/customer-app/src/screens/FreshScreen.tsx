@@ -5,7 +5,6 @@ import {
 } from 'react-native';
 import { theme } from '../theme';
 import { ProductCard } from '../components/ProductCard';
-import { BottomTabs } from '../components/BottomTabs';
 import { api } from '../services/api';
 
 interface FreshProduct {
@@ -111,8 +110,6 @@ export const FreshScreen = () => {
           )}
         </View>
       </ScrollView>
-
-      <BottomTabs activeTab="Fresh" />
     </SafeAreaView>
   );
 };

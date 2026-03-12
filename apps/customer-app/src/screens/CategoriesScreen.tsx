@@ -13,7 +13,8 @@ const CARD_W = (width - 24 - 24) / 4;
 interface SubCat {
   label: string;
   emoji: string;
-  cat: string; // DB category to navigate to
+  cat: string;    // DB category to navigate to
+  subCat?: string; // optional DB sub_category for finer filtering
 }
 
 interface Section {
@@ -34,8 +35,8 @@ const SECTIONS: Section[] = [
     headerColor: '#2E7D32',
     rows: [
       [
-        { label: 'Fresh\nVegetables',    emoji: '🥦', cat: 'Fruits & Vegetables' },
-        { label: 'Fresh\nFruits',        emoji: '🍎', cat: 'Fruits & Vegetables' },
+        { label: 'Fresh\nVegetables',    emoji: '🥦', cat: 'Fruits & Vegetables', subCat: 'Vegetables' },
+        { label: 'Fresh\nFruits',        emoji: '🍎', cat: 'Fruits & Vegetables', subCat: 'Fruits'     },
         { label: 'Dairy, Bread\n& Eggs', emoji: '🥛', cat: 'Dairy, Bread & Eggs' },
         { label: 'Meat &\nSeafood',      emoji: '🥩', cat: 'Meat & Seafood' },
       ],
@@ -51,8 +52,8 @@ const SECTIONS: Section[] = [
       [
         { label: 'Atta, Rice\n& Dal',    emoji: '🌾', cat: 'Atta, Rice, Oil & Dals' },
         { label: 'Masalas',              emoji: '🌶️',  cat: 'Masala & Spices' },
-        { label: 'Oils &\nGhee',         emoji: '🫙',  cat: 'Atta, Rice, Oil & Dals' },
-        { label: 'Cereals &\nBreakfast', emoji: '🥣',  cat: 'Breakfast & Sauces' },
+        { label: 'Oils &\nGhee',         emoji: '🫙',  cat: 'Atta, Rice, Oil & Dals', subCat: 'Oils & Ghee'      },
+        { label: 'Cereals &\nBreakfast', emoji: '🥣',  cat: 'Breakfast & Sauces',    subCat: 'Cereals & Muesli' },
       ],
     ],
   },
@@ -64,22 +65,22 @@ const SECTIONS: Section[] = [
     headerColor: '#C62828',
     rows: [
       [
-        { label: 'Cold Drinks\n& Juices',         emoji: '🥤', cat: 'Beverages' },
-        { label: 'Ice Creams\n& Frozen',           emoji: '🍦', cat: 'Frozen & Instant Food' },
-        { label: 'Chips &\nNamkeens',              emoji: '🍟', cat: 'Munchies' },
-        { label: 'Chocolates',                     emoji: '🍫', cat: 'Munchies' },
+        { label: 'Cold Drinks\n& Juices',         emoji: '🥤', cat: 'Beverages',             subCat: 'Cold Drinks'      },
+        { label: 'Ice Creams\n& Frozen',           emoji: '🍦', cat: 'Frozen & Instant Food', subCat: 'Ice Creams'       },
+        { label: 'Chips &\nNamkeens',              emoji: '🍟', cat: 'Munchies',               subCat: 'Chips & Crisps'   },
+        { label: 'Chocolates',                     emoji: '🍫', cat: 'Munchies',               subCat: 'Chocolates'      },
       ],
       [
-        { label: 'Biscuits\n& Cakes',              emoji: '🍪', cat: 'Munchies' },
-        { label: 'Tea, Coffee\n& Milk Drinks',     emoji: '☕', cat: 'Beverages' },
-        { label: 'Sauces &\nSpreads',              emoji: '🍅', cat: 'Breakfast & Sauces' },
-        { label: 'Sweet\nCorner',                  emoji: '🍬', cat: 'Munchies' },
+        { label: 'Biscuits\n& Cakes',              emoji: '🍪', cat: 'Munchies',            subCat: 'Biscuits & Cookies' },
+        { label: 'Tea, Coffee\n& Milk Drinks',     emoji: '☕', cat: 'Beverages',           subCat: 'Health Drinks'      },
+        { label: 'Sauces &\nSpreads',              emoji: '🍅', cat: 'Breakfast & Sauces', subCat: 'Sauces & Spreads'   },
+        { label: 'Sweet\nCorner',                  emoji: '🍬', cat: 'Munchies',            subCat: 'Chocolates'         },
       ],
       [
-        { label: 'Noodles,\nPasta',                emoji: '🍝', cat: 'Frozen & Instant Food' },
-        { label: 'Frozen\nFood',                   emoji: '🧊', cat: 'Frozen & Instant Food' },
-        { label: 'Dry Fruits\n& Seeds',            emoji: '🥜', cat: 'Atta, Rice, Oil & Dals' },
-        { label: 'Energy\nDrinks',                 emoji: '⚡', cat: 'Beverages' },
+        { label: 'Noodles,\nPasta',                emoji: '🍝', cat: 'Frozen & Instant Food', subCat: 'Noodles & Pasta'  },
+        { label: 'Frozen\nFood',                   emoji: '🧊', cat: 'Frozen & Instant Food', subCat: 'Frozen Snacks'    },
+        { label: 'Dry Fruits\n& Seeds',            emoji: '🥜', cat: 'Atta, Rice, Oil & Dals', subCat: 'Dals & Pulses'   },
+        { label: 'Energy\nDrinks',                 emoji: '⚡', cat: 'Beverages',               subCat: 'Energy Drinks'   },
       ],
     ],
   },
@@ -91,13 +92,13 @@ const SECTIONS: Section[] = [
     headerColor: '#6A1B9A',
     rows: [
       [
-        { label: 'Bath &\nBody',          emoji: '🧴', cat: 'Personal Care' },
-        { label: 'Haircare',              emoji: '💇', cat: 'Personal Care' },
+        { label: 'Bath &\nBody',          emoji: '🧴', cat: 'Personal Care', subCat: 'Bath & Body' },
+        { label: 'Haircare',              emoji: '💇', cat: 'Personal Care', subCat: 'Hair Care'  },
         { label: 'Skincare',              emoji: '✨', cat: 'Personal Care' },
         { label: 'Makeup',                emoji: '💄', cat: 'Personal Care' },
       ],
       [
-        { label: 'Feminine\nHygiene',     emoji: '🌸', cat: 'Personal Care' },
+        { label: 'Feminine\nHygiene',     emoji: '🌸', cat: 'Personal Care', subCat: 'Feminine Care' },
         { label: 'Sexual\nWellness',      emoji: '💊', cat: 'Personal Care' },
         { label: 'Health &\nPharma',      emoji: '🏥', cat: 'Personal Care' },
         { label: 'Babycare',              emoji: '🍼', cat: 'Personal Care' },
@@ -156,9 +157,12 @@ const card = StyleSheet.create({
 export const CategoriesScreen = () => {
   const navigation = useNavigation<any>();
 
-  const handleSubCat = (cat: string, label: string) => {
+  const handleSubCat = (cat: string, label: string, subCat?: string) => {
     if (!cat) return; // no matching DB category yet
-    navigation.navigate('ProductList', { categoryName: cat });
+    navigation.navigate('ProductList', {
+      categoryName: cat,
+      ...(subCat ? { subCategory: subCat } : {}),
+    });
   };
 
   return (
@@ -195,7 +199,7 @@ export const CategoriesScreen = () => {
                     <SubCatCard
                       key={`${section.id}-${ri}-${ci}`}
                       item={item}
-                      onPress={() => handleSubCat(item.cat, item.label)}
+                      onPress={() => handleSubCat(item.cat, item.label, item.subCat)}
                     />
                   ))}
                 </View>

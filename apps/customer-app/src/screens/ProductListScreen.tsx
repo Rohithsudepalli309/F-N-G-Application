@@ -104,7 +104,9 @@ const mc = StyleSheet.create({
 export const ProductListScreen = () => {
   const navigation = useNavigation<any>();
   const route = useRoute<any>();
-  const { categoryName = 'Products' } = route.params ?? {};
+  const { categoryName = 'Products', subCategory } = route.params ?? {};
+  // Title shows sub-category when present (e.g. "Fresh Vegetables" instead of "Fruits & Vegetables")
+  const displayTitle = subCategory ?? categoryName;
   const [products, setProducts] = useState<any[]>([]);
   const [filtered, setFiltered] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
@@ -128,14 +130,16 @@ export const ProductListScreen = () => {
   useEffect(() => {
     (async () => {
       try {
-        const { data } = await api.get('/products', { params: { category: categoryName } });
+        const params: Record<string, string> = { category: categoryName };
+        if (subCategory) params.sub_category = subCategory;
+        const { data } = await api.get('/products', { params });
         const list = Array.isArray(data) ? data : [];
         setProducts(list);
         apply(list, '', 'Default');
       } catch { setProducts([]); setFiltered([]); }
       finally { setLoading(false); }
     })();
-  }, [categoryName]);
+  }, [categoryName, subCategory]);
 
   useEffect(() => { apply(products, search, sort); }, [search, sort, products, apply]);
 
@@ -152,7 +156,7 @@ export const ProductListScreen = () => {
           <Text style={s.backArrow}>‹</Text>
         </TouchableOpacity>
         <View style={s.headerMid}>
-          <Text style={s.headerTitle} numberOfLines={1}>{categoryName}</Text>
+          <Text style={s.headerTitle} numberOfLines={1}>{displayTitle}</Text>
           {!loading && <Text style={s.headerSub}>{filtered.length} items</Text>}
         </View>
       </View>
@@ -162,7 +166,7 @@ export const ProductListScreen = () => {
         <Text style={s.searchIcon}>🔍</Text>
         <TextInput
           style={s.searchInput}
-          placeholder={`Search in ${categoryName}…`}
+          placeholder={`Search in ${displayTitle}…`}
           placeholderTextColor="#9E9E9E"
           value={search}
           onChangeText={setSearch}

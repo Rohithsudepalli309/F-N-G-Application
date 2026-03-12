@@ -5,7 +5,6 @@ import {
 } from 'react-native';
 import { theme } from '../theme';
 import { ProductCard } from '../components/ProductCard';
-import { BottomTabs } from '../components/BottomTabs';
 import { api } from '../services/api';
 
 interface RecentItem {
@@ -113,8 +112,6 @@ export const BuyAgainScreen = () => {
           </View>
         )}
       </ScrollView>
-
-      <BottomTabs activeTab="BuyAgain" />
     </SafeAreaView>
   );
 };
