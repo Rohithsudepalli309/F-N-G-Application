@@ -36,8 +36,8 @@ router.post('/otp', async (req, res) => {
   const otp = generateOtp();
   const expiresAt = new Date(Date.now() + OTP_EXPIRY);
 
-  // Invalidate previous OTPs for this phone
-  await pool.query(`DELETE FROM otp_records WHERE phone=$1`, [phone]);
+  // Invalidate previous OTPs for this phone + purge globally expired records
+  await pool.query(`DELETE FROM otp_records WHERE phone=$1 OR expires_at < NOW()`, [phone]);
 
   await pool.query(
     `INSERT INTO otp_records (phone, otp, expires_at) VALUES ($1, $2, $3)`,

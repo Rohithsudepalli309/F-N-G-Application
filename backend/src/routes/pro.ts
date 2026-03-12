@@ -60,7 +60,7 @@ router.post('/subscribe', async (req: AuthRequest, res) => {
       plan.priceRupees * 100,
       `pro-${req.user!.id}-${planId}`,
       { userId: String(req.user!.id), planId: planId! },
-    );
+    ) as { id: string; currency: string; amount: number };
     res.json({
       razorpayOrderId: rzpOrder.id,
       currency:        rzpOrder.currency,

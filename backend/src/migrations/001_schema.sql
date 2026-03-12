@@ -216,6 +216,9 @@ CREATE TABLE IF NOT EXISTS order_items (
 CREATE INDEX IF NOT EXISTS idx_order_items_order ON order_items(order_id);
 
 -- ─── Delivery Tracking ───────────────────────────────────────────────────────
+-- NOTE (L-9): delivery_tracking grows unbounded. Add a pg_cron cleanup job:
+--   SELECT cron.schedule('cleanup-delivery-tracking', '0 3 * * *',
+--     $$DELETE FROM delivery_tracking WHERE recorded_at < NOW() - INTERVAL '90 days'$$);
 CREATE TABLE IF NOT EXISTS delivery_tracking (
   id          SERIAL PRIMARY KEY,
   order_id    INT NOT NULL REFERENCES orders(id) ON DELETE CASCADE,

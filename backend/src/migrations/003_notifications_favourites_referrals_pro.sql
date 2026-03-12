@@ -43,6 +43,10 @@ CREATE TABLE IF NOT EXISTS referral_events (
 CREATE INDEX IF NOT EXISTS idx_referral_referrer ON referral_events(referrer_id);
 
 -- ─── FNG Pro subscriptions ───────────────────────────────────────────────────
+-- NOTE (L-8): Subscriptions are never auto-expired. Add a pg_cron job:
+--   SELECT cron.schedule('expire-pro-subscriptions', '0 1 * * *',
+--     $$UPDATE pro_subscriptions SET status='expired'
+--       WHERE status='active' AND expires_at < NOW()$$);
 CREATE TABLE IF NOT EXISTS pro_subscriptions (
   id                   SERIAL PRIMARY KEY,
   user_id              INT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
