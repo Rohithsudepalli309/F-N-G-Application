@@ -3,6 +3,7 @@ import pool from '../db';
 import { requireAuth, requireRole, AuthRequest } from '../middleware/auth';
 import { io } from '../server';
 import { sendPushToUser } from '../services/fcm';
+import { notifyUser } from '../services/notify';
 
 const router = Router();
 router.use(requireAuth);
@@ -145,6 +146,15 @@ router.post('/accept', async (req: AuthRequest, res) => {
       `UPDATE drivers SET is_available=FALSE WHERE id=$1`,
       [driverId]
     );
+
+    // M-10: keep driver_assignments in sync with REST accept path
+    await client.query(
+      `INSERT INTO driver_assignments (order_id, driver_id, status, responded_at)
+       VALUES ($1, $2, 'accepted', NOW())
+       ON CONFLICT (order_id) DO UPDATE
+         SET driver_id=$2, status='accepted', responded_at=NOW()`,
+      [orderId, driverId]
+    ).catch(() => {/* table may not exist in all envs; non-fatal */});
 
     await client.query('COMMIT');
 

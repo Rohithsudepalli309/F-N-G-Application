@@ -8,37 +8,52 @@ router.use(requireAuth, requireRole('admin'));
 
 // ─── GET /admin/users ─────────────────────────────────────────────────────
 router.get('/users', async (_req, res) => {
-  const result = await pool.query(
-    `SELECT id, name, phone, email, role, is_active, created_at
-     FROM users ORDER BY created_at DESC`
-  );
-  res.json({ users: result.rows });
+  try {
+    const result = await pool.query(
+      `SELECT id, name, phone, email, role, is_active, created_at
+       FROM users ORDER BY created_at DESC`
+    );
+    res.json({ users: result.rows });
+  } catch (err) {
+    console.error('[admin/users]', err);
+    res.status(500).json({ error: 'Could not fetch users.' });
+  }
 });
 
 // ─── PATCH /admin/users/:id/status ────────────────────────────────────────
 router.patch('/users/:id/status', async (req, res) => {
   const { id } = req.params;
   const { is_active } = req.body as { is_active: boolean };
-  const result = await pool.query(
-    `UPDATE users SET is_active=$1 WHERE id=$2 RETURNING id, name, role, is_active`,
-    [is_active, id]
-  );
-  if (result.rows.length === 0) {
-    res.status(404).json({ error: 'User not found.' });
-    return;
+  try {
+    const result = await pool.query(
+      `UPDATE users SET is_active=$1 WHERE id=$2 RETURNING id, name, role, is_active`,
+      [is_active, id]
+    );
+    if (result.rows.length === 0) {
+      res.status(404).json({ error: 'User not found.' });
+      return;
+    }
+    res.json({ user: result.rows[0] });
+  } catch (err) {
+    console.error('[admin/users/status]', err);
+    res.status(500).json({ error: 'Could not update user status.' });
   }
-  res.json({ user: result.rows[0] });
 });
 
 // ─── GET /admin/stores ────────────────────────────────────────────────────
 router.get('/stores', async (_req, res) => {
-  const result = await pool.query(
-    `SELECT s.id, s.name, s.store_type, s.is_active, s.is_verified,
-            s.rating, s.total_ratings, s.created_at, u.name AS owner
-     FROM stores s LEFT JOIN users u ON u.id = s.owner_id
-     ORDER BY s.created_at DESC`
-  );
-  res.json({ stores: result.rows });
+  try {
+    const result = await pool.query(
+      `SELECT s.id, s.name, s.store_type, s.is_active, s.is_verified,
+              s.rating, s.total_ratings, s.created_at, u.name AS owner
+       FROM stores s LEFT JOIN users u ON u.id = s.owner_id
+       ORDER BY s.created_at DESC`
+    );
+    res.json({ stores: result.rows });
+  } catch (err) {
+    console.error('[admin/stores]', err);
+    res.status(500).json({ error: 'Could not fetch stores.' });
+  }
 });
 
 // ─── PATCH /admin/stores/:id ─── Toggle active / verify ──────────────────
@@ -47,30 +62,40 @@ router.patch('/stores/:id', async (req, res) => {
   const { is_active, is_verified } = req.body as {
     is_active?: boolean; is_verified?: boolean;
   };
-  const result = await pool.query(
-    `UPDATE stores
-     SET is_active   = COALESCE($1, is_active),
-         is_verified = COALESCE($2, is_verified)
-     WHERE id=$3 RETURNING id, name, is_active, is_verified`,
-    [is_active ?? null, is_verified ?? null, id]
-  );
-  if (result.rows.length === 0) {
-    res.status(404).json({ error: 'Store not found.' });
-    return;
+  try {
+    const result = await pool.query(
+      `UPDATE stores
+       SET is_active   = COALESCE($1, is_active),
+           is_verified = COALESCE($2, is_verified)
+       WHERE id=$3 RETURNING id, name, is_active, is_verified`,
+      [is_active ?? null, is_verified ?? null, id]
+    );
+    if (result.rows.length === 0) {
+      res.status(404).json({ error: 'Store not found.' });
+      return;
+    }
+    res.json({ store: result.rows[0] });
+  } catch (err) {
+    console.error('[admin/stores/update]', err);
+    res.status(500).json({ error: 'Could not update store.' });
   }
-  res.json({ store: result.rows[0] });
 });
 
 // ─── GET /admin/drivers ───────────────────────────────────────────────────
 router.get('/drivers', async (_req, res) => {
-  const result = await pool.query(
-    `SELECT d.id, d.name, d.phone, d.vehicle_type, d.is_available,
-            d.is_active, d.rating, d.current_lat, d.current_lng,
-            d.last_seen_at, u.id AS user_id
-     FROM drivers d JOIN users u ON u.id = d.user_id
-     ORDER BY d.created_at DESC`
-  );
-  res.json({ drivers: result.rows });
+  try {
+    const result = await pool.query(
+      `SELECT d.id, d.name, d.phone, d.vehicle_type, d.is_available,
+              d.is_active, d.rating, d.current_lat, d.current_lng,
+              d.last_seen_at, u.id AS user_id
+       FROM drivers d JOIN users u ON u.id = d.user_id
+       ORDER BY d.created_at DESC`
+    );
+    res.json({ drivers: result.rows });
+  } catch (err) {
+    console.error('[admin/drivers]', err);
+    res.status(500).json({ error: 'Could not fetch drivers.' });
+  }
 });
 
 // ─── POST /admin/drivers ─── Register new driver ──────────────────────────
@@ -153,17 +178,26 @@ router.get('/orders', async (req, res) => {
   }
   query += ` ORDER BY o.created_at DESC LIMIT $${idx++} OFFSET $${idx++}`;
   params.push(Number(limit), Number(offset));
-
-  const result = await pool.query(query, params);
-  res.json({ orders: result.rows });
+  try {
+    const result = await pool.query(query, params);
+    res.json({ orders: result.rows });
+  } catch (err) {
+    console.error('[admin/orders]', err);
+    res.status(500).json({ error: 'Could not fetch orders.' });
+  }
 });
 
 // ─── GET /admin/coupons ───────────────────────────────────────────────────
 router.get('/coupons', async (_req, res) => {
-  const result = await pool.query(
-    `SELECT * FROM coupons ORDER BY created_at DESC`
-  );
-  res.json({ coupons: result.rows });
+  try {
+    const result = await pool.query(
+      `SELECT * FROM coupons ORDER BY created_at DESC`
+    );
+    res.json({ coupons: result.rows });
+  } catch (err) {
+    console.error('[admin/coupons]', err);
+    res.status(500).json({ error: 'Could not fetch coupons.' });
+  }
 });
 
 // ─── POST /admin/coupons ──────────────────────────────────────────────────
@@ -185,69 +219,93 @@ router.post('/coupons', async (req, res) => {
     res.status(400).json({ error: 'code, discount_type, and discount_value are required.' });
     return;
   }
-
-  const result = await pool.query(
-    `INSERT INTO coupons
-       (code, description, discount_type, discount_value,
-        min_order_amount, max_discount, max_uses, valid_until)
-     VALUES (UPPER($1), $2, $3, $4, $5, $6, $7, $8) RETURNING *`,
-    [
-      code, description ?? null, discount_type, discount_value,
-      min_order_amount, max_discount ?? null, max_uses,
-      valid_until ?? null,
-    ]
-  );
-  res.status(201).json({ coupon: result.rows[0] });
+  try {
+    const result = await pool.query(
+      `INSERT INTO coupons
+         (code, description, discount_type, discount_value,
+          min_order_amount, max_discount, max_uses, valid_until)
+       VALUES (UPPER($1), $2, $3, $4, $5, $6, $7, $8) RETURNING *`,
+      [
+        code, description ?? null, discount_type, discount_value,
+        min_order_amount, max_discount ?? null, max_uses,
+        valid_until ?? null,
+      ]
+    );
+    res.status(201).json({ coupon: result.rows[0] });
+  } catch (err: unknown) {
+    const pgErr = err as { code?: string };
+    if (pgErr.code === '23505') {
+      res.status(400).json({ error: 'A coupon with this code already exists.' });
+      return;
+    }
+    console.error('[admin/coupons/create]', err);
+    res.status(500).json({ error: 'Could not create coupon.' });
+  }
 });
 
 // ─── DELETE /admin/coupons/:id ─── Deactivate coupon ─────────────────────
 router.delete('/coupons/:id', async (req, res) => {
-  await pool.query(
-    `UPDATE coupons SET is_active=FALSE WHERE id=$1`,
-    [req.params.id]
-  );
-  res.json({ message: 'Coupon deactivated.' });
+  try {
+    await pool.query(
+      `UPDATE coupons SET is_active=FALSE WHERE id=$1`,
+      [req.params.id]
+    );
+    res.json({ message: 'Coupon deactivated.' });
+  } catch (err) {
+    console.error('[admin/coupons/delete]', err);
+    res.status(500).json({ error: 'Could not deactivate coupon.' });
+  }
 });
 
 // ─── GET /admin/stats ─── KPI summary for AnalyticsPage ────────────────────
 router.get('/stats', async (_req, res) => {
-  const result = await pool.query(
-    `SELECT
-       COALESCE(COUNT(*) FILTER (WHERE created_at::date = CURRENT_DATE), 0)::int AS "ordersToday",
-       (SELECT COUNT(*) FROM users WHERE role='customer')::int AS "totalCustomers",
-       (SELECT COUNT(*) FROM drivers WHERE is_active=TRUE)::int AS "totalDrivers",
-       COALESCE(SUM(total_amount) FILTER (WHERE created_at::date = CURRENT_DATE), 0)::int AS "revenueToday"
-     FROM orders`
-  );
-  res.json(result.rows[0]);
+  try {
+    const result = await pool.query(
+      `SELECT
+         COALESCE(COUNT(*) FILTER (WHERE created_at::date = CURRENT_DATE), 0)::int AS "ordersToday",
+         (SELECT COUNT(*) FROM users WHERE role='customer')::int AS "totalCustomers",
+         (SELECT COUNT(*) FROM drivers WHERE is_active=TRUE)::int AS "totalDrivers",
+         COALESCE(SUM(total_amount) FILTER (WHERE created_at::date = CURRENT_DATE), 0)::int AS "revenueToday"
+       FROM orders`
+    );
+    res.json(result.rows[0]);
+  } catch (err) {
+    console.error('[admin/stats]', err);
+    res.status(500).json({ error: 'Could not fetch stats.' });
+  }
 });
 
 // ─── GET /admin/analytics ─── Daily chart + top stores ───────────────────
 router.get('/analytics', async (_req, res) => {
-  const [dailyRes, topRes] = await Promise.all([
-    pool.query(
-      `SELECT
-         d.day::date AS date,
-         COALESCE(COUNT(o.id), 0)::int AS orders,
-         COALESCE(SUM(o.total_amount), 0)::int AS revenue
-       FROM generate_series(
-         CURRENT_DATE - INTERVAL '6 days', CURRENT_DATE, '1 day'
-       ) AS d(day)
-       LEFT JOIN orders o
-         ON o.created_at::date = d.day
-         AND o.status NOT IN ('cancelled')
-       GROUP BY d.day ORDER BY d.day`
-    ),
-    pool.query(
-      `SELECT s.name, COUNT(o.id)::int AS order_count,
-              COALESCE(SUM(o.total_amount), 0)::int AS revenue
-       FROM stores s LEFT JOIN orders o ON o.store_id = s.id
-         AND o.status = 'delivered'
-         AND o.created_at >= NOW() - INTERVAL '30 days'
-       GROUP BY s.id, s.name ORDER BY revenue DESC LIMIT 10`
-    ),
-  ]);
-  res.json({ daily: dailyRes.rows, topStores: topRes.rows });
+  try {
+    const [dailyRes, topRes] = await Promise.all([
+      pool.query(
+        `SELECT
+           d.day::date AS date,
+           COALESCE(COUNT(o.id), 0)::int AS orders,
+           COALESCE(SUM(o.total_amount), 0)::int AS revenue
+         FROM generate_series(
+           CURRENT_DATE - INTERVAL '6 days', CURRENT_DATE, '1 day'
+         ) AS d(day)
+         LEFT JOIN orders o
+           ON o.created_at::date = d.day
+           AND o.status NOT IN ('cancelled')
+         GROUP BY d.day ORDER BY d.day`
+      ),
+      pool.query(
+        `SELECT s.name, COUNT(o.id)::int AS order_count,
+                COALESCE(SUM(o.total_amount), 0)::int AS revenue
+         FROM stores s LEFT JOIN orders o ON o.store_id = s.id
+           AND o.status = 'delivered'
+           AND o.created_at >= NOW() - INTERVAL '30 days'
+         GROUP BY s.id, s.name ORDER BY revenue DESC LIMIT 10`
+      ),
+    ]);
+    res.json({ daily: dailyRes.rows, topStores: topRes.rows });
+  } catch (err) {
+    console.error('[admin/analytics]', err);
+    res.status(500).json({ error: 'Could not fetch analytics.' });
+  }
 });
 
 // ─── GET /admin/payouts?period=week|month ─────────────────────────────────

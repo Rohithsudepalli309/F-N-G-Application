@@ -38,7 +38,7 @@ export function initSocket(httpServer: HttpServer): SocketServer {
   } else if (process.env.NODE_ENV === 'production') {
     throw new Error('ALLOWED_ORIGINS must be set in production');
   } else {
-    corsOrigin = 'http://localhost:5173';
+    corsOrigin = ['http://localhost:5173', 'http://localhost:5174'];
   }
 
   const io = new SocketServer(httpServer, {
@@ -73,9 +73,17 @@ export function initSocket(httpServer: HttpServer): SocketServer {
     }
   });
 
-  io.on('connection', (socket) => {
+  io.on('connection', async (socket) => {
     const userId: number = socket.data.id;
     const role: string   = socket.data.role;
+
+    // Lookup drivers.id once at connection for FK correctness in delivery_tracking
+    let driverId: number | null = null;
+    if (role === 'driver') {
+      const dr = await pool.query(`SELECT id FROM drivers WHERE user_id=$1 LIMIT 1`, [userId])
+        .catch(() => ({ rows: [] as { id: number }[] }));
+      driverId = dr.rows[0]?.id ?? null;
+    }
 
     if (role === 'admin') socket.join('admin');
 
@@ -168,7 +176,7 @@ export function initSocket(httpServer: HttpServer): SocketServer {
         pool.query(
           `INSERT INTO delivery_tracking (order_id, driver_id, lat, lng, bearing)
            VALUES ($1, $2, $3, $4, $5)`,
-          [payload.orderId, userId, payload.lat, payload.lng, bearing]
+          [payload.orderId, driverId, payload.lat, payload.lng, bearing]
         ).catch(() => {/* non-critical */});
 
         pool.query(

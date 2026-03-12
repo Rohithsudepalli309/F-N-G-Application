@@ -45,19 +45,23 @@ export const CouponsPage: React.FC = () => {
 
   const create = async () => {
     if (!form.code || !form.discount_value) return;
-    await api.post('/admin/coupons', {
-      ...form,
-      discount_value: form.discount_type === 'flat'
-        ? (parseInt(form.discount_value) || 0) * 100
-        : parseInt(form.discount_value),
-      min_order_amount: (parseInt(form.min_order_amount) || 0) * 100,
-      max_discount: form.max_discount ? parseInt(form.max_discount) * 100 : undefined,
-      max_uses: parseInt(form.max_uses) || 1000,
-      valid_until: form.valid_until || undefined,
-    });
-    setShowForm(false);
-    setForm({ code: '', description: '', discount_type: 'flat', discount_value: '', min_order_amount: '', max_discount: '', max_uses: '1000', valid_until: '' });
-    load();
+    try {
+      await api.post('/admin/coupons', {
+        ...form,
+        discount_value: form.discount_type === 'flat'
+          ? (parseInt(form.discount_value) || 0) * 100
+          : parseInt(form.discount_value),
+        min_order_amount: (parseInt(form.min_order_amount) || 0) * 100,
+        max_discount: form.max_discount ? parseInt(form.max_discount) * 100 : undefined,
+        max_uses: parseInt(form.max_uses) || 1000,
+        valid_until: form.valid_until || undefined,
+      });
+      setShowForm(false);
+      setForm({ code: '', description: '', discount_type: 'flat', discount_value: '', min_order_amount: '', max_discount: '', max_uses: '1000', valid_until: '' });
+      load();
+    } catch {
+      alert('Failed to create coupon. Check the details and try again.');
+    }
   };
 
   const deactivate = async (id: number) => {

@@ -291,7 +291,7 @@ router.post('/logout', requireAuth, async (req: AuthRequest, res) => {
 // ─── GET /auth/me ─────────────────────────────────────────────────────────
 router.get('/me', requireAuth, async (req: AuthRequest, res) => {
   const result = await pool.query(
-    `SELECT id, phone, email, name, role FROM users WHERE id=$1`,
+    `SELECT id, phone, email, name, role, coins FROM users WHERE id=$1`,
     [req.user!.id]
   );
   res.json({ user: result.rows[0] ?? null });
