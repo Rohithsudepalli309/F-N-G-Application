@@ -10,9 +10,13 @@ const pool = new Pool({
   connectionTimeoutMillis: 5000,
   ssl: process.env.DATABASE_SSL === 'true'
     ? {
-        // MED-5: always verify the server certificate to prevent MITM attacks
+        // MED-5: always verify the server certificate to prevent MITM attacks.
+        // DATABASE_SSL_CA may contain literal \n sequences (common when storing
+        // multiline PEM in a single-line env var) — replace them before use.
         rejectUnauthorized: true,
-        ...(process.env.DATABASE_SSL_CA ? { ca: process.env.DATABASE_SSL_CA } : {}),
+        ...(process.env.DATABASE_SSL_CA
+          ? { ca: process.env.DATABASE_SSL_CA.replace(/\\n/g, '\n') }
+          : {}),
       }
     : false,
 });
