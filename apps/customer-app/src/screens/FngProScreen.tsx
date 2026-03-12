@@ -271,4 +271,9 @@ const styles = StyleSheet.create({
     backgroundColor: '#F5A826', borderRadius: 12, paddingHorizontal: 22, paddingVertical: 14,
   },
   subscribeBtnText: { color: '#163D26', fontWeight: '800', fontSize: 15 },
+  alreadyProBanner: {
+    flex: 1, alignItems: 'center', justifyContent: 'center',
+    backgroundColor: '#e8f5e9', borderRadius: 12, paddingVertical: 14,
+  },
+  alreadyProText: { color: '#2e7d32', fontWeight: '700', fontSize: 15 },
 });

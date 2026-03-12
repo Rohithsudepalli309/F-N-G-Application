@@ -3,6 +3,18 @@ import { Alert } from 'react-native';
 import messaging from '@react-native-firebase/messaging';
 import { useAuthStore } from '../store/useAuthStore';
 import { api } from '../services/api';
+import { navigate } from '../navigation/navigationRef';
+
+function handleNotificationTap(data?: Record<string, unknown>) {
+  if (!data) return;
+  const screen = data.screen as string | undefined;
+  if (!screen) return;
+  if (screen === 'OrderTracking' || screen === 'OrderDetail') {
+    navigate(screen, data.orderId ? { orderId: data.orderId } : undefined);
+  } else {
+    navigate(screen);
+  }
+}
 
 /**
  * usePushNotifications
@@ -71,13 +83,13 @@ export const usePushNotifications = () => {
     // ── 5. Background / quit-state tap ───────────────────────────────────────
     messaging().onNotificationOpenedApp((remoteMessage) => {
       console.log('[Push] App opened from background:', remoteMessage.data);
-      // TODO: use navigation ref to navigate based on remoteMessage.data.screen
+      handleNotificationTap(remoteMessage.data as Record<string, unknown>);
     });
 
     messaging().getInitialNotification().then((remoteMessage) => {
       if (remoteMessage) {
         console.log('[Push] App opened from quit state:', remoteMessage.data);
-        // TODO: navigate to remoteMessage.data.screen on first render
+        handleNotificationTap(remoteMessage.data as Record<string, unknown>);
       }
     });
 

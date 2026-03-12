@@ -339,7 +339,8 @@ router.post('/complete', async (req: AuthRequest, res) => {
 
     const orderRes = await client.query(
       `SELECT o.id, o.status, o.driver_id, o.customer_id,
-              o.metadata->>'delivery_otp' AS delivery_otp
+              o.metadata->>'delivery_otp' AS delivery_otp,
+              COALESCE((o.metadata->>'otp_attempts')::int, 0) AS otp_attempts
        FROM orders o
        WHERE o.id=$1 FOR UPDATE`,
       [orderId]
@@ -361,10 +362,26 @@ router.post('/complete', async (req: AuthRequest, res) => {
       return;
     }
 
+    // Brute-force lockout: max 5 OTP attempts
+    if (order.otp_attempts >= 5) {
+      await client.query('ROLLBACK');
+      res.status(429).json({ error: 'Too many incorrect OTP attempts. Contact support.' });
+      return;
+    }
+
     // Verify OTP stored in metadata (set when order is placed or when driver is assigned)
     if (order.delivery_otp && order.delivery_otp !== otp) {
+      // Increment attempt counter (non-fatal if metadata column is unavailable)
+      await client.query(
+        `UPDATE orders SET metadata = jsonb_set(
+           COALESCE(metadata, '{}'::jsonb), '{otp_attempts}',
+           to_jsonb(COALESCE((metadata->>'otp_attempts')::int, 0) + 1)
+         ) WHERE id=$1`,
+        [orderId]
+      );
       await client.query('ROLLBACK');
-      res.status(400).json({ error: 'Invalid delivery OTP.' });
+      const remaining = 5 - (order.otp_attempts + 1);
+      res.status(400).json({ error: `Invalid delivery OTP. ${remaining} attempt${remaining !== 1 ? 's' : ''} remaining.` });
       return;
     }
 
