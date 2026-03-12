@@ -165,7 +165,7 @@ export const CategoriesScreen = () => {
       <View style={s.header}>
         <Text style={s.headerTitle}>All Categories</Text>
         <TouchableOpacity onPress={() => navigation.navigate('SearchMain')} style={s.searchBtn}>
-          <Text style={{ fontSize: 18 }}>🔍</Text>
+          <Image source={{ uri: 'https://img.icons8.com/color/96/search--v1.png' }} style={{ width: 22, height: 22 }} resizeMode="contain" />
         </TouchableOpacity>
       </View>
 
