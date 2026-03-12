@@ -6,8 +6,9 @@
 import React, { useEffect, useState } from 'react';
 import {
   View, Text, StyleSheet, SafeAreaView, StatusBar, ScrollView,
-  TouchableOpacity, Share, ActivityIndicator, Clipboard, Image,
+  TouchableOpacity, Share, ActivityIndicator, Image,
 } from 'react-native';
+import Clipboard from '@react-native-clipboard/clipboard';
 import { useNavigation } from '@react-navigation/native';
 import { api } from '../services/api';
 import { theme } from '../theme';

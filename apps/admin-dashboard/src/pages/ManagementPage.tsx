@@ -20,10 +20,13 @@ export const ManagementPage = ({ type }: Props) => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [searchTerm, setSearchTerm] = useState('');
+  const [page, setPage] = useState(0);
+  const PAGE_SIZE = 20;
 
   useEffect(() => {
     const fetchData = async () => {
       setError(null);
+      setPage(0);
       try {
         const { data } = await api.get(`/admin/${type}`);
         setItems(data[type] ?? data.users ?? data.stores ?? []);
@@ -55,6 +58,8 @@ export const ManagementPage = ({ type }: Props) => {
     item.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
     item.email?.toLowerCase().includes(searchTerm.toLowerCase())
   );
+  const totalPages = Math.max(1, Math.ceil(filteredItems.length / PAGE_SIZE));
+  const pagedItems = filteredItems.slice(page * PAGE_SIZE, (page + 1) * PAGE_SIZE);
 
   return (
     <div className="space-y-6">
@@ -92,9 +97,9 @@ export const ManagementPage = ({ type }: Props) => {
           <tbody className="divide-y divide-gray-100">
             {loading ? (
               <tr><td colSpan={4} className="px-6 py-8 text-center text-gray-500">Loading...</td></tr>
-            ) : filteredItems.length === 0 ? (
+            ) : pagedItems.length === 0 ? (
               <tr><td colSpan={4} className="px-6 py-8 text-center text-gray-500">No results found</td></tr>
-            ) : filteredItems.map((item) => (
+            ) : pagedItems.map((item) => (
               <tr key={item.id} className="hover:bg-gray-50">
                 <td className="px-6 py-4">
                   <div className="font-semibold text-gray-800">{item.name}</div>
@@ -129,6 +134,30 @@ export const ManagementPage = ({ type }: Props) => {
           </tbody>
         </table>
       </div>
+
+      {totalPages > 1 && (
+        <div className="flex items-center justify-between pt-2">
+          <span className="text-sm text-gray-500">
+            Showing {page * PAGE_SIZE + 1}–{Math.min((page + 1) * PAGE_SIZE, filteredItems.length)} of {filteredItems.length}
+          </span>
+          <div className="flex gap-2">
+            <button
+              onClick={() => setPage(p => Math.max(0, p - 1))}
+              disabled={page === 0}
+              className="px-3 py-1.5 text-xs font-medium border rounded-lg hover:bg-gray-50 disabled:opacity-40"
+            >
+              ← Prev
+            </button>
+            <button
+              onClick={() => setPage(p => Math.min(totalPages - 1, p + 1))}
+              disabled={page >= totalPages - 1}
+              className="px-3 py-1.5 text-xs font-medium border rounded-lg hover:bg-gray-50 disabled:opacity-40"
+            >
+              Next →
+            </button>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

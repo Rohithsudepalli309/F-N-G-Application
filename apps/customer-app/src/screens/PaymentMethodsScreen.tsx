@@ -126,7 +126,11 @@ export const PaymentMethodsScreen = () => {
             </View>
           }
           ListFooterComponent={
-            <TouchableOpacity style={styles.addBtn} activeOpacity={0.85}>
+            <TouchableOpacity
+              style={styles.addBtn}
+              activeOpacity={0.85}
+              onPress={() => Alert.alert('Coming Soon', 'Saving payment methods is coming in a future update.')}
+            >
               <Text style={styles.addBtnText}>+ Add New Payment Method</Text>
             </TouchableOpacity>
           }

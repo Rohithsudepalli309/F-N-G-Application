@@ -1,5 +1,5 @@
-import React, { useEffect, useState } from 'react';
-import { TrendingUp, Package, IndianRupee, Store, Loader2 } from 'lucide-react';
+import React, { useEffect, useState, useCallback } from 'react';
+import { TrendingUp, Package, IndianRupee, Store, Loader2, RefreshCw } from 'lucide-react';
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer } from 'recharts';
 import api from '../services/api';
 
@@ -11,22 +11,26 @@ export const AnalyticsPage: React.FC = () => {
   const [topStores, setTopStores] = useState<TopStore[]>([]);
   const [stats, setStats] = useState({ ordersToday: 0, totalCustomers: 0, totalDrivers: 0, revenueToday: 0 });
   const [loading, setLoading] = useState(true);
+  const [refreshing, setRefreshing] = useState(false);
 
-  useEffect(() => {
-    (async () => {
-      try {
-        const [analyticsRes, statsRes] = await Promise.all([
-          api.get('/admin/analytics'),
-          api.get('/admin/stats'),
-        ]);
-        setDaily(analyticsRes.data.daily ?? []);
-        setTopStores(analyticsRes.data.topStores ?? []);
-        setStats(statsRes.data);
-      } finally {
-        setLoading(false);
-      }
-    })();
+  const fetchData = useCallback(async (silent = false) => {
+    if (!silent) setLoading(true);
+    else setRefreshing(true);
+    try {
+      const [analyticsRes, statsRes] = await Promise.all([
+        api.get('/admin/analytics'),
+        api.get('/admin/stats'),
+      ]);
+      setDaily(analyticsRes.data.daily ?? []);
+      setTopStores(analyticsRes.data.topStores ?? []);
+      setStats(statsRes.data);
+    } finally {
+      setLoading(false);
+      setRefreshing(false);
+    }
   }, []);
+
+  useEffect(() => { fetchData(false); }, [fetchData]);
 
   const metricCards = [
     { label: 'Orders Today', value: stats.ordersToday, icon: Package, color: 'text-blue-600', bg: 'bg-blue-50' },
@@ -45,9 +49,19 @@ export const AnalyticsPage: React.FC = () => {
 
   return (
     <div className="p-8 space-y-8">
-      <div>
-        <h2 className="text-2xl font-bold text-slate-800">Analytics</h2>
-        <p className="text-sm text-slate-500 mt-1">Revenue and performance overview</p>
+      <div className="flex items-start justify-between">
+        <div>
+          <h2 className="text-2xl font-bold text-slate-800">Analytics</h2>
+          <p className="text-sm text-slate-500 mt-1">Revenue and performance overview</p>
+        </div>
+        <button
+          onClick={() => fetchData(true)}
+          disabled={refreshing}
+          className="flex items-center gap-1.5 text-xs font-medium px-3 py-1.5 rounded-lg border border-gray-200 hover:bg-gray-50 transition-colors disabled:opacity-50"
+        >
+          <RefreshCw size={13} className={refreshing ? 'animate-spin' : ''} />
+          {refreshing ? 'Refreshing…' : 'Refresh'}
+        </button>
       </div>
 
       {/* KPI Cards */}
