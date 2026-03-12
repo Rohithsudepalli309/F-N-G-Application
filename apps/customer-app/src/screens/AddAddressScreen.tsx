@@ -45,7 +45,7 @@ export const AddAddressScreen = () => {
     setSaving(true);
     try {
       if (editAddress?.id) {
-        await api.put(`/addresses/${editAddress.id}`, { label, line1, line2, city, pincode, landmark, lat, lng });
+        await api.patch(`/addresses/${editAddress.id}`, { label, line1, line2, city, pincode, landmark, lat, lng });
       } else {
         await api.post('/addresses', { label, line1, line2, city, pincode, landmark, lat, lng });
       }

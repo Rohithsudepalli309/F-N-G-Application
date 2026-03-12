@@ -79,20 +79,14 @@ export const GroceryCartScreen = () => {
     setLoading(true);
     try {
       // 1. Create internal order
-      const addressString = address
-        ? `${address.address_line}, ${address.city} - ${address.pincode}`
-        : '';
       const { data: internalOrder } = await api.post('/orders', {
-        type: 'grocery',
-        items: groceryItems.map(i => ({
-          id: i.productId,
-          name: i.name,
-          price: i.price,
-          quantity: i.quantity,
-        })),
-        totalAmount: grandTotal,
-        deliveryFee,
-        address: addressString,
+        items: groceryItems.map(i => ({ productId: Number(i.productId), quantity: i.quantity })),
+        deliveryAddress: address
+          ? { label: address.label, address_line: address.address_line,
+              city: address.city, pincode: address.pincode }
+          : { label: 'Home', address_line: 'Not provided', city: '', pincode: '' },
+        paymentMethod: 'online',
+        couponCode: couponDiscount > 0 ? couponCode.trim().toUpperCase() : undefined,
       });
 
       // 2. Create Razorpay payment order

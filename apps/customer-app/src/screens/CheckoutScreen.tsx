@@ -94,20 +94,15 @@ export const CheckoutScreen = () => {
 
     try {
       // 1. Create Internal Order on Backend (Status: Pending, Stock Deducted)
-      const addressString = deliveryAddress
-        ? `${deliveryAddress.address_line}, ${deliveryAddress.city} - ${deliveryAddress.pincode}`
-        : 'Address not selected';
-
       const orderPayload = {
-        storeId: storeId || undefined,
-        items: items.map(i => ({
-          id: i.productId,
-          name: i.name,
-          price: i.price,
-          quantity: i.quantity,
-        })),
-        totalAmount: Math.round(grandTotal * 100), // In paise
-        address: addressString,
+        storeId: storeId ? Number(storeId) : undefined,
+        items: items.map(i => ({ productId: Number(i.productId), quantity: i.quantity })),
+        deliveryAddress: deliveryAddress
+          ? { label: deliveryAddress.label, address_line: deliveryAddress.address_line,
+              city: deliveryAddress.city, pincode: deliveryAddress.pincode }
+          : { label: 'Home', address_line: 'Not provided', city: '', pincode: '' },
+        paymentMethod: isCOD ? 'cod' : 'online',
+        couponCode: couponDiscount > 0 ? couponCode.trim().toUpperCase() : undefined,
       };
 
       const { data: internalOrder } = await api.post('/orders', orderPayload);

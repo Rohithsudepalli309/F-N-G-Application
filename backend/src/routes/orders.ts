@@ -31,7 +31,7 @@ router.post('/', async (req: AuthRequest, res) => {
     couponCode,
     instructions,
   } = req.body as {
-    storeId: number;
+    storeId?: number;
     items: { productId: number; quantity: number }[];
     deliveryAddress: { label: string; address_line: string; city: string; pincode: string };
     paymentMethod?: string;
@@ -57,6 +57,11 @@ router.post('/', async (req: AuthRequest, res) => {
     );
     const productMap = new Map(productsRes.rows.map((p) => [p.id, p]));
 
+    // Derive storeId from first product when not supplied (e.g. grocery cart has no storeId)
+    const resolvedStoreId: number = storeId
+      ? Number(storeId)
+      : Number(productsRes.rows[0]?.store_id);
+
     // Validate all products belong to the same store and are available
     let subtotal = 0;
     const lineItems: { product: Record<string, unknown>; quantity: number; total: number }[] = [];
@@ -67,7 +72,7 @@ router.post('/', async (req: AuthRequest, res) => {
         res.status(400).json({ error: `Product ${item.productId} not found.` });
         return;
       }
-      if (Number(p.store_id) !== Number(storeId)) {
+      if (Number(p.store_id) !== resolvedStoreId) {
         await client.query('ROLLBACK');
         res.status(400).json({ error: 'All items must be from the same store.' });
         return;
@@ -126,7 +131,7 @@ router.post('/', async (req: AuthRequest, res) => {
     const totalAmount = subtotal + deliveryFee + handlingFee - discountAmount;
 
     // Fetch store name
-    const storeRes = await client.query(`SELECT name FROM stores WHERE id=$1`, [storeId]);
+    const storeRes = await client.query(`SELECT name FROM stores WHERE id=$1`, [resolvedStoreId]);
     const storeName = storeRes.rows[0]?.name ?? '';
 
     const orderNumber = generateOrderNumber();
@@ -142,7 +147,7 @@ router.post('/', async (req: AuthRequest, res) => {
        VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16)
        RETURNING *`,
       [
-        orderNumber, req.user!.id, storeId, storeName,
+        orderNumber, req.user!.id, resolvedStoreId, storeName,
         subtotal, deliveryFee, handlingFee, discountAmount, totalAmount,
         couponId, couponCode?.toUpperCase() ?? null,
         JSON.stringify(deliveryAddress),
@@ -175,11 +180,11 @@ router.post('/', async (req: AuthRequest, res) => {
        WHERE o.id=$1 GROUP BY o.id`,
       [order.id]
     );
-    io.to(`merchant:${storeId}`).emit('merchant:new_order', fullOrder.rows[0]);
+    io.to(`merchant:${resolvedStoreId}`).emit('merchant:new_order', fullOrder.rows[0]);
     io.to('admin').emit('order.platform.update', fullOrder.rows[0]);
 
     // FCM push to merchant user
-    pool.query(`SELECT owner_id FROM stores WHERE id=$1`, [storeId])
+    pool.query(`SELECT owner_id FROM stores WHERE id=$1`, [resolvedStoreId])
       .then(({ rows }) => {
         if (rows[0]?.owner_id) {
           sendPushToUser(
@@ -193,7 +198,7 @@ router.post('/', async (req: AuthRequest, res) => {
       .catch(() => {/* non-critical */});
 
     // Record demand for surge pricing (async, non-blocking)
-    recordDemand(storeId).catch(() => {/* non-critical */});
+    recordDemand(resolvedStoreId).catch(() => {/* non-critical */});
 
     res.status(201).json({
       order: {
