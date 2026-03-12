@@ -6,7 +6,7 @@
 import React, { useEffect, useState } from 'react';
 import {
   View, Text, StyleSheet, SafeAreaView, StatusBar, ScrollView,
-  TouchableOpacity, Share, ActivityIndicator, Clipboard,
+  TouchableOpacity, Share, ActivityIndicator, Clipboard, Image,
 } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { api } from '../services/api';
@@ -21,10 +21,10 @@ interface ReferralData {
 }
 
 const STEPS = [
-  { step: '1', icon: '📤', title: 'Share your code', desc: 'Send your unique referral code to friends' },
-  { step: '2', icon: '📲', title: 'Friend signs up', desc: 'They register using your referral code' },
-  { step: '3', icon: '🛒', title: 'First order placed', desc: 'Your friend places their first order on F&G' },
-  { step: '4', icon: '🪙', title: 'Both earn coins!', desc: 'You get 200 coins, they get 100 coins' },
+  { step: '1', title: 'Share your code', desc: 'Send your unique referral code to friends' },
+  { step: '2', title: 'Friend signs up',  desc: 'They register using your referral code' },
+  { step: '3', title: 'First order placed',desc: 'Your friend places their first order on F&G' },
+  { step: '4', title: 'Both earn coins!', desc: 'You get 200 coins, they get 100 coins' },
 ];
 
 export const ReferEarnScreen = () => {

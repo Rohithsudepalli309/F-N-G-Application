@@ -5,18 +5,18 @@
 import React, { useState } from 'react';
 import {
   View, Text, StyleSheet, SafeAreaView, StatusBar, ScrollView,
-  TouchableOpacity, Linking, TextInput,
+  TouchableOpacity, Linking, TextInput, Image,
 } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { theme } from '../theme';
 
 const TOPICS = [
-  { icon: '📦', label: 'Order Issues', desc: 'Missing items, wrong order, damaged goods' },
-  { icon: '💳', label: 'Payment & Refunds', desc: 'Charged incorrectly, refund status' },
-  { icon: '🛵', label: 'Delivery Issues', desc: 'Late delivery, agent not found' },
-  { icon: '🏪', label: 'Restaurant Issue', desc: 'Food quality, wrong restaurant' },
-  { icon: '👤', label: 'Account Help', desc: 'Login issues, profile, preferences' },
-  { icon: '🎁', label: 'Coupons & Pro', desc: 'Coupon not applied, Pro benefits' },
+  { img: 'https://img.icons8.com/color/96/box--v1.png',                label: 'Order Issues',      desc: 'Missing items, wrong order, damaged goods' },
+  { img: 'https://img.icons8.com/color/96/refund--v1.png',             label: 'Payment & Refunds', desc: 'Charged incorrectly, refund status' },
+  { img: 'https://img.icons8.com/color/96/motorcycle-delivery--v1.png',label: 'Delivery Issues',   desc: 'Late delivery, agent not found' },
+  { img: 'https://img.icons8.com/color/96/restaurant--v1.png',         label: 'Restaurant Issue',  desc: 'Food quality, wrong restaurant' },
+  { img: 'https://img.icons8.com/color/96/user-male-circle--v1.png',   label: 'Account Help',      desc: 'Login issues, profile, preferences' },
+  { img: 'https://img.icons8.com/color/96/discount--v1.png',           label: 'Coupons & Pro',     desc: 'Coupon not applied, Pro benefits' },
 ];
 
 const FAQS = [
@@ -74,7 +74,7 @@ export const HelpSupportScreen = () => {
 
         {/* Search FAQs */}
         <View style={styles.searchBar}>
-          <Text style={styles.searchIcon}>🔍</Text>
+          <Image source={{ uri: 'https://img.icons8.com/color/96/search--v1.png' }} style={styles.searchIconImg} resizeMode="contain" />
           <TextInput
             style={styles.searchInput}
             value={searchQuery}
@@ -95,7 +95,7 @@ export const HelpSupportScreen = () => {
               style={styles.chatBtn}
               onPress={() => Linking.openURL('https://wa.me/918888888888')}
             >
-              <Text style={styles.chatBtnIcon}>💬</Text>
+              <Image source={{ uri: 'https://img.icons8.com/color/96/whatsapp--v1.png' }} style={styles.contactBtnImg} resizeMode="contain" />
               <Text style={styles.chatBtnText}>Chat</Text>
             </TouchableOpacity>
             <TouchableOpacity
@@ -113,7 +113,7 @@ export const HelpSupportScreen = () => {
         <View style={styles.topicsGrid}>
           {TOPICS.map((topic, i) => (
             <TouchableOpacity key={i} style={styles.topicCard} activeOpacity={0.75}>
-              <Text style={styles.topicIcon}>{topic.icon}</Text>
+              <Image source={{ uri: topic.img }} style={styles.topicImg} resizeMode="contain" />
               <Text style={styles.topicLabel}>{topic.label}</Text>
               <Text style={styles.topicDesc} numberOfLines={2}>{topic.desc}</Text>
             </TouchableOpacity>
@@ -149,7 +149,7 @@ export const HelpSupportScreen = () => {
           style={styles.emailBtn}
           onPress={() => Linking.openURL('mailto:support@fng.in?subject=App Support')}
         >
-          <Text style={styles.emailIcon}>✉️</Text>
+          <Image source={{ uri: 'https://img.icons8.com/color/96/email--v1.png' }} style={styles.emailImg} resizeMode="contain" />
           <Text style={styles.emailText}>Email us at support@fng.in</Text>
         </TouchableOpacity>
       </ScrollView>
@@ -174,6 +174,7 @@ const styles = StyleSheet.create({
     backgroundColor: theme.colors.surface, borderRadius: 12, paddingHorizontal: 14,
     paddingVertical: 12, marginBottom: 16, borderWidth: 1, borderColor: theme.colors.border,
   },
+  searchIconImg: { width: 20, height: 20 },
   searchIcon: { fontSize: 16 },
   searchInput: { flex: 1, fontSize: 15, color: theme.colors.text.primary },
 
@@ -190,6 +191,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 14, paddingVertical: 10, alignItems: 'center',
   },
   chatBtnIcon: { fontSize: 18 },
+  contactBtnImg: { width: 22, height: 22 },
   chatBtnText: { color: '#fff', fontSize: 11, fontWeight: '600', marginTop: 2 },
   callBtn: {
     backgroundColor: '#F5A826', borderRadius: 10,
@@ -207,6 +209,7 @@ const styles = StyleSheet.create({
     width: '47%', backgroundColor: theme.colors.surface, borderRadius: 14, padding: 14,
     borderWidth: 1, borderColor: theme.colors.border,
   },
+  topicImg:  { width: 32, height: 32, marginBottom: 8 },
   topicIcon: { fontSize: 28, marginBottom: 8 },
   topicLabel: { fontSize: 14, fontWeight: '700', color: theme.colors.text.primary, marginBottom: 4 },
   topicDesc: { fontSize: 12, color: theme.colors.text.secondary, lineHeight: 16 },
@@ -228,6 +231,7 @@ const styles = StyleSheet.create({
     paddingVertical: 14, borderRadius: 12,
     borderWidth: 1.5, borderColor: theme.colors.border, marginTop: 8,
   },
+  emailImg:  { width: 22, height: 22 },
   emailIcon: { fontSize: 18 },
   emailText: { fontSize: 14, color: theme.colors.text.secondary, fontWeight: '600' },
 });

@@ -7,7 +7,7 @@
 import React, { useState } from 'react';
 import {
   View, Text, StyleSheet, SafeAreaView, StatusBar, ScrollView,
-  TouchableOpacity, ActivityIndicator, Alert,
+  TouchableOpacity, ActivityIndicator, Alert, Image,
 } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import RazorpayCheckout from 'react-native-razorpay';
@@ -15,12 +15,12 @@ import { theme } from '../theme';
 import { api } from '../services/api';
 
 const PERKS = [
-  { icon: '🚚', title: 'Free Delivery', desc: 'Zero delivery fee on every order, every day' },
-  { icon: '⚡', title: 'Priority Delivery', desc: 'Your orders are dispatched first' },
-  { icon: '💰', title: '5% Cashback', desc: 'On all food and grocery orders' },
-  { icon: '🎁', title: 'Exclusive Deals', desc: 'Members-only offers every week' },
-  { icon: '💎', title: 'F&G Coins 2x', desc: 'Double coins on every purchase' },
-  { icon: '📞', title: 'Priority Support', desc: 'Dedicated support line — skip the queue' },
+  { img: 'https://img.icons8.com/color/96/in-transit--v1.png',       title: 'Free Delivery',    desc: 'Zero delivery fee on every order, every day' },
+  { img: 'https://img.icons8.com/color/96/express-delivery--v1.png', title: 'Priority Delivery',desc: 'Your orders are dispatched first' },
+  { img: 'https://img.icons8.com/color/96/coin--v1.png',             title: '5% Cashback',      desc: 'On all food and grocery orders' },
+  { img: 'https://img.icons8.com/color/96/best-seller--v1.png',      title: 'Exclusive Deals',  desc: 'Members-only offers every week' },
+  { img: 'https://img.icons8.com/color/96/loyalty-card--v1.png',     title: 'F&G Coins 2×',     desc: 'Double coins on every purchase' },
+  { img: 'https://img.icons8.com/color/96/customer-support--v1.png', title: 'Priority Support', desc: 'Dedicated support line — skip the queue' },
 ];
 
 const PLANS = [
@@ -135,7 +135,7 @@ export const FngProScreen = () => {
           {PERKS.map((perk, i) => (
             <View key={i} style={styles.perkRow}>
               <View style={styles.perkIconWrap}>
-                <Text style={styles.perkIcon}>{perk.icon}</Text>
+                <Image source={{ uri: perk.img }} style={styles.perkIconImg} resizeMode="contain" />
               </View>
               <View style={styles.perkInfo}>
                 <Text style={styles.perkTitle}>{perk.title}</Text>
@@ -223,7 +223,7 @@ const styles = StyleSheet.create({
     width: 42, height: 42, borderRadius: 21,
     backgroundColor: '#163D2610', alignItems: 'center', justifyContent: 'center',
   },
-  perkIcon: { fontSize: 20 },
+  perkIconImg: { width: 26, height: 26 },
   perkInfo: { flex: 1 },
   perkTitle: { fontSize: 14, fontWeight: '700', color: theme.colors.text.primary },
   perkDesc: { fontSize: 12, color: theme.colors.text.secondary, marginTop: 2 },

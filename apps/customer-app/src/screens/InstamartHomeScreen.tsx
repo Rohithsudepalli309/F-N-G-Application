@@ -22,11 +22,11 @@ interface Category {
 }
 
 const SECTIONS = [
-  { key: 'grocery'   as Section, label: 'Grocery',          emoji: '🛒', bg: '#E8F5E9', active: '#163D26' },
-  { key: 'daily'     as Section, label: 'Daily Essentials',  emoji: '⚡', bg: '#FFF8E1', active: '#F57F17' },
-  { key: 'household' as Section, label: 'Household',         emoji: '🏠', bg: '#E3F2FD', active: '#1565C0' },
-  { key: 'tools'     as Section, label: 'Tools',             emoji: '🔧', bg: '#F3E5F5', active: '#6A1B9A' },
-  { key: 'fashion'   as Section, label: 'Fashion',           emoji: '👗', bg: '#FCE4EC', active: '#C62828' },
+  { key: 'grocery'   as Section, label: 'Grocery',         img: 'https://img.icons8.com/color/96/shopping-cart--v1.png', bg: '#E8F5E9', active: '#163D26' },
+  { key: 'daily'     as Section, label: 'Daily Essentials',img: 'https://img.icons8.com/color/96/detergent--v1.png',     bg: '#FFF8E1', active: '#F57F17' },
+  { key: 'household' as Section, label: 'Household',       img: 'https://img.icons8.com/color/96/home--v1.png',          bg: '#E3F2FD', active: '#1565C0' },
+  { key: 'tools'     as Section, label: 'Tools',           img: 'https://img.icons8.com/color/96/wrench--v1.png',        bg: '#F3E5F5', active: '#6A1B9A' },
+  { key: 'fashion'   as Section, label: 'Fashion',         img: 'https://img.icons8.com/color/96/women-clothing--v1.png',bg: '#FCE4EC', active: '#C62828' },
 ];
 
 const FALLBACK: Category[] = [
@@ -150,11 +150,11 @@ export const InstamartHomeScreen = () => {
         </View>
         <View style={s.headerRight}>
           <View style={s.deliveryPill}>
-            <Text style={s.deliveryEmoji}>⚡</Text>
+            <Image source={{ uri: 'https://img.icons8.com/color/96/express-delivery--v1.png' }} style={s.deliveryImg} resizeMode="contain" />
             <Text style={s.deliveryText}>Under 40 min</Text>
           </View>
           <TouchableOpacity style={s.cartBtn} onPress={() => navigation.navigate('GroceryCart')}>
-            <Text style={s.cartEmoji}>🛒</Text>
+            <Image source={{ uri: 'https://img.icons8.com/color/96/shopping-cart--v1.png' }} style={s.cartImg} resizeMode="contain" />
             {cartItems.length > 0 && (
               <View style={s.cartBadge}>
                 <Text style={s.cartBadgeText}>{cartItems.length}</Text>
@@ -166,7 +166,7 @@ export const InstamartHomeScreen = () => {
 
       {/* Search */}
       <View style={s.searchWrap}>
-        <Text style={s.searchIcon}>🔍</Text>
+        <Image source={{ uri: 'https://img.icons8.com/color/96/search--v1.png' }} style={s.searchIconImg} resizeMode="contain" />
         <TextInput
           style={s.searchInput}
           placeholder={`Search in ${activeMeta.label}…`}
@@ -192,7 +192,7 @@ export const InstamartHomeScreen = () => {
               style={[s.tab, active && { backgroundColor: sec.active, borderColor: sec.active }]}
               activeOpacity={0.8}
             >
-              <Text style={s.tabEmoji}>{sec.emoji}</Text>
+              <Image source={{ uri: sec.img }} style={[s.tabImg, active && s.tabImgActive]} resizeMode="contain" />
               <Text style={[s.tabLabel, active && s.tabLabelActive]}>{sec.label}</Text>
             </TouchableOpacity>
           );
@@ -332,22 +332,27 @@ const s = StyleSheet.create({
   headerRight:  { flexDirection: 'row', alignItems: 'center', gap: 10 },
   deliveryPill: { flexDirection: 'row', alignItems: 'center', backgroundColor: '#E8F5E9', paddingHorizontal: 10, paddingVertical: 5, borderRadius: 20, gap: 4 },
   deliveryEmoji:{ fontSize: 12 },
+  deliveryImg:  { width: 16, height: 16 },
   deliveryText: { fontSize: 11, fontWeight: '700', color: '#2E7D32' },
   cartBtn:      { padding: 6, position: 'relative' },
   cartEmoji:    { fontSize: 24 },
+  cartImg:      { width: 26, height: 26 },
   cartBadge:    { position: 'absolute', top: 2, right: 2, minWidth: 16, height: 16, borderRadius: 8, backgroundColor: '#F5A826', alignItems: 'center', justifyContent: 'center', paddingHorizontal: 3 },
   cartBadgeText:{ fontSize: 9, fontWeight: '900', color: '#0D1B14' },
 
-  searchWrap:  { flexDirection: 'row', alignItems: 'center', backgroundColor: '#F7F7F7', marginHorizontal: 16, marginVertical: 10, height: 44, borderRadius: 10, paddingHorizontal: 14, borderWidth: 1, borderColor: '#EBEBEB' },
-  searchIcon:  { fontSize: 15, marginRight: 8 },
+  searchWrap:   { flexDirection: 'row', alignItems: 'center', backgroundColor: '#F7F7F7', marginHorizontal: 16, marginVertical: 10, height: 44, borderRadius: 10, paddingHorizontal: 14, borderWidth: 1, borderColor: '#EBEBEB' },
+  searchIconImg:{ width: 18, height: 18, marginRight: 8 },
+  searchIcon:   { fontSize: 15, marginRight: 8 },
   searchInput: { flex: 1, fontSize: 13, color: '#0D1B14' },
   clearBtn:    { padding: 4 },
   clearText:   { fontSize: 14, color: '#9E9E9E' },
 
   tabsScroll:  { maxHeight: 50, backgroundColor: '#FFF' },
   tabsContent: { paddingHorizontal: 12, paddingVertical: 6, gap: 8 },
-  tab:         { flexDirection: 'row', alignItems: 'center', paddingHorizontal: 14, paddingVertical: 7, borderRadius: 20, borderWidth: 1.5, borderColor: '#DDD', backgroundColor: '#FFF', gap: 5 },
-  tabEmoji:    { fontSize: 13 },
+  tab:          { flexDirection: 'row', alignItems: 'center', paddingHorizontal: 14, paddingVertical: 7, borderRadius: 20, borderWidth: 1.5, borderColor: '#DDD', backgroundColor: '#FFF', gap: 5 },
+  tabEmoji:     { fontSize: 13 },
+  tabImg:       { width: 16, height: 16, tintColor: undefined },
+  tabImgActive: { tintColor: '#FFF' },
   tabLabel:    { fontSize: 12, fontWeight: '600', color: '#666' },
   tabLabelActive:{ color: '#FFF' },
 
