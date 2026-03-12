@@ -16,6 +16,8 @@ export const PayoutsPage: React.FC = () => {
   const [payouts, setPayouts] = useState<DriverPayout[]>([]);
   const [loading, setLoading] = useState(true);
   const [period, setPeriod] = useState<'week' | 'month'>('week');
+  const [paidIds, setPaidIds] = useState<Set<number>>(new Set());
+  const [markingId, setMarkingId] = useState<number | null>(null);
 
   useEffect(() => {
     (async () => {
@@ -30,6 +32,18 @@ export const PayoutsPage: React.FC = () => {
       }
     })();
   }, [period]);
+
+  const markPaid = async (driverId: number) => {
+    setMarkingId(driverId);
+    try {
+      await api.patch(`/admin/payouts/${driverId}/mark-paid`, { period });
+      setPaidIds((prev) => new Set(prev).add(driverId));
+    } catch {
+      alert('Failed to mark as paid. Please try again.');
+    } finally {
+      setMarkingId(null);
+    }
+  };
 
   const totalNet = payouts.reduce((sum, p) => sum + p.net_payout, 0);
   const totalGross = payouts.reduce((sum, p) => sum + p.gross_earnings, 0);
@@ -126,9 +140,19 @@ export const PayoutsPage: React.FC = () => {
                   <td className="px-4 py-3 text-red-500">- ₹{(p.platform_commission / 100).toLocaleString('en-IN')}</td>
                   <td className="px-4 py-3 font-bold text-emerald-600">₹{(p.net_payout / 100).toLocaleString('en-IN')}</td>
                   <td className="px-4 py-3">
-                    <button className="text-xs bg-emerald-50 hover:bg-emerald-100 text-emerald-700 border border-emerald-200 px-3 py-1 rounded-lg font-semibold transition-colors">
-                      Mark Paid
-                    </button>
+                    {paidIds.has(p.driver_id) ? (
+                      <span className="flex items-center gap-1 text-xs text-emerald-600 font-semibold">
+                        <CheckCircle size={13} /> Paid
+                      </span>
+                    ) : (
+                      <button
+                        onClick={() => markPaid(p.driver_id)}
+                        disabled={markingId === p.driver_id}
+                        className="text-xs bg-emerald-50 hover:bg-emerald-100 text-emerald-700 border border-emerald-200 px-3 py-1 rounded-lg font-semibold transition-colors disabled:opacity-50"
+                      >
+                        {markingId === p.driver_id ? <Loader2 size={12} className="animate-spin inline" /> : 'Mark Paid'}
+                      </button>
+                    )}
                   </td>
                 </tr>
               ))}

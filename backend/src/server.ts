@@ -37,6 +37,7 @@ import proRouter           from './routes/pro';
 import referralsRouter     from './routes/referrals';
 import productsRouter      from './routes/products';
 import paymentMethodsRouter from './routes/paymentMethods';
+import walletRouter         from './routes/wallet';
 
 const app = express();
 const server = http.createServer(app);
@@ -116,6 +117,7 @@ app.use('/api/v1/referrals',      referralsRouter);
 app.use('/api/v1/products',       productsRouter);
 app.use('/api/v1/grocery',        productsRouter);  // alias for categories endpoint
 app.use('/api/v1/payment-methods', paymentMethodsRouter);
+app.use('/api/v1/wallet',          walletRouter);
 
 // ── Health check ─────────────────────────────────────────────────────────
 app.get('/health', (_req, res) => {

@@ -100,11 +100,34 @@ router.post('/verify', async (req: AuthRequest, res) => {
   await pool.query(
     `INSERT INTO pro_subscriptions
        (user_id, plan_id, status, razorpay_order_id, razorpay_payment_id, expires_at)
-     VALUES ($1,$2,'active',$3,$4,$5)`,
+     VALUES ($1,$2,'active',$3,$4,$5)
+     ON CONFLICT (user_id) DO UPDATE
+       SET plan_id=$2, status='active', razorpay_order_id=$3,
+           razorpay_payment_id=$4, expires_at=$5, updated_at=NOW()`,
     [req.user!.id, planId, razorpayOrderId, razorpayPaymentId, expiresAt]
   );
 
   res.json({ ok: true, expiresAt });
+});
+
+// ─── DELETE /pro/cancel ─── Cancel active pro subscription ─────────────────
+router.delete('/cancel', async (req: AuthRequest, res) => {
+  try {
+    const result = await pool.query(
+      `UPDATE pro_subscriptions SET status='cancelled', updated_at=NOW()
+       WHERE user_id=$1 AND status='active'
+       RETURNING id`,
+      [req.user!.id]
+    );
+    if (result.rows.length === 0) {
+      res.status(404).json({ error: 'No active subscription found.' });
+      return;
+    }
+    res.json({ ok: true, message: 'Subscription cancelled successfully.' });
+  } catch (err) {
+    console.error('[pro/cancel] error:', err);
+    res.status(500).json({ error: 'Could not cancel subscription.' });
+  }
 });
 
 export default router;

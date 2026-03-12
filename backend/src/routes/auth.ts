@@ -61,8 +61,8 @@ router.post('/otp', async (req, res) => {
 
 // ─── POST /auth/otp/verify ─── Verify OTP → JWT ───────────────────────────
 router.post('/otp/verify', async (req, res) => {
-  const { phone, otp, role = 'customer' } = req.body as {
-    phone?: string; otp?: string; role?: string;
+  const { phone, otp, role = 'customer', referredBy } = req.body as {
+    phone?: string; otp?: string; role?: string; referredBy?: string;
   };
 
   if (!phone || !otp) {
@@ -110,6 +110,32 @@ router.post('/otp/verify', async (req, res) => {
       [phone, role]
     );
     userRow = ins.rows[0];
+
+    // H-3: Apply referral reward if a valid referredBy code was given
+    if (referredBy && typeof referredBy === 'string') {
+      const referrerRes = await pool.query(
+        `SELECT id FROM users WHERE referral_code=$1 LIMIT 1`,
+        [referredBy.trim().toUpperCase()]
+      );
+      const referrer = referrerRes.rows[0];
+      if (referrer && referrer.id !== userRow.id) {
+        // Grant 200 coins to referrer, 100 to new user (non-fatal)
+        await pool.query(
+          `UPDATE users SET coins = coins + 200 WHERE id=$1`,
+          [referrer.id]
+        ).catch(() => {/* ignore */});
+        await pool.query(
+          `UPDATE users SET coins = coins + 100 WHERE id=$1`,
+          [userRow.id]
+        ).catch(() => {/* ignore */});
+        await pool.query(
+          `INSERT INTO referral_events (referrer_id, referee_id, coins_granted)
+           VALUES ($1, $2, 200)
+           ON CONFLICT (referee_id) DO NOTHING`,
+          [referrer.id, userRow.id]
+        ).catch(() => {/* ignore */});
+      }
+    }
   }
 
   // Look up store for merchant

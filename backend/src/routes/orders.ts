@@ -371,7 +371,7 @@ router.post('/:id/rate', async (req: AuthRequest, res) => {
   const result = await pool.query(
     `UPDATE orders SET rating=$1, review=$2
      WHERE id=$3 AND customer_id=$4 AND status='delivered' AND rating IS NULL
-     RETURNING store_id`,
+     RETURNING store_id, driver_id`,
     [rating, review ?? null, id, req.user!.id]
   );
   if (result.rows.length === 0) {
@@ -388,6 +388,19 @@ router.post('/:id/rate', async (req: AuthRequest, res) => {
      WHERE id=$2`,
     [rating, storeId]
   );
+
+  // Update driver avg rating (use deliveryRating if provided, else overall rating)
+  const deliveryRating = body.deliveryRating ?? rating;
+  const driverId = result.rows[0].driver_id;
+  if (driverId) {
+    await pool.query(
+      `UPDATE drivers
+       SET total_ratings = total_ratings + 1,
+           rating = (rating * total_ratings + $1) / (total_ratings + 1)
+       WHERE id=$2`,
+      [deliveryRating, driverId]
+    );
+  }
 
   res.json({ message: 'Thank you for your review!' });
 });

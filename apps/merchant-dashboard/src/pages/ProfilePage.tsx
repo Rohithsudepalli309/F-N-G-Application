@@ -137,9 +137,9 @@ export default function ProfilePage() {
                 <option value="">— select —</option>
                 <option value="restaurant">Restaurant</option>
                 <option value="grocery">Grocery</option>
-                <option value="bakery">Bakery</option>
-                <option value="cafe">Café</option>
-                <option value="pharmacy">Pharmacy</option>
+                <option value="fashion">Fashion</option>
+                <option value="tools">Tools &amp; Hardware</option>
+                <option value="household">Household</option>
               </select>
             </div>
           </div>

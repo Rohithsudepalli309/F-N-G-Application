@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { ShieldCheck, ShieldAlert, Search } from 'lucide-react';
+import { ShieldCheck, ShieldAlert, Search, AlertTriangle } from 'lucide-react';
 import api from '../services/api';
 
 interface Entity {
@@ -18,21 +18,18 @@ interface Props {
 export const ManagementPage = ({ type }: Props) => {
   const [items, setItems] = useState<Entity[]>([]);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
   const [searchTerm, setSearchTerm] = useState('');
 
   useEffect(() => {
     const fetchData = async () => {
+      setError(null);
       try {
         const { data } = await api.get(`/admin/${type}`);
-        // Backend returns { users: [...] } or { stores: [...] }
         setItems(data[type] ?? data.users ?? data.stores ?? []);
-      } catch (err) {
-        console.error(`Failed to fetch ${type}`);
-        // Mock data for demo
-        setItems([
-          { id: '1', name: `Demo ${type.slice(0, -1)} 1`, email: 'demo1@test.com', is_active: true, type: 'Restaurant' },
-          { id: '2', name: `Demo ${type.slice(0, -1)} 2`, email: 'demo2@test.com', is_active: false, type: 'Grocery' },
-        ]);
+      } catch {
+        setError(`Failed to load ${type}. Check your network or admin permissions.`);
+        setItems([]);
       } finally {
         setLoading(false);
       }
@@ -74,6 +71,13 @@ export const ManagementPage = ({ type }: Props) => {
           />
         </div>
       </div>
+
+      {error && (
+        <div className="flex items-center gap-2 bg-red-50 border border-red-200 text-red-700 rounded-lg px-4 py-3 text-sm">
+          <AlertTriangle size={16} className="flex-shrink-0" />
+          {error}
+        </div>
+      )}
 
       <div className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
         <table className="w-full text-left">
