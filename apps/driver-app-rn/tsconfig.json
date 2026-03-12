@@ -1,7 +1,27 @@
 {
-  "extends": "@react-native/typescript-config/tsconfig.json",
   "compilerOptions": {
+    /* ── Core ── */
+    "target":                       "esnext",
+    "lib":                          ["es2017"],
+    "module":                       "commonjs",
+    "moduleResolution":             "node",
+    "resolveJsonModule":            true,
+
+    /* ── JSX ── */
+    "jsx":                          "react-native",
+
+    /* ── Interop ── */
+    "allowJs":                      true,
+    "allowSyntheticDefaultImports": true,
+    "esModuleInterop":              true,
+
+    /* ── Strictness ── */
     "strict":                       true,
+    "noEmit":                       true,
+    "isolatedModules":              true,
+    "skipLibCheck":                 true,
+
+    /* ── Paths ── */
     "baseUrl":                      ".",
     "paths": {
       "@/*": ["src/*"]

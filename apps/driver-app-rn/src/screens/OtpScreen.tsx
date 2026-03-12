@@ -15,7 +15,8 @@ import {
   View,
 } from 'react-native';
 import {useNavigation, useRoute} from '@react-navigation/native';
-import type {NativeStackNavigationProp, RouteProp} from '@react-navigation/native-stack';
+import type {RouteProp} from '@react-navigation/native';
+import type {NativeStackNavigationProp} from '@react-navigation/native-stack';
 import api from '../services/api';
 import {useAuthStore} from '../store/useAuthStore';
 import {connectSocket} from '../services/socket';
@@ -94,7 +95,6 @@ export default function OtpScreen(): React.JSX.Element {
           value={otp}
           onChangeText={setOtp}
           textAlign="center"
-          letterSpacing={8}
           autoFocus
           accessibilityLabel="OTP input"
         />
@@ -125,7 +125,7 @@ const styles = StyleSheet.create({
   card:       {backgroundColor: '#fff', borderRadius: 16, padding: 24, elevation: 3, shadowColor: '#000', shadowOpacity: 0.08, shadowRadius: 12},
   title:      {fontSize: 26, fontWeight: '700', color: '#111827', textAlign: 'center', marginBottom: 4},
   subtitle:   {fontSize: 14, color: '#6B7280', textAlign: 'center', marginBottom: 24},
-  input:      {borderWidth: 1, borderColor: '#D1D5DB', borderRadius: 10, fontSize: 24, paddingVertical: 14, paddingHorizontal: 12, marginBottom: 16, color: '#111827'},
+  input:      {borderWidth: 1, borderColor: '#D1D5DB', borderRadius: 10, fontSize: 24, paddingVertical: 14, paddingHorizontal: 12, marginBottom: 16, color: '#111827', letterSpacing: 8},
   btn:        {backgroundColor: '#F97316', borderRadius: 10, paddingVertical: 14, alignItems: 'center', marginBottom: 12},
   btnDisabled:{opacity: 0.6},
   btnText:    {color: '#fff', fontSize: 16, fontWeight: '600'},
