@@ -153,7 +153,7 @@ export async function startOrderEventWorker(): Promise<void> {
           'COUNT', String(BATCH),
           'BLOCK', String(BLOCK_MS),
           'STREAMS', STREAMS.ORDER_EVENTS, '>',
-        )) as [[string, [string, string[]][]][]] | null;
+        )) as [string, [string, string[]][]][] | null;
 
         if (!results) continue; // timed out with no messages
 

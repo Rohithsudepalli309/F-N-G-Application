@@ -57,11 +57,12 @@ router.post('/orders', async (req: AuthRequest, res) => {
   }
 
   try {
-    const rzpOrder = await rzpCreateBreaker.fire(
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const rzpOrder = await (rzpCreateBreaker as any).fire(
       amount,
       `fng-${orderId}`,
       { fng_order_id: String(orderId) }
-    ) as Awaited<ReturnType<Razorpay['orders']['create']>>;
+    ) as { id: string; currency: string; amount: number };
 
     // Persist Razorpay order_id against F&G order
     await pool.query(

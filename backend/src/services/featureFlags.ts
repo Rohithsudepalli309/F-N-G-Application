@@ -29,7 +29,7 @@
  *   SET feature:cod_payment        '{"enabled":true,"rollout":1}'
  *   SET feature:surge_pricing_v2   '{"enabled":true,"rollout":1,"allowList":[1,7,42]}'
  */
-import redis from '../redis';
+import { redis } from '../redis';
 import { logger } from '../logger';
 
 interface FlagConfig {
