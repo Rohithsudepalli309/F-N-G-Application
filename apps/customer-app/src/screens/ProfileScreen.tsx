@@ -1,13 +1,32 @@
 import React from 'react';
 import {
   View, Text, StyleSheet, ScrollView, TouchableOpacity,
-  SafeAreaView, StatusBar, Alert, Linking, Dimensions,
+  SafeAreaView, StatusBar, Alert, Linking, Dimensions, Image,
 } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { useAuthStore } from '../store/useAuthStore';
 import { theme } from '../theme';
 
 const { width } = Dimensions.get('window');
+
+// HQ icon images — 96 px color icons from Icons8 public CDN
+const MENU_IMGS: Record<string, string> = {
+  orders:    'https://img.icons8.com/color/96/box--v1.png',
+  favorites: 'https://img.icons8.com/color/96/like--v1.png',
+  buyagain:  'https://img.icons8.com/color/96/recurring-appointment.png',
+  wallet:    'https://img.icons8.com/color/96/wallet--v1.png',
+  payment:   'https://img.icons8.com/color/96/bank-card-back-side.png',
+  coupons:   'https://img.icons8.com/color/96/discount--v1.png',
+  address:   'https://img.icons8.com/color/96/place-marker--v1.png',
+  notify:    'https://img.icons8.com/color/96/appointment-reminders--v1.png',
+  refer:     'https://img.icons8.com/color/96/give-gift--v1.png',
+  chat:      'https://img.icons8.com/color/96/chat--v1.png',
+  settings:  'https://img.icons8.com/color/96/settings--v1.png',
+  terms:     'https://img.icons8.com/color/96/law.png',
+  logout:    'https://img.icons8.com/color/96/exit--v1.png',
+  camera:    'https://img.icons8.com/color/96/camera--v1.png',
+  pro:       'https://img.icons8.com/color/96/star--v1.png',
+};
 
 interface MenuRowProps {
   icon: string;
@@ -22,7 +41,7 @@ interface MenuRowProps {
 const MenuRow = ({ icon, label, sub, badge, onPress, danger, rightText }: MenuRowProps) => (
   <TouchableOpacity style={mrow.wrap} onPress={onPress} activeOpacity={0.7}>
     <View style={mrow.iconBox}>
-      <Text style={mrow.icon}>{icon}</Text>
+      <Image source={{ uri: MENU_IMGS[icon] ?? MENU_IMGS.orders }} style={mrow.iconImg} resizeMode="contain" />
     </View>
     <View style={mrow.mid}>
       <Text style={[mrow.label, danger && mrow.danger]}>{label}</Text>
@@ -42,8 +61,8 @@ const MenuRow = ({ icon, label, sub, badge, onPress, danger, rightText }: MenuRo
 
 const mrow = StyleSheet.create({
   wrap:      { flexDirection: 'row', alignItems: 'center', paddingHorizontal: 16, paddingVertical: 14 },
-  iconBox:   { width: 40, height: 40, borderRadius: 12, backgroundColor: '#F5F7FA', alignItems: 'center', justifyContent: 'center', marginRight: 12 },
-  icon:      { fontSize: 20 },
+  iconBox:   { width: 44, height: 44, borderRadius: 12, backgroundColor: '#F5F7FA', alignItems: 'center', justifyContent: 'center', marginRight: 12, overflow: 'hidden' },
+  iconImg:   { width: 28, height: 28 },
   mid:       { flex: 1 },
   label:     { fontSize: 14, fontWeight: '700', color: '#0D1B14' },
   danger:    { color: '#C62828' },
@@ -87,7 +106,7 @@ export const ProfileScreen = () => {
           <View style={s.heroAvatar}>
             <Text style={s.heroInitial}>{initial}</Text>
             <TouchableOpacity style={s.cameraBtn}>
-              <Text style={{ fontSize: 12 }}>📷</Text>
+              <Image source={{ uri: MENU_IMGS.camera }} style={{ width: 14, height: 14 }} resizeMode="contain" />
             </TouchableOpacity>
           </View>
           <Text style={s.heroName}>{user?.name || 'Set your name'}</Text>
@@ -116,7 +135,7 @@ export const ProfileScreen = () => {
         {/* F&G Pro banner */}
         <TouchableOpacity style={s.proCard} onPress={() => navigation.navigate('FngPro')} activeOpacity={0.88}>
           <View style={s.proLeft}>
-            <Text style={s.proStar}>⭐</Text>
+            <Image source={{ uri: MENU_IMGS.pro }} style={s.proStarImg} resizeMode="contain" />
             <View>
               <Text style={s.proTitle}>Upgrade to F&G Pro</Text>
               <Text style={s.proSub}>Free delivery · Member discounts · Priority support</Text>
@@ -130,50 +149,50 @@ export const ProfileScreen = () => {
         {/* Orders & Activity */}
         <GroupTitle title="Orders & Activity" />
         <View style={s.group}>
-          <MenuRow icon="📦" label="My Orders" sub="Track, reorder & rate" onPress={() => navigation.navigate('OrdersTab')} />
+          <MenuRow icon="orders" label="My Orders" sub="Track, reorder & rate" onPress={() => navigation.navigate('OrdersTab')} />
           <View style={s.divider} />
-          <MenuRow icon="❤️" label="Favourites" sub="Saved products & stores" onPress={() => navigation.navigate('Favorites')} />
+          <MenuRow icon="favorites" label="Favourites" sub="Saved products & stores" onPress={() => navigation.navigate('Favorites')} />
           <View style={s.divider} />
-          <MenuRow icon="♻️" label="Buy Again" sub="Reorder your usuals" onPress={() => navigation.navigate('HomeTab', { screen: 'BuyAgain' })} />
+          <MenuRow icon="buyagain" label="Buy Again" sub="Reorder your usuals" onPress={() => navigation.navigate('HomeTab', { screen: 'BuyAgain' })} />
         </View>
 
         {/* Wallet & Payments */}
         <GroupTitle title="Wallet & Payments" />
         <View style={s.group}>
-          <MenuRow icon="💰" label="F&G Wallet" sub="Add money, view balance" rightText="₹0" onPress={() => navigation.navigate('PaymentMethods')} />
+          <MenuRow icon="wallet" label="F&G Wallet" sub="Add money, view balance" rightText="₹0" onPress={() => navigation.navigate('PaymentMethods')} />
           <View style={s.divider} />
-          <MenuRow icon="💳" label="Payment Methods" sub="UPI, Cards & Wallets" onPress={() => navigation.navigate('PaymentMethods')} />
+          <MenuRow icon="payment" label="Payment Methods" sub="UPI, Cards & Wallets" onPress={() => navigation.navigate('PaymentMethods')} />
           <View style={s.divider} />
-          <MenuRow icon="🎁" label="Coupons & Offers" onPress={() => navigation.navigate('FngPro')} />
+          <MenuRow icon="coupons" label="Coupons & Offers" onPress={() => navigation.navigate('FngPro')} />
         </View>
 
         {/* Account */}
         <GroupTitle title="Account" />
         <View style={s.group}>
-          <MenuRow icon="📍" label="Saved Addresses" sub="Home, Work and more" onPress={() => navigation.navigate('SavedAddresses')} />
+          <MenuRow icon="address" label="Saved Addresses" sub="Home, Work and more" onPress={() => navigation.navigate('SavedAddresses')} />
           <View style={s.divider} />
-          <MenuRow icon="🔔" label="Notifications" badge="NEW" onPress={() => navigation.navigate('Notifications')} />
+          <MenuRow icon="notify" label="Notifications" badge="NEW" onPress={() => navigation.navigate('Notifications')} />
           <View style={s.divider} />
-          <MenuRow icon="🤝" label="Refer & Earn" sub="Invite friends · Earn ₹100 each" onPress={() => navigation.navigate('ReferEarn')} />
+          <MenuRow icon="refer" label="Refer & Earn" sub="Invite friends · Earn ₹100 each" onPress={() => navigation.navigate('ReferEarn')} />
         </View>
 
         {/* Help */}
         <GroupTitle title="Help & Support" />
         <View style={s.group}>
-          <MenuRow icon="💬" label="Chat with Support" sub="24/7 customer care" onPress={() => navigation.navigate('HelpSupport')} />
+          <MenuRow icon="chat" label="Chat with Support" sub="24/7 customer care" onPress={() => navigation.navigate('HelpSupport')} />
           <View style={s.divider} />
-          <MenuRow icon="⚙️" label="Settings" onPress={() => navigation.navigate('Settings')} />
+          <MenuRow icon="settings" label="Settings" onPress={() => navigation.navigate('Settings')} />
           <View style={s.divider} />
-          <MenuRow icon="📋" label="Terms & Privacy" onPress={() => navigation.navigate('Terms')} />
+          <MenuRow icon="terms" label="Terms & Privacy" onPress={() => navigation.navigate('Terms')} />
         </View>
 
         {/* Log out */}
         <GroupTitle title="" />
         <View style={s.group}>
-          <MenuRow icon="🚪" label="Log Out" onPress={handleLogout} danger />
+          <MenuRow icon="logout" label="Log Out" onPress={handleLogout} danger />
         </View>
 
-        <Text style={s.version}>F&G App · v1.0.0 · Made in India 🇮🇳</Text>
+        <Text style={s.version}>F&G App · v1.0.0 · Made in India</Text>
         <View style={{ height: 24 }} />
       </ScrollView>
     </SafeAreaView>
@@ -199,7 +218,7 @@ const s = StyleSheet.create({
 
   proCard:   { flexDirection: 'row', alignItems: 'center', backgroundColor: '#FFF8E1', marginHorizontal: 16, marginTop: 16, borderRadius: 16, padding: 16, borderWidth: 1.5, borderColor: '#F5A826' },
   proLeft:   { flex: 1, flexDirection: 'row', alignItems: 'center', gap: 10 },
-  proStar:   { fontSize: 24 },
+  proStarImg: { width: 28, height: 28, marginRight: 2 },
   proTitle:  { fontSize: 14, fontWeight: '800', color: '#92400E' },
   proSub:    { fontSize: 11, color: '#B45309', marginTop: 2 },
   proBtn:    { backgroundColor: '#F5A826', paddingHorizontal: 14, paddingVertical: 8, borderRadius: 20 },
