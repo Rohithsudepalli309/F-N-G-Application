@@ -102,7 +102,7 @@ export const HelpSupportScreen = () => {
               style={styles.callBtn}
               onPress={() => Linking.openURL('tel:+918888888888')}
             >
-              <Text style={styles.callBtnIcon}>📞</Text>
+              <Image source={{ uri: 'https://img.icons8.com/color/96/phone--v1.png' }} style={styles.callBtnImg} resizeMode="contain" />
               <Text style={styles.callBtnText}>Call</Text>
             </TouchableOpacity>
           </View>
@@ -197,7 +197,7 @@ const styles = StyleSheet.create({
     backgroundColor: '#F5A826', borderRadius: 10,
     paddingHorizontal: 14, paddingVertical: 10, alignItems: 'center',
   },
-  callBtnIcon: { fontSize: 18 },
+  callBtnImg: { width: 20, height: 20 },
   callBtnText: { color: '#163D26', fontSize: 11, fontWeight: '700', marginTop: 2 },
 
   sectionTitle: {

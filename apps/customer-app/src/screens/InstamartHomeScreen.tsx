@@ -250,7 +250,7 @@ export const InstamartHomeScreen = () => {
         <View style={s.catSection}>
           <View style={s.catHeader}>
             <Text style={s.catTitle}>
-              {activeMeta.emoji} {activeMeta.label}
+              {activeMeta.label}
             </Text>
             {!search && <Text style={s.catCount}>{visible().length} categories</Text>}
           </View>

@@ -22,16 +22,16 @@ import { theme } from '../theme';
 import { useOrderSocket, LocationPayload, StatusPayload, OrderStatus } from '../hooks/useOrderSocket';
 
 const STATUS_LABELS: Record<OrderStatus, string> = {
-  pending:          '⏳ Awaiting payment',
-  placed:           '✅ Order confirmed',
-  confirmed:        '✅ Payment confirmed',
-  preparing:        '🍳 Preparing your order',
-  ready:            '📦 Ready for pickup',
-  assigned:         '🛵 Driver assigned',
-  pickup:           '🛵 Driver picking up',
-  out_for_delivery: '🛵 Out for delivery',
-  delivered:        '🎉 Delivered!',
-  cancelled:        '❌ Cancelled',
+  pending:          'Awaiting payment',
+  placed:           'Order confirmed',
+  confirmed:        'Payment confirmed',
+  preparing:        'Preparing your order',
+  ready:            'Ready for pickup',
+  assigned:         'Driver assigned',
+  pickup:           'Driver picking up',
+  out_for_delivery: 'Out for delivery',
+  delivered:        'Delivered!',
+  cancelled:        'Cancelled',
 };
 
 export const OrderTrackingScreen = () => {
@@ -114,7 +114,7 @@ export const OrderTrackingScreen = () => {
           <Text style={styles.hint}>Waiting for driver to be assigned…</Text>
         )}
         {completed && (
-          <Text style={styles.done}>Your order has been delivered. Enjoy! 🎉</Text>
+          <Text style={styles.done}>Your order has been delivered. Enjoy!</Text>
         )}
       </View>
     </View>

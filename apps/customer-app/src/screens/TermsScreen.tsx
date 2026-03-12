@@ -7,7 +7,7 @@
 import React, { useRef, useState } from 'react';
 import {
   View, Text, StyleSheet, SafeAreaView, StatusBar, ScrollView,
-  TouchableOpacity, Animated,
+  TouchableOpacity, Animated, Image,
 } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { theme } from '../theme';
@@ -124,7 +124,7 @@ export const TermsScreen = () => {
       >
         {/* Hero */}
         <View style={styles.hero}>
-          <Text style={styles.heroIcon}>📋</Text>
+          <Image source={{ uri: 'https://img.icons8.com/color/96/document--v1.png' }} style={styles.heroImg} resizeMode="contain" />
           <Text style={styles.heroTitle}>Terms of Service</Text>
           <Text style={styles.heroSub}>Last updated: {LAST_UPDATED}</Text>
           <Text style={styles.heroCompany}>{COMPANY}</Text>
@@ -194,7 +194,7 @@ const styles = StyleSheet.create({
     paddingBottom: 28,
     paddingHorizontal: 24,
   },
-  heroIcon: { fontSize: 40, marginBottom: 8 },
+  heroImg: { width: 44, height: 44, marginBottom: 8 },
   heroTitle: { fontSize: 22, fontWeight: '800', color: '#fff', marginBottom: 4 },
   heroSub: { fontSize: 12, color: 'rgba(255,255,255,0.65)', marginBottom: 2 },
   heroCompany: { fontSize: 11, color: 'rgba(255,255,255,0.5)', textAlign: 'center' },

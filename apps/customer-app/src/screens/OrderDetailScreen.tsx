@@ -209,7 +209,7 @@ export const OrderDetailScreen = () => {
                 <Text style={styles.agentVehicle}>{order.agent.vehicle}</Text>
               </View>
               <View style={styles.agentPhoneBtn}>
-                <Text style={styles.agentPhoneIcon}>📞</Text>
+                <Image source={{ uri: 'https://img.icons8.com/color/96/phone--v1.png' }} style={styles.agentPhoneImg} resizeMode="contain" />
               </View>
             </View>
           </>
@@ -311,7 +311,7 @@ const styles = StyleSheet.create({
     width: 40, height: 40, borderRadius: 20, backgroundColor: '#163D26',
     alignItems: 'center', justifyContent: 'center',
   },
-  agentPhoneIcon: { fontSize: 18 },
+  agentPhoneImg: { width: 20, height: 20 },
 
   actionsRow: { margin: 16, gap: 10 },
   actionBtn: { borderRadius: 12, paddingVertical: 14, alignItems: 'center' },
