@@ -5,6 +5,11 @@ import dotenv from 'dotenv';
 import rateLimit from 'express-rate-limit';
 import { RedisStore } from 'rate-limit-redis';
 import { redis } from './redis';
+import { logger } from './logger';
+import { requestId } from './middleware/requestId';
+import { httpLogger } from './middleware/httpLogger';
+import { securityHeaders, compressResponse } from './middleware/security';
+import { startOrderEventWorker } from './workers/orderEvents';
 
 dotenv.config();
 
@@ -32,6 +37,11 @@ const server = http.createServer(app);
 export const io = initSocket(server);
 
 // ── Middleware ─────────────────────────────────────────────────────────────
+app.use(securityHeaders);
+app.use(compressResponse);
+app.use(requestId);
+app.use(httpLogger);
+
 app.use(cors({
   origin: process.env.ALLOWED_ORIGINS?.split(',') ?? '*',
   credentials: true,
@@ -98,13 +108,20 @@ app.use((_req, res) => {
 });
 
 // ── Error handler ─────────────────────────────────────────────────────────
-app.use((err: Error, _req: express.Request, res: express.Response, _next: express.NextFunction) => {
-  console.error('[ERROR]', err.message);
+app.use((err: Error, req: express.Request, res: express.Response, _next: express.NextFunction) => {
+  logger.error('Unhandled request error', {
+    requestId: (req as express.Request & { requestId?: string }).requestId,
+    error: err.message,
+    stack: err.stack,
+  });
   res.status(500).json({ error: 'Internal server error' });
 });
 
 // ── Start ─────────────────────────────────────────────────────────────────
 const PORT = Number(process.env.PORT ?? 3002);
 server.listen(PORT, () => {
-  console.log(`[F&G Backend] Running on port ${PORT}`);
+  logger.info(`[F&G Backend] Running on port ${PORT}`, { port: PORT, env: process.env.NODE_ENV ?? 'development' });
+  startOrderEventWorker().catch((err) =>
+    logger.error('Order event worker failed to start', { err })
+  );
 });

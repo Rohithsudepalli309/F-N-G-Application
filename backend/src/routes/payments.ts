@@ -4,20 +4,33 @@ import Razorpay from 'razorpay';
 import pool from '../db';
 import { requireAuth, AuthRequest } from '../middleware/auth';
 import { io } from '../server';
-import { sendPushToUser } from '../services/fcm';
+import { createBreaker } from '../services/circuitBreaker';
+import { publishOrderEvent } from '../services/eventBus';
 
 const router = Router();
 router.use(requireAuth);
 
-// Lazily initialise Razorpay so the server boots even without keys
+// Module-level cached Razorpay instance (initialised lazily on first use)
+let _razorpay: Razorpay | null = null;
 function getRazorpay(): Razorpay {
+  if (_razorpay) return _razorpay;
   const keyId     = process.env.RAZORPAY_KEY_ID;
   const keySecret = process.env.RAZORPAY_KEY_SECRET;
   if (!keyId || !keySecret) {
     throw new Error('Razorpay keys not configured. Set RAZORPAY_KEY_ID and RAZORPAY_KEY_SECRET.');
   }
-  return new Razorpay({ key_id: keyId, key_secret: keySecret });
+  _razorpay = new Razorpay({ key_id: keyId, key_secret: keySecret });
+  return _razorpay;
 }
+
+// Circuit breaker wrapping Razorpay order creation.
+// Opens after 50% error rate in a 10s window; recovers after 30s.
+const rzpCreateBreaker = createBreaker(
+  'razorpay.orders.create',
+  (amount: number, receipt: string, notes: Record<string, string>) =>
+    getRazorpay().orders.create({ amount, currency: 'INR', receipt, notes }),
+  { timeout: 8_000 } // Razorpay P99 is ~4s; allow 8s before counting as failure
+);
 
 // ── POST /payments/orders ─── Create a Razorpay order ──────────────────────
 router.post('/orders', async (req: AuthRequest, res) => {
@@ -44,13 +57,11 @@ router.post('/orders', async (req: AuthRequest, res) => {
   }
 
   try {
-    const rzp   = getRazorpay();
-    const rzpOrder = await rzp.orders.create({
+    const rzpOrder = await rzpCreateBreaker.fire(
       amount,
-      currency: 'INR',
-      receipt: `fng-${orderId}`,
-      notes: { fng_order_id: String(orderId) },
-    });
+      `fng-${orderId}`,
+      { fng_order_id: String(orderId) }
+    ) as Awaited<ReturnType<Razorpay['orders']['create']>>;
 
     // Persist Razorpay order_id against F&G order
     await pool.query(
@@ -133,19 +144,18 @@ router.post('/verify', async (req: AuthRequest, res) => {
   });
   io.to(`order:${orderId}`).emit('order:status', { status: 'confirmed' });
 
-  // FCM push to merchant (get merchant user_id from store)
-  pool.query(`SELECT owner_id FROM stores WHERE id=$1`, [order.store_id])
-    .then(({ rows }) => {
-      if (rows[0]?.owner_id) {
-        sendPushToUser(
-          rows[0].owner_id,
-          '💰 New Order!',
-          `Order #${order.order_number} confirmed (₹${(order.total_amount / 100).toFixed(0)})`,
-          { screen: 'Orders', orderId: String(order.id) }
-        );
-      }
-    })
-    .catch(() => {/* non-critical */});
+  // Async: FCM to merchant via event bus (fire-and-forget)
+  publishOrderEvent({
+    type:       'payment.confirmed',
+    orderId:    String(order.id),
+    storeId:    String(order.store_id),
+    customerId: String(req.user!.id),
+    payload:    JSON.stringify({
+      orderNumber: order.order_number,
+      totalAmount: order.total_amount,
+    }),
+    requestId:  req.requestId ?? '',
+  });
 
   res.json({ success: true, status: 'confirmed' });
 });

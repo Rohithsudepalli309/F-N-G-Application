@@ -2,8 +2,8 @@ import { Router } from 'express';
 import pool from '../db';
 import { requireAuth, requireRole, AuthRequest } from '../middleware/auth';
 import { io } from '../server';
-import { sendPushToUser } from '../services/fcm';
-import { recordDemand, getSurgeMultiplier } from '../services/surge';
+import { publishOrderEvent } from '../services/eventBus';
+import { getSurgeMultiplier } from '../services/surge';
 import { redis, DRIVER_GEO_KEY } from '../redis';
 
 const router = Router();
@@ -183,22 +183,19 @@ router.post('/', async (req: AuthRequest, res) => {
     io.to(`merchant:${resolvedStoreId}`).emit('merchant:new_order', fullOrder.rows[0]);
     io.to('admin').emit('order.platform.update', fullOrder.rows[0]);
 
-    // FCM push to merchant user
-    pool.query(`SELECT owner_id FROM stores WHERE id=$1`, [resolvedStoreId])
-      .then(({ rows }) => {
-        if (rows[0]?.owner_id) {
-          sendPushToUser(
-            rows[0].owner_id,
-            '🛒 New Order!',
-            `#${order.order_number} • ₹${(order.total_amount / 100).toFixed(0)}`,
-            { screen: 'Orders', orderId: String(order.id) }
-          );
-        }
-      })
-      .catch(() => {/* non-critical */});
-
-    // Record demand for surge pricing (async, non-blocking)
-    recordDemand(resolvedStoreId).catch(() => {/* non-critical */});
+    // Async: FCM to merchant + demand recording via event bus (fire-and-forget)
+    publishOrderEvent({
+      type:       'order.placed',
+      orderId:    String(order.id),
+      storeId:    String(resolvedStoreId),
+      customerId: String(req.user!.id),
+      payload:    JSON.stringify({
+        orderNumber: order.order_number,
+        totalAmount: order.total_amount,
+        storeName,
+      }),
+      requestId:  req.requestId ?? '',
+    });
 
     res.status(201).json({
       order: {
