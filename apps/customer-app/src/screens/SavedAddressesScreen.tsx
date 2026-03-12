@@ -6,7 +6,7 @@
 import React, { useEffect, useState, useCallback } from 'react';
 import {
   View, Text, StyleSheet, SafeAreaView, StatusBar, FlatList,
-  TouchableOpacity, ActivityIndicator, Alert, RefreshControl,
+  TouchableOpacity, ActivityIndicator, Alert, RefreshControl, Image,
 } from 'react-native';
 import { useNavigation, useRoute, useFocusEffect } from '@react-navigation/native';
 import { api } from '../services/api';
@@ -23,8 +23,10 @@ interface Address {
   is_default: boolean;
 }
 
-const LABEL_ICONS: Record<string, string> = {
-  home: '🏠', work: '💼', other: '📍',
+const LABEL_IMGS: Record<string, string> = {
+  home:  'https://img.icons8.com/color/96/home--v1.png',
+  work:  'https://img.icons8.com/color/96/office-building--v1.png',
+  other: 'https://img.icons8.com/color/96/place-marker--v1.png',
 };
 
 export const SavedAddressesScreen = () => {
@@ -92,7 +94,7 @@ export const SavedAddressesScreen = () => {
     >
       <View style={styles.cardLeft}>
         <View style={styles.iconWrap}>
-          <Text style={styles.addrIcon}>{LABEL_ICONS[item.label] ?? '📍'}</Text>
+          <Image source={{ uri: LABEL_IMGS[item.label] ?? LABEL_IMGS.other }} style={styles.addrImg} resizeMode="contain" />
         </View>
         <View style={styles.addrInfo}>
           <View style={styles.labelRow}>
@@ -103,7 +105,7 @@ export const SavedAddressesScreen = () => {
             {item.line1}{item.line2 ? `, ${item.line2}` : ''}
           </Text>
           <Text style={styles.addrCity}>{item.city} — {item.pincode}</Text>
-          {item.landmark && <Text style={styles.addrLandmark}>📌 {item.landmark}</Text>}
+          {item.landmark && <Text style={styles.addrLandmark}>{item.landmark}</Text>}
         </View>
       </View>
       {selectMode ? (
@@ -156,7 +158,7 @@ export const SavedAddressesScreen = () => {
           contentContainerStyle={styles.list}
           ListEmptyComponent={
             <View style={styles.empty}>
-              <Text style={styles.emptyIcon}>📭</Text>
+              <Image source={{ uri: 'https://img.icons8.com/color/96/mailbox-open-flag-up--v1.png' }} style={styles.emptyImg} resizeMode="contain" />
               <Text style={styles.emptyTitle}>No saved addresses</Text>
               <Text style={styles.emptySubtitle}>Add your home or work address for faster checkout</Text>
               <TouchableOpacity style={styles.addBtn} onPress={() => navigation.navigate('AddAddress')}>
@@ -194,7 +196,7 @@ const styles = StyleSheet.create({
     width: 44, height: 44, borderRadius: 22, backgroundColor: '#163D2610',
     alignItems: 'center', justifyContent: 'center',
   },
-  addrIcon: { fontSize: 20 },
+  addrImg: { width: 24, height: 24 },
   addrInfo: { flex: 1 },
   labelRow: { flexDirection: 'row', alignItems: 'center', gap: 8, marginBottom: 4 },
   addrLabel: { fontSize: 14, fontWeight: '700', color: theme.colors.text.primary },
@@ -216,7 +218,7 @@ const styles = StyleSheet.create({
   selectArrow: { fontSize: 22, color: theme.colors.primary, paddingRight: 4 },
 
   empty: { alignItems: 'center', paddingTop: 80 },
-  emptyIcon: { fontSize: 60, marginBottom: 16 },
+  emptyImg: { width: 72, height: 72, marginBottom: 16 },
   emptyTitle: { fontSize: 18, fontWeight: '700', color: theme.colors.text.primary, marginBottom: 8 },
   emptySubtitle: { fontSize: 14, color: theme.colors.text.secondary, textAlign: 'center', marginBottom: 24 },
   addBtn: { backgroundColor: '#163D26', borderRadius: 12, paddingHorizontal: 24, paddingVertical: 12 },

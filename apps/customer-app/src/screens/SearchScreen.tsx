@@ -153,7 +153,7 @@ export const SearchScreen = () => {
           <Text style={s.backArrow}>‹</Text>
         </TouchableOpacity>
         <View style={s.inputWrap}>
-          <Text style={s.inputIcon}>🔍</Text>
+          <Image source={{ uri: 'https://img.icons8.com/color/96/search--v1.png' }} style={s.inputIconImg} resizeMode="contain" />
           <TextInput
             ref={inputRef}
             style={s.input}
@@ -212,7 +212,7 @@ export const SearchScreen = () => {
       {/* Empty result */}
       {!loading && searched && results.length === 0 && (
         <View style={s.empty}>
-          <Text style={s.emptyEmoji}>😕</Text>
+          <Image source={{ uri: 'https://img.icons8.com/color/96/no-results--v1.png' }} style={s.emptyImg} resizeMode="contain" />
           <Text style={s.emptyTitle}>No results for "{query}"</Text>
           <Text style={s.emptySub}>Try different keywords or browse by category</Text>
           <View style={s.trendingWrap}>
@@ -254,7 +254,7 @@ const s = StyleSheet.create({
   backBtn:  { width: 36, height: 36, borderRadius: 18, backgroundColor: '#F5F7FA', alignItems: 'center', justifyContent: 'center' },
   backArrow:{ fontSize: 26, color: '#0D1B14', marginTop: -2 },
   inputWrap:{ flex: 1, flexDirection: 'row', alignItems: 'center', backgroundColor: '#F7F7F7', height: 42, borderRadius: 10, paddingHorizontal: 12, borderWidth: 1, borderColor: '#EBEBEB', gap: 8 },
-  inputIcon:{ fontSize: 14 },
+  inputIconImg:{ width: 18, height: 18 },
   input:    { flex: 1, fontSize: 14, color: '#0D1B14' },
   clearIcon:{ fontSize: 14, color: '#9E9E9E', paddingHorizontal: 4 },
 
@@ -274,7 +274,7 @@ const s = StyleSheet.create({
   loaderText: { color: '#9E9E9E', fontSize: 13 },
 
   empty:      { padding: 32, alignItems: 'center' },
-  emptyEmoji: { fontSize: 48, marginBottom: 12 },
+  emptyImg: { width: 64, height: 64, marginBottom: 12 },
   emptyTitle: { fontSize: 17, fontWeight: '800', color: '#0D1B14', marginBottom: 8, textAlign: 'center' },
   emptySub:   { fontSize: 13, color: '#9E9E9E', textAlign: 'center', marginBottom: 16 },
 

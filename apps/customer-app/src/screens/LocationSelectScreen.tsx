@@ -8,6 +8,7 @@ import {
   FlatList,
   SafeAreaView,
   StatusBar,
+  Image,
 } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { theme } from '../theme';
@@ -52,7 +53,7 @@ export const LocationSelectScreen = () => {
       {/* Search Input */}
       <View style={styles.searchContainer}>
         <View style={styles.searchBox}>
-          <Text style={styles.searchIcon}>🔍</Text>
+          <Image source={{ uri: 'https://img.icons8.com/color/96/search--v1.png' }} style={styles.searchIconImg} resizeMode="contain" />
           <TextInput
             style={styles.input}
             placeholder="Search for area, street name..."
@@ -68,7 +69,7 @@ export const LocationSelectScreen = () => {
         style={styles.currentLocation}
         onPress={() => handleSelect('Current Location (Hyderabad)')}
       >
-        <Text style={styles.gpsIcon}>📍</Text>
+        <Image source={{ uri: 'https://img.icons8.com/color/96/place-marker--v1.png' }} style={styles.gpsImg} resizeMode="contain" />
         <View>
           <Text style={styles.currentText}>Use current location</Text>
           <Text style={styles.gpsSubtext}>Using GPS</Text>
@@ -87,7 +88,11 @@ export const LocationSelectScreen = () => {
             onPress={() => handleSelect(item.address)}
           >
             <View style={styles.iconCircle}>
-              <Text style={styles.itemIcon}>{item.name === 'Home' ? '🏠' : item.name === 'Office' ? '💼' : '📍'}</Text>
+              <Image
+                source={{ uri: item.name === 'Home' ? 'https://img.icons8.com/color/96/home--v1.png' : item.name === 'Office' ? 'https://img.icons8.com/color/96/office-building--v1.png' : 'https://img.icons8.com/color/96/place-marker--v1.png' }}
+                style={styles.itemImg}
+                resizeMode="contain"
+              />
             </View>
             <View style={styles.addressInfo}>
               <Text style={styles.addressName}>{item.name}</Text>
@@ -138,7 +143,9 @@ const styles = StyleSheet.create({
     borderRadius: theme.borderRadius.m,
     height: 50,
   },
-  searchIcon: {
+  searchIconImg: {
+    width: 18,
+    height: 18,
     marginRight: theme.spacing.s,
   },
   input: {
@@ -153,10 +160,10 @@ const styles = StyleSheet.create({
     paddingHorizontal: theme.spacing.m,
     paddingVertical: theme.spacing.l,
   },
-  gpsIcon: {
-    fontSize: 24,
+  gpsImg: {
+    width: 26,
+    height: 26,
     marginRight: theme.spacing.m,
-    color: theme.colors.primary,
   },
   currentText: {
     fontSize: theme.typography.size.m,
@@ -196,8 +203,9 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     marginRight: theme.spacing.m,
   },
-  itemIcon: {
-    fontSize: 18,
+  itemImg: {
+    width: 22,
+    height: 22,
   },
   addressInfo: {
     flex: 1,

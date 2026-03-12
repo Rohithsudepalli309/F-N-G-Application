@@ -67,7 +67,7 @@ export const FngProScreen = () => {
 
       setSubscribed(true);
       Alert.alert(
-        '🎉 Welcome to F&G Pro!',
+        'Welcome to F&G Pro!',
         `You're now a Pro member for ${plan.label}. Enjoy free delivery and exclusive perks!`,
         [{ text: 'Awesome!', onPress: () => navigation.goBack() }]
       );

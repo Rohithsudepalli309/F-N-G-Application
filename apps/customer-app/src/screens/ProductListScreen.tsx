@@ -51,7 +51,7 @@ const MiniCard = React.memo(({ item }: { item: any }) => {
           ) : (
             <View style={mc.stepper}>
               <TouchableOpacity style={mc.stepBtn} onPress={handleDec}>
-                <Text style={mc.stepBtnText}>{qty === 1 ? '🗑' : '−'}</Text>
+                <Text style={mc.stepBtnText}>{qty === 1 ? '×' : '−'}</Text>
               </TouchableOpacity>
               <Text style={mc.stepNum}>{qty}</Text>
               <TouchableOpacity style={mc.stepBtn} onPress={handleInc}>
@@ -163,7 +163,7 @@ export const ProductListScreen = () => {
 
       {/* Search */}
       <View style={s.searchBar}>
-        <Text style={s.searchIcon}>🔍</Text>
+        <Image source={{ uri: 'https://img.icons8.com/color/96/search--v1.png' }} style={s.searchIconImg} resizeMode="contain" />
         <TextInput
           style={s.searchInput}
           placeholder={`Search in ${displayTitle}…`}
@@ -198,7 +198,7 @@ export const ProductListScreen = () => {
         </View>
       ) : filtered.length === 0 ? (
         <View style={s.empty}>
-          <Text style={s.emptyEmoji}>🔍</Text>
+          <Image source={{ uri: 'https://img.icons8.com/color/96/search--v1.png' }} style={s.emptyImg} resizeMode="contain" />
           <Text style={s.emptyTitle}>
             {search ? `No results for "${search}"` : 'No products found'}
           </Text>
@@ -254,7 +254,7 @@ const s = StyleSheet.create({
   headerSub:  { fontSize: 11, color: '#9E9E9E', marginTop: 1 },
 
   searchBar:  { flexDirection: 'row', alignItems: 'center', backgroundColor: '#F7F7F7', marginHorizontal: 12, marginVertical: 10, height: 42, borderRadius: 10, paddingHorizontal: 12, borderWidth: 1, borderColor: '#EBEBEB' },
-  searchIcon: { fontSize: 14, marginRight: 8 },
+  searchIconImg: { width: 18, height: 18, marginRight: 8 },
   searchInput:{ flex: 1, fontSize: 13, color: '#0D1B14' },
   clearIcon:  { fontSize: 14, color: '#9E9E9E', paddingHorizontal: 4 },
 
@@ -270,7 +270,7 @@ const s = StyleSheet.create({
   loader: { flex: 1, alignItems: 'center', justifyContent: 'center' },
 
   empty:         { flex: 1, alignItems: 'center', justifyContent: 'center', paddingHorizontal: 40 },
-  emptyEmoji:    { fontSize: 48, marginBottom: 16 },
+  emptyImg:    { width: 56, height: 56, marginBottom: 16 },
   emptyTitle:    { fontSize: 17, fontWeight: '800', color: '#0D1B14', textAlign: 'center' },
   clearSearchBtn:{ marginTop: 20, backgroundColor: theme.colors.primary, paddingHorizontal: 24, paddingVertical: 11, borderRadius: 25 },
   clearSearchText:{ color: '#FFF', fontSize: 13, fontWeight: '700' },

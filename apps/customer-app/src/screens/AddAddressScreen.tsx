@@ -6,16 +6,16 @@
 import React, { useState } from 'react';
 import {
   View, Text, StyleSheet, SafeAreaView, StatusBar, ScrollView,
-  TouchableOpacity, TextInput, ActivityIndicator, Alert, Platform,
+  TouchableOpacity, TextInput, ActivityIndicator, Alert, Platform, Image,
 } from 'react-native';
 import { useNavigation, useRoute } from '@react-navigation/native';
 import { api } from '../services/api';
 import { theme } from '../theme';
 
 const ADDRESS_TYPES = [
-  { id: 'home',   label: 'Home',   icon: '🏠' },
-  { id: 'work',   label: 'Work',   icon: '💼' },
-  { id: 'other',  label: 'Other',  icon: '📍' },
+  { id: 'home',  label: 'Home',  img: 'https://img.icons8.com/color/96/home--v1.png' },
+  { id: 'work',  label: 'Work',  img: 'https://img.icons8.com/color/96/office-building--v1.png' },
+  { id: 'other', label: 'Other', img: 'https://img.icons8.com/color/96/place-marker--v1.png' },
 ];
 
 export const AddAddressScreen = () => {
@@ -84,7 +84,7 @@ export const AddAddressScreen = () => {
               onPress={() => setLabel(t.id)}
               activeOpacity={0.75}
             >
-              <Text style={styles.typeIcon}>{t.icon}</Text>
+              <Image source={{ uri: t.img }} style={styles.typeImg} resizeMode="contain" />
               <Text style={[styles.typeLabel, label === t.id && styles.typeLabelActive]}>
                 {t.label}
               </Text>
@@ -94,7 +94,7 @@ export const AddAddressScreen = () => {
 
         {/* Map placeholder (tap to pick location) */}
         <TouchableOpacity style={styles.mapBox} activeOpacity={0.85}>
-          <Text style={styles.mapIcon}>📍</Text>
+          <Image source={{ uri: 'https://img.icons8.com/color/96/place-marker--v1.png' }} style={styles.mapImg} resizeMode="contain" />
           <View>
             <Text style={styles.mapTitle}>Use Current Location</Text>
             <Text style={styles.mapSubtitle}>Tap to auto-fill your address</Text>
@@ -205,7 +205,7 @@ const styles = StyleSheet.create({
     borderWidth: 1.5, borderColor: theme.colors.border, backgroundColor: theme.colors.surface,
   },
   typeChipActive: { borderColor: '#163D26', backgroundColor: '#163D2610' },
-  typeIcon: { fontSize: 18 },
+  typeImg: { width: 22, height: 22 },
   typeLabel: { fontSize: 13, fontWeight: '600', color: theme.colors.text.secondary },
   typeLabelActive: { color: '#163D26', fontWeight: '700' },
 
@@ -214,7 +214,7 @@ const styles = StyleSheet.create({
     backgroundColor: '#F0FDF4', borderRadius: 14, marginBottom: 20,
     borderWidth: 1, borderColor: '#86EFAC',
   },
-  mapIcon: { fontSize: 24 },
+  mapImg: { width: 28, height: 28 },
   mapTitle: { fontSize: 14, fontWeight: '700', color: '#163D26' },
   mapSubtitle: { fontSize: 12, color: '#4ADE80', marginTop: 2 },
   mapArrow: { marginLeft: 'auto', fontSize: 20, color: '#163D26' },

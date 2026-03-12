@@ -75,7 +75,7 @@ export const FreshScreen = () => {
           />
           <View style={st.heroOverlay} />
           <View style={st.heroContent}>
-            <Text style={st.heroBadge}>⚡ 10-MINUTE DELIVERY</Text>
+            <Text style={st.heroBadge}>10-MINUTE DELIVERY</Text>
             <Text style={st.heroTitle}>Farm Fresh{`\n`}Every Day</Text>
             <Text style={st.heroSub}>Sourced directly from farmers</Text>
           </View>
