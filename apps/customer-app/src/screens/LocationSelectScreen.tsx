@@ -27,12 +27,11 @@ export const LocationSelectScreen = () => {
 
   const handleSelect = async (address: string) => {
     try {
-      await api.put('/auth/profile', { address });
+      await api.patch('/user/profile', { address });
       updateUser({ address });
       navigation.goBack();
     } catch (e) {
       console.error('Failed to save address', e);
-      // Still update local state for immediate UX
       updateUser({ address });
       navigation.goBack();
     }

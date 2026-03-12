@@ -207,6 +207,47 @@ router.delete('/coupons/:id', async (req, res) => {
   res.json({ message: 'Coupon deactivated.' });
 });
 
+// ─── GET /admin/stats ─── KPI summary for AnalyticsPage ────────────────────
+router.get('/stats', async (_req, res) => {
+  const result = await pool.query(
+    `SELECT
+       COALESCE(COUNT(*) FILTER (WHERE created_at::date = CURRENT_DATE), 0)::int AS "ordersToday",
+       (SELECT COUNT(*) FROM users WHERE role='customer')::int AS "totalCustomers",
+       (SELECT COUNT(*) FROM drivers WHERE is_active=TRUE)::int AS "totalDrivers",
+       COALESCE(SUM(total_amount) FILTER (WHERE created_at::date = CURRENT_DATE), 0)::int AS "revenueToday"
+     FROM orders`
+  );
+  res.json(result.rows[0]);
+});
+
+// ─── GET /admin/analytics ─── Daily chart + top stores ───────────────────
+router.get('/analytics', async (_req, res) => {
+  const [dailyRes, topRes] = await Promise.all([
+    pool.query(
+      `SELECT
+         d.day::date AS date,
+         COALESCE(COUNT(o.id), 0)::int AS orders,
+         COALESCE(SUM(o.total_amount), 0)::int AS revenue
+       FROM generate_series(
+         CURRENT_DATE - INTERVAL '6 days', CURRENT_DATE, '1 day'
+       ) AS d(day)
+       LEFT JOIN orders o
+         ON o.created_at::date = d.day
+         AND o.status NOT IN ('cancelled')
+       GROUP BY d.day ORDER BY d.day`
+    ),
+    pool.query(
+      `SELECT s.name, COUNT(o.id)::int AS order_count,
+              COALESCE(SUM(o.total_amount), 0)::int AS revenue
+       FROM stores s LEFT JOIN orders o ON o.store_id = s.id
+         AND o.status = 'delivered'
+         AND o.created_at >= NOW() - INTERVAL '30 days'
+       GROUP BY s.id, s.name ORDER BY revenue DESC LIMIT 10`
+    ),
+  ]);
+  res.json({ daily: dailyRes.rows, topStores: topRes.rows });
+});
+
 // ─── GET /admin/payouts?period=week|month ─────────────────────────────────
 router.get('/payouts', async (req, res) => {
   const { period = 'week' } = req.query as { period?: string };

@@ -317,7 +317,21 @@ router.post('/:id/cancel', async (req: AuthRequest, res) => {
 // ─── POST /orders/:id/rate ─── Rate order ────────────────────────────────
 router.post('/:id/rate', async (req: AuthRequest, res) => {
   const { id } = req.params;
-  const { rating, review } = req.body as { rating?: number; review?: string };
+  // Accept both legacy {rating} and modern {foodRating, deliveryRating, comment, tags}
+  const body = req.body as {
+    rating?: number;
+    foodRating?: number;
+    deliveryRating?: number;
+    review?: string;
+    comment?: string;
+    tags?: string[];
+  };
+  // Compute final rating: average of food+delivery if provided, else use legacy rating
+  const rating =
+    body.rating != null
+      ? body.rating
+      : Math.round(((body.foodRating ?? 0) + (body.deliveryRating ?? 0)) / 2);
+  const review = body.comment ?? body.review ?? null;
   if (!rating || rating < 1 || rating > 5) {
     res.status(400).json({ error: 'Rating must be between 1 and 5.' });
     return;
