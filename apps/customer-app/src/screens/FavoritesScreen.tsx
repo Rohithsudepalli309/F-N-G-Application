@@ -58,7 +58,7 @@ export const FavoritesScreen = () => {
         {item.image_url
           ? <Image source={{ uri: item.image_url }} style={styles.restImage} />
           : <View style={[styles.restImage, styles.imagePlaceholder]}>
-              <Text style={styles.placeholderText}>🍽️</Text>
+              <Image source={{ uri: 'https://img.icons8.com/color/96/restaurant--v1.png' }} style={styles.placeholderImg} resizeMode="contain" />
             </View>
         }
         {!item.is_active && (
@@ -81,7 +81,7 @@ export const FavoritesScreen = () => {
         </View>
       </View>
       <TouchableOpacity style={styles.heartBtn} onPress={() => removeFavorite(item.id)}>
-        <Text style={styles.heartIcon}>❤️</Text>
+        <Image source={{ uri: 'https://img.icons8.com/color/96/like--v1.png' }} style={styles.heartImg} resizeMode="contain" />
       </TouchableOpacity>
     </TouchableOpacity>
   );
@@ -117,10 +117,10 @@ export const FavoritesScreen = () => {
           contentContainerStyle={styles.list}
           ListEmptyComponent={
             <View style={styles.empty}>
-              <Text style={styles.emptyIcon}>🤍</Text>
+              <Image source={{ uri: 'https://img.icons8.com/color/96/hearts.png' }} style={styles.emptyImg} resizeMode="contain" />
               <Text style={styles.emptyTitle}>No favourites yet</Text>
               <Text style={styles.emptySubtitle}>
-                Tap the ❤️ on any restaurant or dish to save it here
+                Tap the heart icon on any restaurant or dish to save it here
               </Text>
               <TouchableOpacity
                 style={styles.browseBtn}
@@ -157,7 +157,7 @@ const styles = StyleSheet.create({
   imageWrap: { position: 'relative' },
   restImage: { width: 72, height: 72, borderRadius: 12, resizeMode: 'cover' },
   imagePlaceholder: { backgroundColor: '#F0F4EF', alignItems: 'center', justifyContent: 'center' },
-  placeholderText: { fontSize: 30 },
+  placeholderImg: { width: 36, height: 36 },
   closedOverlay: {
     ...StyleSheet.absoluteFillObject,
     backgroundColor: 'rgba(0,0,0,0.5)',
@@ -175,10 +175,10 @@ const styles = StyleSheet.create({
   deliTime: { fontSize: 12, color: theme.colors.text.secondary, fontWeight: '500' },
 
   heartBtn: { padding: 8 },
-  heartIcon: { fontSize: 22 },
+  heartImg: { width: 24, height: 24 },
 
   empty: { alignItems: 'center', paddingTop: 80, paddingHorizontal: 40 },
-  emptyIcon: { fontSize: 64, marginBottom: 16 },
+  emptyImg: { width: 72, height: 72, marginBottom: 16 },
   emptyTitle: { fontSize: 18, fontWeight: '700', color: theme.colors.text.primary, marginBottom: 8 },
   emptySubtitle: { fontSize: 14, color: theme.colors.text.secondary, textAlign: 'center', lineHeight: 22, marginBottom: 24 },
   browseBtn: { backgroundColor: '#163D26', borderRadius: 12, paddingHorizontal: 28, paddingVertical: 12 },

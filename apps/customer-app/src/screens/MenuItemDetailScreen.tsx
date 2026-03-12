@@ -105,7 +105,7 @@ export const MenuItemDetailScreen = () => {
         {item.image_url
           ? <Image source={{ uri: item.image_url }} style={styles.heroImage} />
           : <View style={[styles.heroImage, styles.heroPlaceholder]}>
-              <Text style={styles.heroPlaceholderText}>🍽️</Text>
+              <Image source={{ uri: 'https://img.icons8.com/color/96/restaurant--v1.png' }} style={styles.heroPlaceholderImg} resizeMode="contain" />
             </View>
         }
         <TouchableOpacity style={styles.backBtn} onPress={() => navigation.goBack()}>
@@ -135,7 +135,7 @@ export const MenuItemDetailScreen = () => {
               </View>
             )}
             {item.calories && (
-              <Text style={styles.calories}>🔥 {item.calories}</Text>
+              <Text style={styles.calories}>{item.calories} cal</Text>
             )}
             {!item.is_available && (
               <View style={styles.unavailableBadge}>
@@ -229,7 +229,7 @@ const styles = StyleSheet.create({
   heroContainer: { position: 'relative' },
   heroImage: { width: '100%', height: 260, resizeMode: 'cover' },
   heroPlaceholder: { backgroundColor: '#F0F4EF', alignItems: 'center', justifyContent: 'center' },
-  heroPlaceholderText: { fontSize: 80 },
+  heroPlaceholderImg: { width: 80, height: 80 },
   backBtn: {
     position: 'absolute', top: 44, left: 16,
     backgroundColor: 'rgba(0,0,0,0.42)', borderRadius: 20,

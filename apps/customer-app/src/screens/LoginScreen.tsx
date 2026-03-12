@@ -126,7 +126,7 @@ export const LoginScreen = () => {
         {/* Phone Input */}
         <View style={styles.inputRow}>
           <View style={styles.prefix}>
-            <Text style={styles.prefixText}>🇮🇳  +91</Text>
+            <Text style={styles.prefixText}>+91</Text>
           </View>
           <TextInput
             style={styles.input}
@@ -161,7 +161,7 @@ export const LoginScreen = () => {
 
         {showPreview && (
           <TouchableOpacity style={styles.ownerBtn} onPress={handleOwnerPreview}>
-            <Text style={styles.ownerBtnText}>👑  Preview App as Owner</Text>
+            <Text style={styles.ownerBtnText}>Preview App as Owner</Text>
           </TouchableOpacity>
         )}
 

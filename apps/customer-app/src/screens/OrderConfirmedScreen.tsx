@@ -14,6 +14,7 @@ import {
   StatusBar,
   Animated,
   Easing,
+  Image,
 } from 'react-native';
 import { useNavigation, useRoute, CommonActions } from '@react-navigation/native';
 import { theme } from '../theme';
@@ -76,7 +77,7 @@ export const OrderConfirmedScreen = () => {
         </Animated.View>
 
         <Animated.View style={{ opacity: opacityAnim, transform: [{ translateY: slideAnim }] }}>
-          <Text style={styles.title}>Order Placed! 🎉</Text>
+          <Text style={styles.title}>Order Placed!</Text>
           <Text style={styles.subtitle}>Your order has been confirmed and{'\n'}the restaurant is preparing it.</Text>
 
           {/* Order info card */}
@@ -102,13 +103,13 @@ export const OrderConfirmedScreen = () => {
           {/* Steps timeline */}
           <View style={styles.timeline}>
             {[
-              { icon: '✅', label: 'Order Confirmed', done: true },
-              { icon: '🍳', label: 'Restaurant Preparing', done: false },
-              { icon: '🛵', label: 'Agent Pickup', done: false },
-              { icon: '📦', label: 'Out for Delivery', done: false },
+              { img: 'https://img.icons8.com/color/96/checkmark--v1.png',          label: 'Order Confirmed',       done: true },
+              { img: 'https://img.icons8.com/color/96/cooking.png',                 label: 'Restaurant Preparing',  done: false },
+              { img: 'https://img.icons8.com/color/96/motorcycle-delivery--v1.png', label: 'Agent Pickup',          done: false },
+              { img: 'https://img.icons8.com/color/96/box--v1.png',                 label: 'Out for Delivery',      done: false },
             ].map((step, i) => (
               <View key={i} style={styles.timelineRow}>
-                <Text style={styles.timelineIcon}>{step.icon}</Text>
+                <Image source={{ uri: step.img }} style={styles.timelineImg} resizeMode="contain" />
                 <Text style={[styles.timelineLabel, step.done && styles.timelineDone]}>
                   {step.label}
                 </Text>
@@ -195,7 +196,7 @@ const styles = StyleSheet.create({
     paddingVertical: 6,
     gap: 12,
   },
-  timelineIcon: { fontSize: 18, width: 28, textAlign: 'center' },
+  timelineImg: { width: 22, height: 22, marginRight: 8 },
   timelineLabel: { flex: 1, fontSize: 14, color: theme.colors.text.secondary, fontWeight: '500' },
   timelineDone: { color: '#163D26', fontWeight: '700' },
   timelineTick: { color: '#1A7A3C', fontWeight: '700', fontSize: 16 },

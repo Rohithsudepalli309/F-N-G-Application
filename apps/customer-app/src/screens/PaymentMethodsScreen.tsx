@@ -121,7 +121,7 @@ export const PaymentMethodsScreen = () => {
           contentContainerStyle={styles.list}
           ListHeaderComponent={
             <View style={styles.secureNote}>
-              <Text style={styles.secureIcon}>🔒</Text>
+              <Image source={{ uri: 'https://img.icons8.com/color/96/lock--v1.png' }} style={styles.secureImg} resizeMode="contain" />
               <Text style={styles.secureText}>Your payment data is encrypted and secured by Razorpay</Text>
             </View>
           }
@@ -132,7 +132,7 @@ export const PaymentMethodsScreen = () => {
           }
           ListEmptyComponent={
             <View style={styles.empty}>
-              <Text style={styles.emptyIcon}>💳</Text>
+              <Image source={{ uri: 'https://img.icons8.com/color/96/bank-card-back-side.png' }} style={styles.emptyImg} resizeMode="contain" />
               <Text style={styles.emptyTitle}>No saved payment methods</Text>
               <Text style={styles.emptySubtitle}>
                 Save UPI IDs and cards for faster checkout
@@ -174,7 +174,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row', alignItems: 'center', gap: 8,
     backgroundColor: '#F0FDF4', borderRadius: 12, padding: 12, marginBottom: 16,
   },
-  secureIcon: { fontSize: 18 },
+  secureImg: { width: 20, height: 20 },
   secureText: { flex: 1, fontSize: 12, color: '#163D26', fontWeight: '500' },
 
   card: {
@@ -203,7 +203,7 @@ const styles = StyleSheet.create({
   addBtnText: { color: '#163D26', fontWeight: '700', fontSize: 15 },
 
   empty: { alignItems: 'center', paddingTop: 40 },
-  emptyIcon: { fontSize: 56, marginBottom: 12 },
+  emptyImg: { width: 64, height: 64, marginBottom: 12 },
   emptyTitle: { fontSize: 17, fontWeight: '700', color: theme.colors.text.primary, marginBottom: 6 },
   emptySubtitle: { fontSize: 13, color: theme.colors.text.secondary, textAlign: 'center' },
 

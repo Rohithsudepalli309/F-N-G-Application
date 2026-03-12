@@ -27,7 +27,7 @@ const SLIDES = [
     subtitle: 'Fresh fruits, vegetables, dairy and more — delivered lightning-fast to your door.',
     bg: theme.colors.primary,
     accent: theme.colors.accent,
-    emoji: '🛒',
+    img: 'https://img.icons8.com/color/96/shopping-cart--v1.png',
     image: 'https://images.unsplash.com/photo-1542838132-92c53300491e?w=600&auto=format&fit=crop',
   },
   {
@@ -36,7 +36,7 @@ const SLIDES = [
     subtitle: 'Your favourite restaurants. Real-time tracking. Hot food, every time.',
     bg: '#1A4D2E',
     accent: theme.colors.accent2,
-    emoji: '🍛',
+    img: 'https://img.icons8.com/color/96/restaurant--v1.png',
     image: 'https://images.unsplash.com/photo-1565299624946-b28f40a0ae38?w=600&auto=format&fit=crop',
   },
   {
@@ -45,7 +45,7 @@ const SLIDES = [
     subtitle: 'Watch your delivery agent navigate to you on a live map. Always in the know.',
     bg: '#112B1E',
     accent: theme.colors.accent3,
-    emoji: '📍',
+    img: 'https://img.icons8.com/color/96/place-marker--v1.png',
     image: 'https://images.unsplash.com/photo-1526367790999-0150786686a2?w=600&auto=format&fit=crop',
   },
 ];
@@ -95,7 +95,7 @@ export const OnboardingScreen = () => {
             <View style={styles.imageWrap}>
               <Image source={{ uri: item.image }} style={styles.image} resizeMode="cover" />
               <View style={styles.imageOverlay} />
-              <Text style={styles.emoji}>{item.emoji}</Text>
+              <Image source={{ uri: item.img }} style={styles.slideCornerImg} resizeMode="contain" />
             </View>
             <View style={styles.textBlock}>
               <Text style={styles.title}>{item.title}</Text>
@@ -147,11 +147,12 @@ const styles = StyleSheet.create({
     ...StyleSheet.absoluteFillObject,
     backgroundColor: 'rgba(0,0,0,0.18)',
   },
-  emoji: {
+  slideCornerImg: {
     position: 'absolute',
     bottom: 20,
     right: 24,
-    fontSize: 56,
+    width: 64,
+    height: 64,
   },
   textBlock: { paddingHorizontal: 28, paddingTop: 32 },
   title: {

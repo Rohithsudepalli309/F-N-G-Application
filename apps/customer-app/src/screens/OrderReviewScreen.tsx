@@ -69,7 +69,7 @@ export const OrderReviewScreen = () => {
       navigation.dispatch(
         CommonActions.reset({ index: 0, routes: [{ name: 'Main' }] })
       );
-      Alert.alert('Thank you! 🙏', 'Your feedback helps us improve.');
+      Alert.alert('Thank you!', 'Your feedback helps us improve.');
     } catch (e: any) {
       Alert.alert('Error', e?.response?.data?.error || 'Failed to submit review. Please try again.');
     } finally {
@@ -98,7 +98,7 @@ export const OrderReviewScreen = () => {
 
         {/* Food Rating */}
         <View style={styles.card}>
-          <Text style={styles.cardTitle}>🍛 Food Quality</Text>
+          <Text style={styles.cardTitle}>Food Quality</Text>
           <StarRow label="How was the food?" value={foodRating} onChange={setFoodRating} />
           <View style={styles.tagsWrap}>
             {QUICK_TAGS_FOOD.map(tag => (
@@ -118,7 +118,7 @@ export const OrderReviewScreen = () => {
 
         {/* Delivery Rating */}
         <View style={styles.card}>
-          <Text style={styles.cardTitle}>🛵 Delivery Experience</Text>
+          <Text style={styles.cardTitle}>Delivery Experience</Text>
           <StarRow label="How was the delivery?" value={deliveryRating} onChange={setDeliveryRating} />
           <View style={styles.tagsWrap}>
             {QUICK_TAGS_DELIVERY.map(tag => (
@@ -138,7 +138,7 @@ export const OrderReviewScreen = () => {
 
         {/* Written review */}
         <View style={styles.card}>
-          <Text style={styles.cardTitle}>📝 Additional Comments (Optional)</Text>
+          <Text style={styles.cardTitle}>Additional Comments (Optional)</Text>
           <TextInput
             style={styles.textInput}
             value={comment}

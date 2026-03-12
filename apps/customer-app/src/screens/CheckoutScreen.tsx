@@ -212,7 +212,7 @@ export const CheckoutScreen = () => {
           <View style={styles.payRow}>
             <View style={styles.payLeft}>
                <View style={styles.codIconBox}>
-                  <Text style={{ fontSize: 16 }}>💵</Text>
+                  <Image source={{ uri: 'https://img.icons8.com/color/96/banknotes--v1.png' }} style={{ width: 18, height: 18 }} resizeMode="contain" />
                </View>
                <Text style={styles.payName}>Cash on Delivery</Text>
             </View>
@@ -228,7 +228,7 @@ export const CheckoutScreen = () => {
           {couponDiscount > 0 ? (
             <View style={styles.couponApplied}>
               <View style={styles.couponAppliedLeft}>
-                <Text style={styles.couponAppliedIcon}>🏷️</Text>
+                <Image source={{ uri: 'https://img.icons8.com/color/96/discount--v1.png' }} style={styles.couponAppliedImg} resizeMode="contain" />
                 <View>
                   <Text style={styles.couponAppliedCode}>{couponCode.trim().toUpperCase()}</Text>
                   <Text style={styles.couponAppliedSaving}>Saving ₹{couponDiscount.toLocaleString('en-IN')}</Text>
@@ -541,8 +541,9 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     gap: 10,
   },
-  couponAppliedIcon: {
-    fontSize: 22,
+  couponAppliedImg: {
+    width: 24,
+    height: 24,
   },
   couponAppliedCode: {
     fontSize: 14,
