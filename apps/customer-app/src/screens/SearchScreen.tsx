@@ -14,12 +14,14 @@ const CARD_W = (width - 34) / 2;
 
 const TRENDING = ['Amul Milk', 'Potato Chips', 'Whole Wheat Bread', 'Farm Eggs', 'Atta 5kg', 'Maggi Noodles', 'Colgate Toothpaste', 'Basmati Rice'];
 const POPULAR_CATS = [
-  { name: 'Fruits & Vegetables', emoji: '🥦' },
-  { name: 'Dairy, Bread & Eggs', emoji: '🥛' },
-  { name: 'Snacks & Munchies',   emoji: '🍿' },
-  { name: 'Cleaning Essentials', emoji: '🧹' },
-  { name: 'Beverages',           emoji: '🧃' },
-  { name: 'Masala & Spices',     emoji: '🌶️' },
+  { name: 'Fruits & Vegetables', img: 'https://images.unsplash.com/photo-1540420773420-3366772f4999?w=120&q=80', cat: 'Fruits & Vegetables'  },
+  { name: 'Dairy, Bread & Eggs', img: 'https://images.unsplash.com/photo-1628088062854-d1870b4553da?w=120&q=80', cat: 'Dairy, Bread & Eggs'   },
+  { name: 'Snacks & Munchies',   img: 'https://images.unsplash.com/photo-1599490659213-e2b9527bd087?w=120&q=80', cat: 'Munchies'              },
+  { name: 'Cleaning Essentials', img: 'https://images.unsplash.com/photo-1585421514738-01798e348b17?w=120&q=80', cat: 'Cleaning Essentials'  },
+  { name: 'Beverages',           img: 'https://images.unsplash.com/photo-1622483767028-3f66f32aef97?w=120&q=80', cat: 'Beverages'             },
+  { name: 'Masala & Spices',     img: 'https://images.unsplash.com/photo-1506802913710-b2985dcd0c20?w=120&q=80', cat: 'Masala & Spices'      },
+  { name: 'Personal Care',       img: 'https://images.unsplash.com/photo-1584308666744-24d5c474f2ae?w=120&q=80', cat: 'Personal Care'         },
+  { name: 'Atta, Rice & Dal',    img: 'https://images.unsplash.com/photo-1586201375761-83865001e31c?w=120&q=80', cat: 'Atta, Rice, Oil & Dals' },
 ];
 
 // ─── Inline mini product card ─────────────────────────────────────────────────
@@ -173,7 +175,7 @@ export const SearchScreen = () => {
       {/* Pre-search state */}
       {!searched && query.length === 0 && (
         <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingBottom: 32 }} keyboardShouldPersistTaps="handled">
-          <Text style={s.sectionTitle}>🔥 Trending Now</Text>
+          <Text style={s.sectionTitle}>Trending Now</Text>
           <View style={s.trendingWrap}>
             {TRENDING.map(t => (
               <TouchableOpacity key={t} style={s.trendingPill} onPress={() => setQuery(t)}>
@@ -182,14 +184,16 @@ export const SearchScreen = () => {
             ))}
           </View>
 
-          <Text style={s.sectionTitle}>🛒 Browse Categories</Text>
+          <Text style={s.sectionTitle}>Browse Categories</Text>
           {POPULAR_CATS.map(c => (
             <TouchableOpacity
               key={c.name}
               style={s.catRow}
-              onPress={() => navigation.navigate('ProductList', { categoryName: c.name })}
+              onPress={() => navigation.navigate('ProductList', { categoryName: c.cat })}
             >
-              <View style={s.catIcon}><Text style={{ fontSize: 22 }}>{c.emoji}</Text></View>
+              <View style={s.catIcon}>
+                <Image source={{ uri: c.img }} style={s.catThumb} resizeMode="cover" />
+              </View>
               <Text style={s.catRowText}>{c.name}</Text>
               <Text style={s.catChev}>›</Text>
             </TouchableOpacity>
@@ -260,8 +264,9 @@ const s = StyleSheet.create({
   trendingPill: { backgroundColor: '#FFF', borderWidth: 1, borderColor: '#DDD', paddingHorizontal: 14, paddingVertical: 7, borderRadius: 20, elevation: 1 },
   trendingText: { fontSize: 12, fontWeight: '600', color: '#333' },
 
-  catRow:    { flexDirection: 'row', alignItems: 'center', backgroundColor: '#FFF', paddingHorizontal: 16, paddingVertical: 14, borderBottomWidth: 1, borderBottomColor: '#F5F5F5' },
-  catIcon:   { width: 40, height: 40, borderRadius: 12, backgroundColor: '#F5F7FA', alignItems: 'center', justifyContent: 'center', marginRight: 12 },
+  catRow:    { flexDirection: 'row', alignItems: 'center', backgroundColor: '#FFF', paddingHorizontal: 16, paddingVertical: 12, borderBottomWidth: 1, borderBottomColor: '#F5F5F5' },
+  catIcon:   { width: 44, height: 44, borderRadius: 10, overflow: 'hidden', marginRight: 12 },
+  catThumb:  { width: '100%', height: '100%' } as any,
   catRowText:{ flex: 1, fontSize: 14, fontWeight: '600', color: '#0D1B14' },
   catChev:   { fontSize: 22, color: '#BDBDBD' },
 

@@ -432,7 +432,11 @@ export const HomeScreen = () => {
             <Text style={s.dealStripTitle}>50% OFF on{'\n'}Fruits & Veggies</Text>
           </View>
           <View style={s.dealStripRight}>
-            <Text style={s.dealStripEmoji}>🥦🍅🍌</Text>
+            <Image
+              source={{ uri: 'https://images.unsplash.com/photo-1540420773420-3366772f4999?w=200&q=80' }}
+              style={s.dealStripImg}
+              resizeMode="cover"
+            />
             <TouchableOpacity
               style={s.dealStripBtn}
               onPress={() => goTo('ProductList', { categoryName: 'Fruits & Vegetables' })}
@@ -612,7 +616,7 @@ const s = StyleSheet.create({
   dealStripTag:    { color: '#F5A826', fontSize: 10, fontWeight: '800', letterSpacing: 1, textTransform: 'uppercase', marginBottom: 6 },
   dealStripTitle:  { color: '#FFF', fontSize: 20, fontWeight: '900', lineHeight: 24 },
   dealStripRight:  { alignItems: 'center' },
-  dealStripEmoji:  { fontSize: 30, marginBottom: 8 },
+  dealStripImg:    { width: 70, height: 70, borderRadius: 12, marginBottom: 8 },
   dealStripBtn:    { backgroundColor: '#F5A826', borderRadius: 20, paddingVertical: 8, paddingHorizontal: 14 },
   dealStripBtnText:{ color: '#0D1B14', fontSize: 12, fontWeight: '900' },
 
