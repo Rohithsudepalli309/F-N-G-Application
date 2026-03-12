@@ -175,10 +175,12 @@ testing on a physical device.
 | `JWT_SECRET` | ✅ | Min 32-char random secret |
 | `PORT` | – | Default `3002` |
 | `NODE_ENV` | – | `development` or `production` |
-| `ALLOWED_ORIGINS` | – | Comma-separated CORS origins |
+| `ALLOWED_ORIGINS` | ✅ prod | Comma-separated CORS origins — **required in production** |
 | `DATABASE_SSL` | – | `true` for hosted PG (Supabase, RDS) |
+| `DATABASE_SSL_CA` | – | Root CA certificate PEM for hosted PG (see below) |
 | `RAZORPAY_KEY_ID` | – | Razorpay payment key |
 | `RAZORPAY_KEY_SECRET` | – | Razorpay payment secret |
+| `RAZORPAY_WEBHOOK_SECRET` | ✅ prod | Razorpay webhook HMAC secret — **required in production** |
 
 ### Root `.env` (Docker Compose overrides)
 
@@ -279,6 +281,75 @@ pnpm preview      # Serve the production build locally
 npx react-native start           # Metro bundler
 npx react-native run-android     # Build and install on Android
 npx react-native run-ios         # Build and install on iOS (macOS only)
+```
+
+---
+
+## Production Deployment
+
+### Required environment variables
+
+Before going live, ensure these are set in your production environment (Railway,
+Render, Fly.io, EC2, etc.):
+
+```
+NODE_ENV=production
+JWT_SECRET=<random 32+ char string>          # openssl rand -hex 32
+ALLOWED_ORIGINS=https://admin.yourdomain.com,https://merchant.yourdomain.com
+DATABASE_URL=postgresql://user:pass@host:5432/db
+DATABASE_SSL=true
+DATABASE_SSL_CA=<root CA PEM — see below>
+RAZORPAY_KEY_ID=rzp_live_...
+RAZORPAY_KEY_SECRET=<secret>
+RAZORPAY_WEBHOOK_SECRET=<webhook secret from Razorpay dashboard>
+```
+
+### Setting up `DATABASE_SSL_CA` (Supabase / AWS RDS)
+
+Hosted Postgres providers require you to verify their TLS certificate using
+their root CA. Steps:
+
+**Supabase**
+1. Dashboard → Settings → Database → scroll to *SSL Certificate* → Download.
+2. Flatten the PEM to a single line:
+   ```bash
+   awk 'NF {ORS="\\n"; print}' supabase-ca.pem
+   ```
+3. Set the output as the `DATABASE_SSL_CA` environment variable.
+
+**AWS RDS**
+1. Download the regional bundle from AWS:
+   ```bash
+   curl -o rds-ca.pem https://truststore.pki.rds.amazonaws.com/<region>/<region>-bundle.pem
+   ```
+2. Flatten and set:
+   ```bash
+   awk 'NF {ORS="\\n"; print}' rds-ca.pem
+   ```
+
+The value you set will look like:
+```
+DATABASE_SSL_CA=-----BEGIN CERTIFICATE-----\nMIID...\n-----END CERTIFICATE-----
+```
+
+The backend automatically converts `\n` back to real newlines before passing
+the certificate to `node-postgres`.
+
+> If your provider uses a CA that Node.js already trusts (e.g. Let's Encrypt),
+> leave `DATABASE_SSL_CA` empty — `rejectUnauthorized: true` will still verify
+> the server certificate using Node's built-in CA bundle.
+
+### Running database migrations
+
+Run all migrations in order against your production database:
+
+```bash
+psql $DATABASE_URL -f backend/src/migrations/001_schema.sql
+psql $DATABASE_URL -f backend/src/migrations/002_wallet_surge.sql
+psql $DATABASE_URL -f backend/src/migrations/003_notifications_favourites_referrals_pro.sql
+psql $DATABASE_URL -f backend/src/migrations/004_sub_category.sql
+psql $DATABASE_URL -f backend/src/migrations/005_addresses_v2.sql
+psql $DATABASE_URL -f backend/src/migrations/006_security_hardening.sql
 ```
 
 ---
