@@ -136,18 +136,18 @@ export default function ProfilePage() {
   }
 
   return (
-    <div className="p-6 max-w-2xl mx-auto space-y-6 animate-fade-in">
+    <div className="p-6 max-w-2xl mx-auto space-y-6 animate-fade-in text-slate-800 dark:text-slate-100">
       <div>
-        <h1 className="text-2xl font-bold text-slate-100">Profile &amp; Settings</h1>
-        <p className="text-sm text-slate-400 mt-1">Update your store details and contact information.</p>
+        <h1 className="text-2xl font-bold">Profile &amp; Settings</h1>
+        <p className="text-sm text-slate-500 dark:text-slate-400 mt-1">Update your store details and contact information.</p>
       </div>
 
       <form onSubmit={handleSave} className="space-y-5">
 
         {/* ── Store Fulfillment (NEW) ────────────────────────────────── */}
-        <section className={`card space-y-4 border-l-4 transition-colors ${form.isPaused ? 'border-amber-500 bg-amber-500/5' : 'border-emerald-500'}`}>
+        <section className={`p-6 rounded-xl border border-slate-200 dark:border-slate-800 space-y-4 border-l-4 transition-colors ${form.isPaused ? 'border-amber-500 bg-amber-500/5' : 'border-emerald-500 bg-white dark:bg-slate-900'}`}>
           <div className="flex items-center justify-between">
-            <h2 className="flex items-center gap-2 text-sm font-semibold text-slate-400 uppercase tracking-widest">
+            <h2 className="flex items-center gap-2 text-sm font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-widest">
               <Coffee size={14} /> Fulfillment Status
             </h2>
             <div className="flex items-center gap-2">

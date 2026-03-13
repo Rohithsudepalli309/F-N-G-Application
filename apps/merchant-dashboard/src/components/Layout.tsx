@@ -12,8 +12,11 @@ import {
   Store,
   ChevronRight,
   UserCircle,
+  Sun,
+  Moon,
 } from 'lucide-react';
 import { useAuthStore } from '../store/useAuthStore';
+import { useThemeStore } from '../store/useThemeStore';
 
 const navItems = [
   { to: '/',          label: 'Dashboard',  icon: LayoutDashboard, end: true  },
@@ -26,6 +29,7 @@ const navItems = [
 export default function Layout() {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const { user, store, logout } = useAuthStore();
+  const { isDarkMode, toggleDarkMode } = useThemeStore();
   const navigate = useNavigate();
 
   const handleLogout = () => {
@@ -59,6 +63,16 @@ export default function Layout() {
           </NavLink>
         </li>
       ))}
+      {/* Theme Toggle in Menu */}
+      <li className="pt-4 border-t border-slate-800 mt-4">
+        <button
+          onClick={toggleDarkMode}
+          className="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium text-slate-400 hover:text-slate-100 hover:bg-slate-800 transition-all"
+        >
+          {isDarkMode ? <Sun size={18} /> : <Moon size={18} />}
+          <span>{isDarkMode ? 'Light Mode' : 'Dark Mode'}</span>
+        </button>
+      </li>
     </ul>
   );
 
@@ -107,7 +121,7 @@ export default function Layout() {
   );
 
   return (
-    <div className="flex h-screen overflow-hidden bg-slate-950">
+    <div className="flex h-screen overflow-hidden bg-white dark:bg-slate-950 transition-colors duration-200">
       {/* Desktop sidebar */}
       <Sidebar />
 
