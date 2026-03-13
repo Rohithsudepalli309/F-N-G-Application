@@ -42,6 +42,7 @@ export const AdminLayout = () => {
     { label: 'Analytics',   path: '/analytics',   icon: TrendingUp },
     { label: 'Payouts',     path: '/payouts',     icon: Wallet },
     { label: 'Disputes',    path: '/disputes',    icon: ShieldAlert },
+    { label: 'Fraud Logs',  path: '/fraud',       icon: ShieldAlert },
   ];
 
   return (

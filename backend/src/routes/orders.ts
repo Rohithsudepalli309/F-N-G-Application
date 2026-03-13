@@ -6,6 +6,7 @@ import { publishOrderEvent } from '../services/eventBus';
 import { getSurgeMultiplier } from '../services/surge';
 import { isEnabled } from '../services/featureFlags';
 import { earnPoints, redeemPoints } from '../services/loyalty';
+import { calculateLoyaltyBenefits } from '../services/loyaltyEngine';
 import { redis, DRIVER_GEO_KEY } from '../redis';
 
 const router = Router();
@@ -126,13 +127,10 @@ router.post('/', async (req: AuthRequest, res) => {
     );
     if (proCheck.rows.length > 0) deliveryFee = 0;
 
-    // INTELLIGENCE: First Month Free (New User Benefit)
-    const userCreatedRes = await client.query(`SELECT created_at FROM users WHERE id=$1`, [req.user!.id]);
-    const userCreatedAt = new Date(userCreatedRes.rows[0].created_at);
-    const thirtyDaysAgo = new Date();
-    thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
-    if (userCreatedAt > thirtyDaysAgo) {
-      deliveryFee = 0; // Free delivery for new users in first 30 days
+    // Phase 3 Intelligence: Apply Loyalty Benefits
+    const loyalty = await calculateLoyaltyBenefits(req.user!.id, subtotal);
+    if (loyalty.deliveryFeeOverride !== null) {
+      deliveryFee = loyalty.deliveryFeeOverride;
     }
 
     // Apply surge pricing if feature flag is on for this user
@@ -148,14 +146,9 @@ router.post('/', async (req: AuthRequest, res) => {
     let discountAmount = 0;
     let couponId: number | null = null;
 
-    // INTELLIGENCE: Order Streak Reward (5th order = 10% off automatically)
-    const orderCountRes = await client.query(
-      `SELECT COUNT(*) FROM orders WHERE customer_id = $1 AND status = 'delivered'`,
-      [req.user!.id]
-    );
-    const completedOrders = parseInt(orderCountRes.rows[0].count);
-    if (completedOrders > 0 && (completedOrders + 1) % 5 === 0) {
-       discountAmount = Math.round(subtotal * 0.10); // 10% off
+    // INTELLIGENCE: Auto Loyalty Discounts
+    if (loyalty.autoDiscount > 0) {
+      discountAmount += loyalty.autoDiscount;
     }
 
     if (couponCode) {

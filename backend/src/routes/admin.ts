@@ -438,4 +438,38 @@ router.post('/disputes/:id/reject', async (req, res) => {
   }
 });
 
+// ─── GET /admin/fraud/flags ───────────────────────────────────────────────
+router.get('/fraud/flags', async (_req, res) => {
+  try {
+    const result = await pool.query(
+      `SELECT id, name, phone, email, metadata->>'fraud_flag' as fraud_flag, 
+              metadata->>'fraud_reason' as fraud_reason, created_at
+       FROM users 
+       WHERE metadata->>'fraud_flag' = 'true'
+       ORDER BY created_at DESC`
+    );
+    res.json({ flags: result.rows });
+  } catch (err) {
+    console.error('[admin/fraud/flags]', err);
+    res.status(500).json({ error: 'Could not fetch fraud flags.' });
+  }
+});
+
+// ─── POST /admin/fraud/dismiss/:userId ────────────────────────────────────
+router.post('/fraud/dismiss/:userId', async (req, res) => {
+  const { userId } = req.params;
+  try {
+    await pool.query(
+      `UPDATE users 
+       SET metadata = metadata - 'fraud_flag' - 'fraud_reason'
+       WHERE id = $1`,
+      [userId]
+    );
+    res.json({ success: true, message: 'Fraud flag dismissed.' });
+  } catch (err) {
+    console.error('[admin/fraud/dismiss]', err);
+    res.status(500).json({ error: 'Could not dismiss fraud flag.' });
+  }
+});
+
 export default router;
