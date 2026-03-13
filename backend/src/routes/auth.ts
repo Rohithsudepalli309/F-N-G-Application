@@ -5,6 +5,7 @@ import crypto from 'crypto';
 import pool from '../db';
 import { requireAuth, AuthRequest } from '../middleware/auth';
 import { sendOtp } from '../services/sms';
+import { getUserPoints } from '../services/loyalty';
 
 const router = Router();
 
@@ -294,7 +295,11 @@ router.get('/me', requireAuth, async (req: AuthRequest, res) => {
     `SELECT id, phone, email, name, role, coins FROM users WHERE id=$1`,
     [req.user!.id]
   );
-  res.json({ user: result.rows[0] ?? null });
+  const user = result.rows[0];
+  if (user) {
+    user.loyaltyPoints = await getUserPoints(String(user.id));
+  }
+  res.json({ user: user ?? null });
 });
 
 export default router;

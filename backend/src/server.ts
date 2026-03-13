@@ -1,4 +1,5 @@
 import http from 'http';
+import './services/observability';
 import express from 'express';
 import cors from 'cors';
 import dotenv from 'dotenv';

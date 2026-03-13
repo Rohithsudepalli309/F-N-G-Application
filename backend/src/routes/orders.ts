@@ -126,6 +126,15 @@ router.post('/', async (req: AuthRequest, res) => {
     );
     if (proCheck.rows.length > 0) deliveryFee = 0;
 
+    // INTELLIGENCE: First Month Free (New User Benefit)
+    const userCreatedRes = await client.query(`SELECT created_at FROM users WHERE id=$1`, [req.user!.id]);
+    const userCreatedAt = new Date(userCreatedRes.rows[0].created_at);
+    const thirtyDaysAgo = new Date();
+    thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
+    if (userCreatedAt > thirtyDaysAgo) {
+      deliveryFee = 0; // Free delivery for new users in first 30 days
+    }
+
     // Apply surge pricing if feature flag is on for this user
     const surgeEnabled = await isEnabled('surge_pricing', req.user!.id);
     if (surgeEnabled && deliveryFee > 0) {
@@ -138,6 +147,17 @@ router.post('/', async (req: AuthRequest, res) => {
     // Apply coupon
     let discountAmount = 0;
     let couponId: number | null = null;
+
+    // INTELLIGENCE: Order Streak Reward (5th order = 10% off automatically)
+    const orderCountRes = await client.query(
+      `SELECT COUNT(*) FROM orders WHERE customer_id = $1 AND status = 'delivered'`,
+      [req.user!.id]
+    );
+    const completedOrders = parseInt(orderCountRes.rows[0].count);
+    if (completedOrders > 0 && (completedOrders + 1) % 5 === 0) {
+       discountAmount = Math.round(subtotal * 0.10); // 10% off
+    }
+
     if (couponCode) {
       const cpRes = await client.query(
         `SELECT * FROM coupons
