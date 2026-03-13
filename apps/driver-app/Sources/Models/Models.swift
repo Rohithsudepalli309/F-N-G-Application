@@ -1,4 +1,6 @@
 import Foundation
+import CoreLocation
+import SwiftUI
 
 // MARK: - User / Auth
 struct AuthResponse: Codable {
@@ -139,4 +141,11 @@ struct LocationPayload: Encodable {
     let lng: Double
     let bearing: Double
     let timestamp: Int64
+
+// MARK: - Map Annotation Helper
+struct MapPin: Identifiable {
+    let id: String
+    let coord: CLLocationCoordinate2D
+    let tint: Color
+}
 }

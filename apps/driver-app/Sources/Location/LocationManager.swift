@@ -14,7 +14,7 @@ final class LocationManager: NSObject, ObservableObject, CLLocationManagerDelega
     @Published var heading: Double = 0
     @Published var authorizationStatus: CLAuthorizationStatus = .notDetermined
 
-    var activeOrderId: String?          // Set when driver accepts an order
+    var activeOrderId: Int?             // Set when driver accepts an order
     private var lastEmitTime: Date = .distantPast
     private var lastLocation: CLLocation?
     private let emitInterval: TimeInterval = 3  // seconds

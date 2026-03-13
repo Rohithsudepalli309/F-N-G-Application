@@ -87,16 +87,24 @@ struct IncomingOrderSheet: View {
         HStack(spacing: 12) {
             BadgeView(
                 icon: "indianrupeesign.circle.fill",
-                value: "₹\(order.totalAmount / 100)",
+                value: "₹\(order.driverPayout / 100)",
                 color: .green,
-                label: "Earnings"
+                label: "Payout"
             )
             BadgeView(
                 icon: "bag.fill",
-                value: "\(order.itemsCount ?? 1)",
+                value: "\(order.itemCount)",
                 color: .orange,
                 label: "Items"
             )
+            if order.estimatedKm > 0 {
+                BadgeView(
+                    icon: "road.lanes",
+                    value: String(format: "%.1f km", order.estimatedKm),
+                    color: .blue,
+                    label: "Distance"
+                )
+            }
         }
     }
 
@@ -114,11 +122,11 @@ struct IncomingOrderSheet: View {
                     Text("PICKUP")
                         .font(.caption2.uppercaseSmallCaps())
                         .foregroundColor(.secondary)
-                    Text(order.storeName ?? "FNG Store")
+                    Text(order.storeName.isEmpty ? "FNG Store" : order.storeName)
                         .font(.subheadline.bold())
                         .foregroundColor(.white)
-                    if let pickup = order.pickupAddress, !pickup.text.isEmpty {
-                        Text(pickup.text)
+                    if !order.storeAddress.isEmpty {
+                        Text(order.storeAddress)
                             .font(.caption)
                             .foregroundColor(.secondary)
                             .lineLimit(2)
@@ -136,7 +144,7 @@ struct IncomingOrderSheet: View {
                     Text("DELIVER TO")
                         .font(.caption2.uppercaseSmallCaps())
                         .foregroundColor(.secondary)
-                    let addr = order.deliveryAddress.text
+                    let addr = order.deliveryAddress.displayText
                     Text(addr.isEmpty ? "Customer location" : addr)
                         .font(.subheadline.bold())
                         .foregroundColor(.white)

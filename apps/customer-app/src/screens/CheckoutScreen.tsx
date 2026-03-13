@@ -21,11 +21,19 @@ import { theme } from '../theme';
 
 interface DeliveryAddress {
   id?: string;
-  label: string;       // Home / Work / Other
+  label: string;
   address_line: string;
   city: string;
   pincode: string;
+  lat?: number | null;
+  lng?: number | null;
 }
+
+const DELIVERY_SLOTS = [
+  { id: 'asap',  label: 'ASAP (~30 min)' },
+  { id: '45min', label: 'In ~45 min' },
+  { id: '60min', label: 'In ~60 min' },
+];
 
 const PAYMENT_METHODS = [
   { id: 'paytm', name: 'Paytm', icon: 'https://cdn-icons-png.flaticon.com/512/825/825454.png' },
@@ -38,6 +46,10 @@ export const CheckoutScreen = () => {
   const [loading, setLoading] = useState(false);
   const [selectedMethod, setSelectedMethod] = useState('paytm');
   const [isCOD, setIsCOD] = useState(false);
+  const [isWallet, setIsWallet] = useState(false);
+  const [walletBalance, setWalletBalance] = useState(0);
+  const [walletLoading, setWalletLoading] = useState(true);
+  const [deliverySlot, setDeliverySlot] = useState('asap');
   const [deliveryAddress, setDeliveryAddress] = useState<DeliveryAddress | null>(null);
   const [couponCode, setCouponCode] = useState('');
   const [couponDiscount, setCouponDiscount] = useState(0);
@@ -54,6 +66,14 @@ export const CheckoutScreen = () => {
       setDeliveryAddress(route.params.selectedAddress);
     }
   }, [route.params?.selectedAddress]);
+
+  // Fetch wallet balance on mount
+  useEffect(() => {
+    api.get('/wallet/balance')
+      .then(({ data }) => setWalletBalance(Number(data.balance ?? 0)))
+      .catch(() => {})
+      .finally(() => setWalletLoading(false));
+  }, []);
 
   const billTotal = total() / 100;
   const deliveryFee = billTotal > 500 ? 0 : 25;
@@ -93,21 +113,37 @@ export const CheckoutScreen = () => {
     setLoading(true);
 
     try {
-      // 1. Create Internal Order on Backend (Status: Pending, Stock Deducted)
+      // 1. Create Internal Order on Backend
+      const paymentMethod = isWallet ? 'wallet' : isCOD ? 'cod' : 'online';
       const orderPayload = {
         storeId: storeId ? Number(storeId) : undefined,
         items: items.map(i => ({ productId: Number(i.productId), quantity: i.quantity })),
         deliveryAddress: deliveryAddress
-          ? { label: deliveryAddress.label, address_line: deliveryAddress.address_line,
-              city: deliveryAddress.city, pincode: deliveryAddress.pincode }
+          ? {
+              label: deliveryAddress.label,
+              address_line: deliveryAddress.address_line,
+              city: deliveryAddress.city,
+              pincode: deliveryAddress.pincode,
+              ...(deliveryAddress.lat != null ? { lat: deliveryAddress.lat } : {}),
+              ...(deliveryAddress.lng != null ? { lng: deliveryAddress.lng } : {}),
+            }
           : { label: 'Home', address_line: 'Not provided', city: '', pincode: '' },
-        paymentMethod: isCOD ? 'cod' : 'online',
+        paymentMethod,
+        deliverySlot,
         couponCode: couponDiscount > 0 ? couponCode.trim().toUpperCase() : undefined,
       };
 
       const { data: orderResponse } = await api.post('/orders', orderPayload);
       const internalOrder = orderResponse.order; // { id, orderNumber, ... }
       
+      // C-1: Wallet payment — server deducts balance, no Razorpay needed
+      if (isWallet) {
+        Alert.alert('Order Placed!', 'Payment deducted from your F&G Wallet.');
+        clearCart();
+        navigation.navigate('OrderConfirmed', { orderId: internalOrder.id, totalAmount: grandTotal, eta: 30 });
+        return;
+      }
+
       if (isCOD) {
         // Handle COD flow (Status would likely be 'Placed' directly in a real COD flow)
         // But for this demo, we'll just navigate
@@ -180,6 +216,30 @@ export const CheckoutScreen = () => {
           <Text style={styles.amountValue}>₹{grandTotal.toLocaleString('en-IN')}</Text>
         </View>
 
+        {/* F&G Wallet */}
+        <Text style={styles.sectionTitle}>F&G Wallet</Text>
+        <TouchableOpacity
+          style={[styles.paymentBox, isWallet && styles.payRowActive]}
+          onPress={() => { setIsWallet(true); setIsCOD(false); }}
+        >
+          <View style={styles.payRow}>
+            <View style={styles.payLeft}>
+              <View style={[styles.codIconBox, { backgroundColor: '#E8F5E9' }]}>
+                <Image source={{ uri: 'https://img.icons8.com/color/96/coins--v1.png' }} style={{ width: 18, height: 18 }} resizeMode="contain" />
+              </View>
+              <View>
+                <Text style={styles.payName}>F&G Wallet</Text>
+                <Text style={{ fontSize: 11, color: '#666' }}>
+                  {walletLoading ? 'Loading…' : `Balance: ₹${(walletBalance / 100).toLocaleString('en-IN')}`}
+                </Text>
+              </View>
+            </View>
+            <View style={[styles.radio, isWallet && styles.radioActive]}>
+              {isWallet && <View style={styles.radioInner} />}
+            </View>
+          </View>
+        </TouchableOpacity>
+
         {/* UPI Options */}
         <Text style={styles.sectionTitle}>UPI Options</Text>
         <View style={styles.paymentBox}>
@@ -190,6 +250,7 @@ export const CheckoutScreen = () => {
               onPress={() => {
                 setSelectedMethod(method.id);
                 setIsCOD(false);
+                setIsWallet(false);
               }}
             >
               <View style={styles.payLeft}>
@@ -205,9 +266,9 @@ export const CheckoutScreen = () => {
 
         {/* Cash on Delivery */}
         <Text style={styles.sectionTitle}>More Payment Options</Text>
-        <TouchableOpacity 
-          style={[styles.paymentBox, isCOD && styles.payRowActive]} 
-          onPress={() => setIsCOD(true)}
+        <TouchableOpacity
+          style={[styles.paymentBox, isCOD && styles.payRowActive]}
+          onPress={() => { setIsCOD(true); setIsWallet(false); }}
         >
           <View style={styles.payRow}>
             <View style={styles.payLeft}>
@@ -224,6 +285,30 @@ export const CheckoutScreen = () => {
 
         {/* Coupon Code */}
         <Text style={styles.sectionTitle}>Have a Coupon?</Text>
+                {/* Delivery Time Slot (C-4) */}
+                <Text style={styles.sectionTitle}>Delivery Time</Text>
+                <View style={[styles.paymentBox, { flexDirection: 'row', gap: 8 }]}>
+                  {DELIVERY_SLOTS.map(slot => (
+                    <TouchableOpacity
+                      key={slot.id}
+                      style={[
+                        { flex: 1, paddingVertical: 10, borderRadius: 10, borderWidth: 1.5,
+                          borderColor: deliverySlot === slot.id ? theme.colors.primary : '#E0E0E0',
+                          backgroundColor: deliverySlot === slot.id ? '#FFF8F0' : '#FFF',
+                          alignItems: 'center' },
+                      ]}
+                      onPress={() => setDeliverySlot(slot.id)}
+                    >
+                      <Text style={{ fontSize: 12, fontWeight: '700',
+                        color: deliverySlot === slot.id ? theme.colors.primary : '#555' }}>
+                        {slot.label}
+                      </Text>
+                    </TouchableOpacity>
+                  ))}
+                </View>
+
+                {/* Coupon Code */}
+                <Text style={styles.sectionTitle}>Have a Coupon?</Text>
         <View style={styles.couponBox}>
           {couponDiscount > 0 ? (
             <View style={styles.couponApplied}>

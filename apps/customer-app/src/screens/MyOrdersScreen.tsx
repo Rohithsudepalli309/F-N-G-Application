@@ -47,6 +47,7 @@ export const MyOrdersScreen = () => {
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   const [filter, setFilter] = useState('All');
+  const [cancellingId, setCancellingId] = useState<number | null>(null);
   const addToCart = useCartStore(s => s.addToCart);
   const addGroceryItem = useGroceryCartStore(s => s.addItem);
   const updateGroceryQty = useGroceryCartStore(s => s.updateQty);
@@ -74,6 +75,31 @@ export const MyOrdersScreen = () => {
       setOrders(Array.isArray(data) ? data : []);
     } catch { setOrders([]); }
     finally { setLoading(false); setRefreshing(false); }
+
+    const handleCancelOrder = (orderId: number) => {
+      Alert.alert(
+        'Cancel Order',
+        'Are you sure you want to cancel this order?',
+        [
+          { text: 'No', style: 'cancel' },
+          {
+            text: 'Yes, Cancel',
+            style: 'destructive',
+            onPress: async () => {
+              try {
+                setCancellingId(orderId);
+                await api.post(`/orders/${orderId}/cancel`, {});
+                await fetchOrders();
+              } catch (e: any) {
+                Alert.alert('Error', e?.response?.data?.error ?? 'Could not cancel order.');
+              } finally {
+                setCancellingId(null);
+              }
+            },
+          },
+        ]
+      );
+    };
   };
 
   useEffect(() => { if (isFocused) fetchOrders(); }, [isFocused]);
@@ -234,7 +260,19 @@ export const MyOrdersScreen = () => {
 
                   {/* Actions */}
                   <View style={s.actions}>
-                    {!isCancelled(order.status) && (
+                    {live && (
+                      <TouchableOpacity
+                        style={s.cancelBtn}
+                        onPress={() => handleCancelOrder(order.id)}
+                        disabled={cancellingId === order.id}
+                      >
+                        {cancellingId === order.id
+                          ? <ActivityIndicator size="small" color="#C62828" />
+                          : <Text style={s.cancelBtnText}>✕ Cancel</Text>
+                        }
+                      </TouchableOpacity>
+                    )}
+                    {!isCancelled(order.status) && !live && (
                       <TouchableOpacity style={s.reorderBtn} onPress={() => handleReorder(order)}>
                         <Text style={s.reorderText}>↩ Reorder</Text>
                       </TouchableOpacity>
@@ -318,6 +356,8 @@ const s = StyleSheet.create({
   itemsList:  { flex: 1, fontSize: 12, color: '#555', fontWeight: '500' },
 
   actions:    { flexDirection: 'row', gap: 10 },
+    cancelBtn:  { paddingHorizontal: 14, paddingVertical: 8, borderRadius: 20, borderWidth: 1.5, borderColor: '#C62828', backgroundColor: '#FFEBEE', alignItems: 'center', justifyContent: 'center', minWidth: 80 },
+    cancelBtnText:{ color: '#C62828', fontSize: 12, fontWeight: '800' },
   reorderBtn: { flex: 1, borderWidth: 1.5, borderColor: theme.colors.primary, borderRadius: 10, paddingVertical: 10, alignItems: 'center' },
   reorderText:{ fontSize: 13, fontWeight: '700', color: theme.colors.primary },
   detailBtn:  { flex: 1, backgroundColor: theme.colors.primary, borderRadius: 10, paddingVertical: 10, alignItems: 'center' },

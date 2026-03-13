@@ -10,14 +10,20 @@ final class SocketService: ObservableObject {
     private var manager: SocketManager?
     private var socket: SocketIOClient?
 
-    /// Called when `order.new_assignment` arrives from server.
+    /// Called when `order.new_assignment` OR `driver:order_assigned` arrives (re-dispatch).
     private var newOrderHandler: ((AssignedOrder) -> Void)?
+    /// Called when re-dispatched order arrives (orderId only – caller should fetchOrders)
+    private var reDispatchHandler: ((Int) -> Void)?
 
     private init() {}
 
     // MARK: - Register handler for incoming order notifications
     func onNewOrderAssignment(_ handler: @escaping (AssignedOrder) -> Void) {
         newOrderHandler = handler
+    }
+
+    func onReDispatch(_ handler: @escaping (Int) -> Void) {
+        reDispatchHandler = handler
     }
 
     // MARK: - Connect (called after driver logs in and goes Online)
@@ -60,6 +66,20 @@ final class SocketService: ObservableObject {
                 return
             }
             DispatchQueue.main.async { self.newOrderHandler?(order) }
+
+                // Re-dispatch: server emits this when a different driver rejects the order
+                socket.on("driver:order_assigned") { [weak self] data, _ in
+                    guard let self = self,
+                          let payload = data.first as? [String: Any] else { return }
+                    // Prefer full order decode; fall back to orderId-only trigger
+                    if let orderDict = payload["order"] as? [String: Any],
+                       let jsonData = try? JSONSerialization.data(withJSONObject: orderDict),
+                       let order = try? JSONDecoder().decode(AssignedOrder.self, from: jsonData) {
+                        DispatchQueue.main.async { self.newOrderHandler?(order) }
+                    } else if let orderId = payload["orderId"] as? Int {
+                        DispatchQueue.main.async { self.reDispatchHandler?(orderId) }
+                    }
+                }
         }
 
         self.manager = manager

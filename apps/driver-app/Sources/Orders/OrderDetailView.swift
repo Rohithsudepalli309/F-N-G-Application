@@ -7,31 +7,39 @@ struct OrderDetailView: View {
     @EnvironmentObject var orderStore: OrderStore
     @ObservedObject private var locationManager = LocationManager.shared
     @State private var region = MKCoordinateRegion(
-        center: CLLocationCoordinate2D(latitude: 12.9716, longitude: 77.5946),
-        span: MKCoordinateSpan(latitudeDelta: 0.02, longitudeDelta: 0.02)
+        center: CLLocationCoordinate2D(latitude: 17.385044, longitude: 78.486671),
+        span: MKCoordinateSpan(latitudeDelta: 0.06, longitudeDelta: 0.06)
     )
+
+    // Delivery coords (may be zero if customer didn't have GPS)
+    private var deliveryCoord: CLLocationCoordinate2D? {
+        guard let lat = order.deliveryAddress.lat, let lng = order.deliveryAddress.lng,
+              lat != 0, lng != 0 else { return nil }
+        return CLLocationCoordinate2D(latitude: lat, longitude: lng)
+    }
 
     var body: some View {
         ScrollView {
             VStack(alignment: .leading, spacing: 20) {
 
                 // ── Map ─────────────────────────────────────────────────────
-                Map(coordinateRegion: $region, showsUserLocation: true)
-                    .frame(height: 240)
-                    .cornerRadius(12)
-                    .onAppear {
-                        region.center = CLLocationCoordinate2D(
-                            latitude: order.deliveryAddress.lat,
-                            longitude: order.deliveryAddress.lng
-                        )
-                    }
+                Map(coordinateRegion: $region, showsUserLocation: true, annotationItems: mapAnnotations) { ann in
+                    MapMarker(coordinate: ann.coord, tint: ann.tint)
+                }
+                .frame(height: 240)
+                .cornerRadius(12)
+                .onAppear { centreMap() }
 
                 // ── Order Info ──────────────────────────────────────────────
                 Group {
-                    infoRow(icon: "number", title: "Order ID", value: String(order.id.prefix(8)))
-                    infoRow(icon: "indianrupeesign.circle", title: "Amount", value: "₹\(order.totalAmount / 100)")
-                    infoRow(icon: "mappin.and.ellipse", title: "Deliver To", value: order.deliveryAddress.text)
-                    infoRow(icon: "clock", title: "Status", value: order.status.rawValue.capitalized)
+                    infoRow(icon: "number",              title: "Order #", value: order.orderNumber)
+                    infoRow(icon: "storefront",          title: "Pick Up",  value: order.storeName)
+                    infoRow(icon: "mappin.and.ellipse",  title: "Deliver To", value: order.deliveryAddress.displayText)
+                    infoRow(icon: "indianrupeesign.circle", title: "Amount",  value: "₹\(order.totalAmount / 100)")
+                    if order.estimatedKm > 0 {
+                        infoRow(icon: "road.lanes",      title: "Distance", value: String(format: "%.1f km", order.estimatedKm))
+                    }
+                    infoRow(icon: "clock",               title: "Status",  value: order.status.rawValue.capitalized)
                 }
                 .padding(.horizontal)
 
@@ -44,15 +52,35 @@ struct OrderDetailView: View {
         .navigationBarTitleDisplayMode(.inline)
     }
 
+    // Build annotation list for the map
+    private var mapAnnotations: [MapPin] {
+        var pins: [MapPin] = []
+        if order.storeLat != 0, order.storeLng != 0 {
+            pins.append(MapPin(id: "store", coord:
+                CLLocationCoordinate2D(latitude: order.storeLat, longitude: order.storeLng), tint: .blue))
+        }
+        if let dc = deliveryCoord {
+            pins.append(MapPin(id: "delivery", coord: dc, tint: .red))
+        }
+        return pins
+    }
+
+    private func centreMap() {
+        if let dc = deliveryCoord {
+            region.center = dc
+        } else if order.storeLat != 0 {
+            region.center = CLLocationCoordinate2D(latitude: order.storeLat, longitude: order.storeLng)
+        }
+    }
+
     @State private var deliveryOTP = ""
     @State private var isAccepting = false
     @State private var isRejecting = false
-
     @State private var isPickingUp = false
 
     @ViewBuilder
     private var actionButtons: some View {
-        let isActive   = orderStore.activeOrder?.id == order.id
+        let isActive      = orderStore.activeOrder?.id == order.id
         let currentStatus = orderStore.activeOrder?.status ?? order.status
 
         if isActive && currentStatus == .outForDelivery {

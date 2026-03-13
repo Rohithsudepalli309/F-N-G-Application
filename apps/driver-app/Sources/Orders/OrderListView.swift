@@ -62,13 +62,17 @@ struct OrderListView: View {
                 IncomingOrderSheet(
                     order: incoming,
                     onAccept: {
-                        Task {
-                            orderStore.dismissIncoming()
-                            await orderStore.acceptOrder(incoming)
+                        .task {
+                            await orderStore.fetchOrders()
+                            // Direct full-order push (initial assignment)
+                            SocketService.shared.onNewOrderAssignment { order in
+                                orderStore.setIncomingOrder(order)
+                            }
+                            // Re-dispatch: another driver rejected; fetch orders to get the new one
+                            SocketService.shared.onReDispatch { _ in
+                                Task { await orderStore.fetchOrders() }
+                            }
                         }
-                    },
-                    onDecline: {
-                        Task { await orderStore.rejectOrder(incoming) }
                     }
                 )
             }

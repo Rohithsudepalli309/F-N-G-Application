@@ -18,7 +18,7 @@ struct ContentView: View {
     var body: some View {
         Group {
             if authStore.isAuthenticated {
-                OrderListView()
+                MainTabView()
                     .environmentObject(authStore)
             } else {
                 SplashAndAuthView()
@@ -26,6 +26,32 @@ struct ContentView: View {
             }
         }
         .animation(.easeInOut, value: authStore.isAuthenticated)
+    }
+}
+
+struct MainTabView: View {
+    @EnvironmentObject var authStore: AuthStore
+
+    var body: some View {
+        TabView {
+            OrderListView()
+                .environmentObject(authStore)
+                .tabItem {
+                    Label("Deliveries", systemImage: "scooter")
+                }
+
+            EarningsView()
+                .tabItem {
+                    Label("Earnings", systemImage: "indianrupeesign.circle.fill")
+                }
+
+            ProfileView()
+                .environmentObject(authStore)
+                .tabItem {
+                    Label("Profile", systemImage: "person.fill")
+                }
+        }
+        .tint(.orange)
     }
 }
 

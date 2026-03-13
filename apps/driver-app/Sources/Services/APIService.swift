@@ -42,6 +42,10 @@ final class APIService {
         try await request(path, method: "POST", body: body)
     }
 
+    func patch<T: Decodable>(_ path: String, body: Encodable) async throws -> T {
+        try await request(path, method: "PATCH", body: body)
+    }
+
     func get<T: Decodable>(_ path: String) async throws -> T {
         try await request(path, method: "GET")
     }

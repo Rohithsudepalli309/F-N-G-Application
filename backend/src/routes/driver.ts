@@ -572,6 +572,17 @@ router.get('/earnings', async (req: AuthRequest, res) => {
     const totalPayout = Math.round(Number(row.total_payout));
     const avgPerDelivery = deliveries > 0 ? Math.round(totalPayout / deliveries) : 0;
 
+    // Recent deliveries list (last 20 in period)
+    const historyRes = await pool.query(
+      `SELECT o.id, o.order_number AS "orderNumber", o.store_name AS "storeName",
+              ROUND(o.total_amount * 0.2) AS payout,
+              o.delivered_at AS "deliveredAt"
+       FROM orders o
+       WHERE o.driver_id = $1 AND o.status = 'delivered' ${dateFilter}
+       ORDER BY o.delivered_at DESC LIMIT 20`,
+      [driverId]
+    );
+
     res.json({
       earnings: {
         period,
@@ -579,10 +590,63 @@ router.get('/earnings', async (req: AuthRequest, res) => {
         deliveries,
         avgPerDelivery,
       },
+      history: historyRes.rows,
     });
   } catch (err) {
     console.error('[driver/earnings] error:', err);
     res.status(500).json({ error: 'Could not fetch earnings.' });
+  }
+});
+
+// ─── GET /driver/profile ─── Driver profile info ─────────────────────────────
+router.get('/profile', async (req: AuthRequest, res) => {
+  try {
+    const result = await pool.query(
+      `SELECT d.id, u.name, u.phone, d.vehicle_type, d.is_available,
+              (SELECT COUNT(*) FROM orders o WHERE o.driver_id=d.id AND o.status='delivered') AS total_deliveries
+       FROM drivers d JOIN users u ON u.id=d.user_id
+       WHERE d.user_id=$1 LIMIT 1`,
+      [req.user!.id]
+    );
+    if (!result.rows[0]) {
+      res.status(404).json({ error: 'Driver profile not found.' });
+      return;
+    }
+    const r = result.rows[0];
+    res.json({
+      id:               r.id,
+      name:             r.name ?? '',
+      phone:            r.phone ?? '',
+      vehicle_type:     r.vehicle_type ?? '',
+      is_available:     r.is_available,
+      total_deliveries: Number(r.total_deliveries),
+    });
+  } catch (err) {
+    console.error('[driver/profile] error:', err);
+    res.status(500).json({ error: 'Could not fetch driver profile.' });
+  }
+});
+
+// ─── PATCH /driver/profile ─── Update name / vehicle type ────────────────────
+router.patch('/profile', async (req: AuthRequest, res) => {
+  const { name, vehicleType } = req.body as { name?: string; vehicleType?: string };
+  const client = await pool.connect();
+  try {
+    await client.query('BEGIN');
+    if (name) {
+      await client.query(`UPDATE users SET name=$1 WHERE id=$2`, [name.trim().slice(0, 100), req.user!.id]);
+    }
+    if (vehicleType) {
+      await client.query(`UPDATE drivers SET vehicle_type=$1 WHERE user_id=$2`, [vehicleType.trim().slice(0, 50), req.user!.id]);
+    }
+    await client.query('COMMIT');
+    res.json({ ok: true });
+  } catch (err) {
+    await client.query('ROLLBACK');
+    console.error('[driver/profile/patch] error:', err);
+    res.status(500).json({ error: 'Could not update profile.' });
+  } finally {
+    client.release();
   }
 });
 
