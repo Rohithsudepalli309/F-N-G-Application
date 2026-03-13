@@ -23,7 +23,7 @@ jobs:
       - name: Initialize CodeQL
         uses: github/codeql-action/init@v3
         with:
-          languages: javascript
+          languages: javascript, swift
 
       - name: Setup Node.js
         uses: actions/setup-node@v4
