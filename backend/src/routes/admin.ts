@@ -187,6 +187,46 @@ router.get('/orders', async (req, res) => {
   }
 });
 
+// ─── GET /admin/waitlist ────────────────────────────────────────────────
+router.get('/waitlist', async (_req, res) => {
+  try {
+    const result = await pool.query(
+      `SELECT id, email, phone, city, pincode, created_at
+       FROM waitlist ORDER BY created_at DESC`
+    );
+    res.json({ waitlist: result.rows });
+  } catch (err) {
+    console.error('[admin/waitlist]', err);
+    res.status(500).json({ error: 'Could not fetch waitlist.' });
+  }
+});
+
+// ─── GET /admin/waitlist/export ─────────────────────────────────────────
+router.get('/waitlist/export', async (_req, res) => {
+  try {
+    const result = await pool.query(
+      `SELECT email, phone, city, pincode, created_at
+       FROM waitlist ORDER BY created_at DESC`
+    );
+
+    const header = 'email,phone,city,pincode,created_at';
+    const rows = result.rows.map((r) => [
+      r.email,
+      r.phone,
+      r.city,
+      r.pincode,
+      new Date(r.created_at).toISOString(),
+    ].map((v) => `"${String(v).replace(/"/g, '""')}"`).join(','));
+
+    res.setHeader('Content-Type', 'text/csv');
+    res.setHeader('Content-Disposition', 'attachment; filename="waitlist.csv"');
+    res.send([header, ...rows].join('\n'));
+  } catch (err) {
+    console.error('[admin/waitlist/export]', err);
+    res.status(500).json({ error: 'Could not export waitlist.' });
+  }
+});
+
 // ─── GET /admin/coupons ───────────────────────────────────────────────────
 router.get('/coupons', async (_req, res) => {
   try {

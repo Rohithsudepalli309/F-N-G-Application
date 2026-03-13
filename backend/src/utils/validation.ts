@@ -13,7 +13,10 @@ export const validate = (schema: z.AnyZodObject) => {
       return next();
     } catch (error) {
       if (error instanceof z.ZodError) {
-        const message = error.errors.map((err) => `${err.path.join('.')}: ${err.message}`).join(', ');
+        const zodError = error as z.ZodError;
+        const message = zodError.errors
+          .map((err: z.ZodIssue) => `${err.path.join('.')}: ${err.message}`)
+          .join(', ');
         return next(new AppError(`Validation failed: ${message}`, 400));
       }
       return next(error);
@@ -42,21 +45,50 @@ export const schemas = {
   orders: {
     create: z.object({
       body: z.object({
-        store_id: z.string().uuid(),
+        storeId: z.number().int().positive().optional(),
         items: z.array(z.object({
-          product_id: z.string().uuid(),
-          quantity: z.number().int().positive(),
+          productId: z.number().int().positive(),
+          quantity: z.number().int().min(1).max(100),
         })).min(1),
-        address_id: z.string().uuid(),
-        payment_method: z.enum(['COD', 'CARD', 'WALLET']),
+        deliveryAddress: z.object({
+          label: z.string().min(1),
+          address_line: z.string().min(1),
+          city: z.string().min(1).optional(),
+          pincode: z.string().min(4).max(10).optional(),
+          lat: z.number().optional(),
+          lng: z.number().optional(),
+        }),
+        paymentMethod: z.enum(['cod', 'online', 'wallet']).optional(),
+        couponCode: z.string().min(3).max(50).optional(),
+        instructions: z.string().max(500).optional(),
       }),
     }),
     statusUpdate: z.object({
       params: z.object({
-        id: z.string().uuid(),
+        id: z.string(),
       }),
       body: z.object({
-        status: z.enum(['ACCEPTED', 'PREPARING', 'READY', 'PICKED_UP', 'DELIVERED', 'CANCELLED']),
+        status: z.enum(['placed', 'confirmed', 'preparing', 'ready', 'assigned', 'pickup', 'out_for_delivery', 'delivered', 'cancelled', 'refunded']),
+      }),
+    }),
+  },
+  payments: {
+    createOrder: z.object({
+      body: z.object({
+        orderId: z.number().int().positive(),
+      }),
+    }),
+    verify: z.object({
+      body: z.object({
+        orderId: z.number().int().positive(),
+        razorpay_order_id: z.string().min(5),
+        razorpay_payment_id: z.string().min(5),
+        razorpay_signature: z.string().min(5),
+      }),
+    }),
+    refund: z.object({
+      body: z.object({
+        orderId: z.number().int().positive(),
       }),
     }),
   },

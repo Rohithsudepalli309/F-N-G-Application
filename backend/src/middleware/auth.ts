@@ -23,10 +23,11 @@ export function requireAuth(req: AuthRequest, res: Response, next: NextFunction)
   }
 }
 
-export function requireRole(roles: string[]) {
+export function requireRole(...roles: Array<string | string[]>) {
+  const roleList = Array.isArray(roles[0]) ? (roles[0] as string[]) : (roles as string[]);
   return (req: AuthRequest, _res: Response, next: NextFunction) => {
-    if (!req.user || !roles.includes(req.user.role)) {
-      return next(new AppError(`Access denied. ${roles.join('/')} required.`, 403));
+    if (!req.user || !roleList.includes(req.user.role)) {
+      return next(new AppError(`Access denied. ${roleList.join('/')} required.`, 403));
     }
     next();
   };

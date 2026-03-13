@@ -1,61 +1,133 @@
 import request from 'supertest';
-import { app } from '../server'; // Assuming app is exported from server.ts
+import jwt from 'jsonwebtoken';
 import pool from '../db';
 import { redis } from '../redis';
 
 describe('Order Lifecycle Integration Test', () => {
+  let app: import('express').Express;
   let customerToken: string;
   let merchantToken: string;
   let driverToken: string;
-  let orderId: string;
+  let orderId: number;
+  let deliveryOtp: string;
+
+  let customerId: number;
+  let merchantId: number;
+  let driverUserId: number;
+  let storeId: number;
+  let productId: number;
 
   beforeAll(async () => {
-    // Setup test users and get tokens
-    // This is a high-level representation of an integration flow
+    process.env.NODE_ENV = 'test';
+    process.env.JWT_SECRET = process.env.JWT_SECRET || 'test_jwt_secret_32_chars_long__';
+
+    ({ app } = await import('../server'));
+
+    const cust = await pool.query(
+      `INSERT INTO users (phone, name, role) VALUES ($1,$2,'customer') RETURNING id`,
+      ['9000000001', 'Test Customer']
+    );
+    customerId = cust.rows[0].id;
+
+    const merch = await pool.query(
+      `INSERT INTO users (phone, name, role) VALUES ($1,$2,'merchant') RETURNING id`,
+      ['9000000002', 'Test Merchant']
+    );
+    merchantId = merch.rows[0].id;
+
+    const store = await pool.query(
+      `INSERT INTO stores (owner_id, name, store_type, lat, lng, is_active, is_verified)
+       VALUES ($1,$2,'restaurant',$3,$4,TRUE,TRUE) RETURNING id`,
+      [merchantId, 'Test Store', 17.385, 78.4867]
+    );
+    storeId = store.rows[0].id;
+
+    const product = await pool.query(
+      `INSERT INTO products (store_id, name, price, stock, is_available)
+       VALUES ($1,$2,$3,$4,TRUE) RETURNING id`,
+      [storeId, 'Test Item', 19900, 100]
+    );
+    productId = product.rows[0].id;
+
+    const driverUser = await pool.query(
+      `INSERT INTO users (phone, name, role) VALUES ($1,$2,'driver') RETURNING id`,
+      ['9000000003', 'Test Driver']
+    );
+    driverUserId = driverUser.rows[0].id;
+
+    await pool.query(
+      `INSERT INTO drivers (user_id, name, phone, is_available, is_active, current_lat, current_lng)
+       VALUES ($1,$2,$3,TRUE,TRUE,$4,$5)`,
+      [driverUserId, 'Test Driver', '9000000003', 17.386, 78.487]
+    );
+
+    customerToken = jwt.sign({ id: customerId, role: 'customer' }, process.env.JWT_SECRET!);
+    merchantToken = jwt.sign({ id: merchantId, role: 'merchant', storeId }, process.env.JWT_SECRET!);
+    driverToken = jwt.sign({ id: driverUserId, role: 'driver' }, process.env.JWT_SECRET!);
   });
 
   afterAll(async () => {
+    await pool.query(`DELETE FROM order_items WHERE order_id = $1`, [orderId]).catch(() => undefined);
+    await pool.query(`DELETE FROM orders WHERE id = $1`, [orderId]).catch(() => undefined);
+    await pool.query(`DELETE FROM products WHERE id = $1`, [productId]).catch(() => undefined);
+    await pool.query(`DELETE FROM stores WHERE id = $1`, [storeId]).catch(() => undefined);
+    await pool.query(`DELETE FROM drivers WHERE user_id = $1`, [driverUserId]).catch(() => undefined);
+    await pool.query(`DELETE FROM users WHERE id IN ($1,$2,$3)`, [customerId, merchantId, driverUserId]).catch(() => undefined);
+
     await pool.end();
     await redis.quit();
   });
 
   it('Flow: Customer places order -> Merchant accepts -> Driver delivers', async () => {
-    // 1. Customer Places Order
     const orderRes = await request(app)
       .post('/api/v1/orders')
       .set('Authorization', `Bearer ${customerToken}`)
       .send({
-        store_id: 'some-uuid',
-        items: [{ product_id: 'prod-uuid', quantity: 2 }],
-        address_id: 'addr-uuid',
-        payment_method: 'COD'
+        storeId,
+        items: [{ productId, quantity: 2 }],
+        deliveryAddress: {
+          label: 'Home',
+          address_line: 'Test Street 123',
+          city: 'Hyderabad',
+          pincode: '500001',
+          lat: 17.385,
+          lng: 78.4867,
+        },
+        paymentMethod: 'cod',
       });
-    
+
     expect(orderRes.status).toBe(201);
     orderId = orderRes.body.order.id;
+    deliveryOtp = orderRes.body.order.deliveryOtp;
 
-    // 2. Merchant Views & Accepts Order
     const acceptRes = await request(app)
       .patch(`/api/v1/merchant/orders/${orderId}/status`)
       .set('Authorization', `Bearer ${merchantToken}`)
-      .send({ status: 'PREPARING' });
-    
+      .send({ action: 'accept' });
     expect(acceptRes.status).toBe(200);
 
-    // 3. Driver Picks Up Order
-    const pickupRes = await request(app)
-      .patch(`/api/v1/driver/orders/${orderId}/status`)
+    const readyRes = await request(app)
+      .patch(`/api/v1/merchant/orders/${orderId}/status`)
+      .set('Authorization', `Bearer ${merchantToken}`)
+      .send({ action: 'ready' });
+    expect(readyRes.status).toBe(200);
+
+    const acceptDriver = await request(app)
+      .post('/api/v1/driver/accept')
       .set('Authorization', `Bearer ${driverToken}`)
-      .send({ status: 'PICKED_UP' });
-    
+      .send({ orderId });
+    expect(acceptDriver.status).toBe(200);
+
+    const pickupRes = await request(app)
+      .post('/api/v1/driver/pickup')
+      .set('Authorization', `Bearer ${driverToken}`)
+      .send({ orderId });
     expect(pickupRes.status).toBe(200);
 
-    // 4. Final Delivery Update
     const deliveryRes = await request(app)
-      .patch(`/api/v1/driver/orders/${orderId}/status`)
+      .post('/api/v1/driver/complete')
       .set('Authorization', `Bearer ${driverToken}`)
-      .send({ status: 'DELIVERED', otp: '123456' });
-    
+      .send({ orderId, otp: deliveryOtp });
     expect(deliveryRes.status).toBe(200);
   });
 });

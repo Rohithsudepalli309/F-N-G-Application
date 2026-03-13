@@ -16,7 +16,7 @@ dotenv.config();
 
 // LOW-1: Validate critical secrets at startup before touching any routes
 const jwtSecret = process.env.JWT_SECRET ?? '';
-if (jwtSecret.length < 32) {
+if (process.env.NODE_ENV !== 'test' && jwtSecret.length < 32) {
   throw new Error(
     'JWT_SECRET must be at least 32 characters. Set a strong secret in your .env file.'
   );
@@ -43,8 +43,8 @@ import webhooksRouter       from './routes/webhooks';
 import waitlistRouter       from './routes/waitlist';
 import { errorHandler }     from './middleware/errorHandler';
 
-const app = express();
-const server = http.createServer(app);
+export const app = express();
+export const server = http.createServer(app);
 
 // ── Globals ────────────────────────────────────────────────────────────────
 export const io = initSocket(server);
@@ -70,6 +70,9 @@ app.use(cors({
   origin: corsOrigin,
   credentials: true,
 }));
+
+// Razorpay requires raw body for webhook signature verification
+app.use('/api/v1/webhooks/razorpay', express.raw({ type: 'application/json' }));
 
 app.use(express.json({ limit: '2mb' }));
 app.use(express.urlencoded({ extended: true }));
@@ -150,10 +153,12 @@ app.use((_req, res) => {
 app.use(errorHandler);
 
 // ── Start ─────────────────────────────────────────────────────────────────
-const PORT = Number(process.env.PORT ?? 3002);
-server.listen(PORT, () => {
-  logger.info(`[F&G Backend] Running on port ${PORT}`, { port: PORT, env: process.env.NODE_ENV ?? 'development' });
-  startOrderEventWorker().catch((err) =>
-    logger.error('Order event worker failed to start', { err })
-  );
-});
+if (process.env.NODE_ENV !== 'test') {
+  const PORT = Number(process.env.PORT ?? 3002);
+  server.listen(PORT, () => {
+    logger.info(`[F&G Backend] Running on port ${PORT}`, { port: PORT, env: process.env.NODE_ENV ?? 'development' });
+    startOrderEventWorker().catch((err) =>
+      logger.error('Order event worker failed to start', { err })
+    );
+  });
+}

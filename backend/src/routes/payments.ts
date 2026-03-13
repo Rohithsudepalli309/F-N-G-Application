@@ -6,6 +6,7 @@ import { requireAuth, AuthRequest } from '../middleware/auth';
 import { io } from '../server';
 import { createBreaker } from '../services/circuitBreaker';
 import { publishOrderEvent } from '../services/eventBus';
+import { validate, schemas } from '../utils/validation';
 
 const router = Router();
 router.use(requireAuth);
@@ -33,7 +34,7 @@ const rzpCreateBreaker = createBreaker(
 );
 
 // ── POST /payments/orders ─── Create a Razorpay order ──────────────────────
-router.post('/orders', async (req: AuthRequest, res) => {
+router.post('/orders', validate(schemas.payments.createOrder), async (req: AuthRequest, res) => {
   const { orderId } = req.body as { orderId?: number };
 
   if (!orderId) {
@@ -44,7 +45,8 @@ router.post('/orders', async (req: AuthRequest, res) => {
   // SECURITY: Always use the server-side total — never trust client-supplied amount.
   // A malicious client could send amount=100 (₹1) for a ₹5,000 order.
   const orderRes = await pool.query(
-    `SELECT id, total_amount, payment_status FROM orders WHERE id=$1 AND customer_id=$2`,
+    `SELECT id, total_amount, payment_status, payment_method
+     FROM orders WHERE id=$1 AND customer_id=$2`,
     [orderId, req.user!.id]
   );
   if (orderRes.rows.length === 0) {
@@ -54,6 +56,10 @@ router.post('/orders', async (req: AuthRequest, res) => {
   const order = orderRes.rows[0];
   if (order.payment_status === 'paid') {
     res.status(400).json({ error: 'Order is already paid.' });
+    return;
+  }
+  if (order.payment_method !== 'online') {
+    res.status(400).json({ error: 'Only online payments require a Razorpay order.' });
     return;
   }
   const serverAmount: number = order.total_amount;
@@ -93,7 +99,7 @@ router.post('/orders', async (req: AuthRequest, res) => {
 });
 
 // ── POST /payments/verify ─── Verify Razorpay payment signature ────────────
-router.post('/verify', async (req: AuthRequest, res) => {
+router.post('/verify', validate(schemas.payments.verify), async (req: AuthRequest, res) => {
   const {
     razorpay_order_id,
     razorpay_payment_id,
@@ -128,6 +134,30 @@ router.post('/verify', async (req: AuthRequest, res) => {
     return;
   }
 
+  // Verify order ownership and Razorpay order ID
+  const orderRes = await pool.query(
+    `SELECT id, razorpay_order_id, payment_method, payment_status
+     FROM orders WHERE id=$1 AND customer_id=$2`,
+    [orderId, req.user!.id]
+  );
+  if (orderRes.rows.length === 0) {
+    res.status(404).json({ error: 'Order not found.' });
+    return;
+  }
+  const orderRow = orderRes.rows[0];
+  if (orderRow.payment_method !== 'online') {
+    res.status(400).json({ error: 'Payment verification is only valid for online orders.' });
+    return;
+  }
+  if (orderRow.payment_status === 'paid') {
+    res.status(200).json({ success: true, status: 'confirmed' });
+    return;
+  }
+  if (orderRow.razorpay_order_id && orderRow.razorpay_order_id !== razorpay_order_id) {
+    res.status(400).json({ error: 'Payment order mismatch. Please retry.' });
+    return;
+  }
+
   // Update order to paid
   const result = await pool.query(
     `UPDATE orders
@@ -135,7 +165,7 @@ router.post('/verify', async (req: AuthRequest, res) => {
          razorpay_payment_id=$1,
          status='confirmed',
          confirmed_at=NOW()
-     WHERE id=$2 AND customer_id=$3
+     WHERE id=$2 AND customer_id=$3 AND payment_status='pending'
      RETURNING *`,
     [razorpay_payment_id, orderId, req.user!.id]
   );
@@ -174,52 +204,8 @@ router.post('/verify', async (req: AuthRequest, res) => {
 // ── POST /payments/webhook ─── Razorpay webhook (server-side fallback) ──────
 // SECURITY: Signature verification is MANDATORY. If RAZORPAY_WEBHOOK_SECRET is
 // not configured the endpoint is disabled (500) to prevent unsigned forgeries.
-router.post('/webhook', async (req, res) => {
-  const secret = process.env.RAZORPAY_WEBHOOK_SECRET;
-  if (!secret) {
-    // Fail closed: do not process any webhook if the secret is missing.
-    res.status(500).json({ error: 'Webhook not configured.' });
-    return;
-  }
-
-  const signature = req.headers['x-razorpay-signature'] as string | undefined;
-  if (!signature) {
-    res.status(400).json({ error: 'Missing X-Razorpay-Signature header.' });
-    return;
-  }
-
-  const digest = crypto
-    .createHmac('sha256', secret)
-    .update(JSON.stringify(req.body))
-    .digest('hex');
-  // Constant-time comparison to prevent timing attacks
-  if (!crypto.timingSafeEqual(Buffer.from(digest), Buffer.from(signature))) {
-    res.status(400).json({ error: 'Invalid webhook signature.' });
-    return;
-  }
-
-  const event   = req.body as { event?: string; payload?: { payment?: { entity?: { id?: string; order_id?: string; notes?: { fng_order_id?: string } } } } };
-  const payment = event.payload?.payment?.entity;
-
-  if (event.event === 'payment.captured' && payment) {
-    const orderId  = payment.notes?.fng_order_id ? parseInt(payment.notes.fng_order_id, 10) : null;
-    const paymentId = payment.id;
-    if (orderId && paymentId) {
-      await pool.query(
-        `UPDATE orders
-         SET payment_status='paid', razorpay_payment_id=$1,
-             status='confirmed', confirmed_at=NOW()
-         WHERE id=$2 AND payment_status='pending'`,
-        [paymentId, orderId]
-      ).catch((e) => console.error('[Webhook] Update failed:', e));
-    }
-  }
-
-  res.json({ received: true });
-});
-
 // ── POST /payments/refund ─── Initiate Razorpay refund for a paid cancelled order ─
-router.post('/refund', async (req: AuthRequest, res) => {
+router.post('/refund', validate(schemas.payments.refund), async (req: AuthRequest, res) => {
   const { orderId } = req.body as { orderId?: number };
   if (!orderId) {
     res.status(400).json({ error: 'orderId is required.' });

@@ -6,28 +6,45 @@ import { io } from '../server';
 
 const router = Router();
 
-// RAZORPAY_WEBHOOK_SECRET should be in .env
-const WEBHOOK_SECRET = process.env.RAZORPAY_WEBHOOK_SECRET || 'fng_test_secret';
-
 router.post('/razorpay', async (req, res, next) => {
+  const secret = process.env.RAZORPAY_WEBHOOK_SECRET;
+  if (!secret) {
+    return next(new AppError('Webhook secret not configured.', 500));
+  }
+
   const signature = req.headers['x-razorpay-signature'];
-  
-  // Verify signature
+  if (!signature || typeof signature !== 'string') {
+    return next(new AppError('Missing or invalid webhook signature.', 400));
+  }
+
+  const rawBody = Buffer.isBuffer(req.body)
+    ? req.body
+    : Buffer.from(JSON.stringify(req.body));
+
   const expectedSignature = crypto
-    .createHmac('sha256', WEBHOOK_SECRET)
-    .update(JSON.stringify(req.body))
+    .createHmac('sha256', secret)
+    .update(rawBody)
     .digest('hex');
 
-  if (signature !== expectedSignature) {
+  if (!crypto.timingSafeEqual(Buffer.from(expectedSignature), Buffer.from(signature))) {
     return next(new AppError('Invalid webhook signature', 400));
   }
 
-  const { event, payload } = req.body;
+  let payloadBody: any;
+  try {
+    payloadBody = Buffer.isBuffer(req.body)
+      ? JSON.parse(req.body.toString('utf8'))
+      : req.body;
+  } catch {
+    return next(new AppError('Invalid webhook payload.', 400));
+  }
+
+  const { event, payload } = payloadBody;
 
   try {
     if (event === 'payment.captured') {
       const payment = payload.payment.entity;
-      const orderId = payment.notes.order_id; // Custom note passed during order creation
+      const orderId = payment.notes?.fng_order_id; // Custom note passed during order creation
 
       // Update Order Status to PAID/CONFIRMED
       await pool.query(
@@ -46,8 +63,8 @@ router.post('/razorpay', async (req, res, next) => {
     }
 
     if (event === 'payment.failed') {
-       // Log failure for recovery
-       console.error(`❌ Payment failed: ${payload.payment.entity.id}`);
+      // Log failure for recovery
+      console.error(`❌ Payment failed: ${payload.payment.entity.id}`);
     }
 
     res.json({ status: 'ok' });
