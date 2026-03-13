@@ -143,11 +143,34 @@ export function initSocket(httpServer: HttpServer): SocketServer {
       if (role !== 'driver' || typeof payload?.lat !== 'number') return;
       try {
         await redis.geoadd(DRIVER_GEO_KEY, payload.lng, payload.lat, String(userId));
+        
+        // CRITICAL-4 Check KYC before allowing "Available" status
+        const kycRes = await pool.query(`SELECT kyc_status FROM drivers WHERE user_id=$1`, [userId]);
+        const kycStatus = kycRes.rows[0]?.kyc_status ?? 'not_started';
+        
+        if (kycStatus !== 'verified') {
+          socket.emit('driver:available_ack', { 
+            ok: false, 
+            error: 'KYC_REQUIRED', 
+            message: 'Your documents must be verified before you can go online.' 
+          });
+          return;
+        }
+
         await pool.query(
           `UPDATE drivers SET is_available=TRUE, current_lat=$1, current_lng=$2 WHERE user_id=$3`,
           [payload.lat, payload.lng, userId]
         );
         socket.emit('driver:available_ack', { ok: true });
+      } catch (err) {
+        console.error('[Socket/driver:available]', err);
+      }
+    });
+
+    // CRITICAL-4: Socket Heartbeat for reconnection
+    socket.on('heartbeat', () => {
+      socket.emit('heartbeat:ack', { serverTime: Date.now() });
+    });
       } catch {/* non-critical */}
     });
 

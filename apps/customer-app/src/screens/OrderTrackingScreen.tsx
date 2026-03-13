@@ -43,6 +43,7 @@ export const OrderTrackingScreen = () => {
   const [status, setStatus] = useState<OrderStatus>('placed');
   const [driverLocation, setDriverLocation] = useState<LocationPayload | null>(null);
   const [destination, setDestination] = useState<{ lat: number; lng: number } | null>(null);
+  const [deliveryOtp, setDeliveryOtp] = useState<string | null>(null);
   const [etaMinutes, setEtaMinutes] = useState<number | null>(null);
   const [completed, setCompleted] = useState(false);
   const [loading, setLoading] = useState(false);
@@ -68,6 +69,7 @@ export const OrderTrackingScreen = () => {
       if (!order) return;
 
       setStatus(order.status);
+      if (order.delivery_otp) setDeliveryOtp(order.delivery_otp);
 
       const dest = order.delivery_address;
       if (dest && typeof dest.lat === 'number' && typeof dest.lng === 'number') {
@@ -151,8 +153,19 @@ export const OrderTrackingScreen = () => {
 
       {/* ── Status Card ──────────────────────────────────────────────────── */}
       <View style={styles.card}>
-        <Text style={styles.orderId}>Order #{orderId.slice(0, 8)}</Text>
-        <Text style={styles.statusLabel}>{STATUS_LABELS[status]}</Text>
+        <View style={styles.row}>
+          <View>
+            <Text style={styles.orderId}>Order #{orderId.slice(0, 8)}</Text>
+            <Text style={styles.statusLabel}>{STATUS_LABELS[status]}</Text>
+          </View>
+          {deliveryOtp && !completed && (
+            <View style={styles.otpBox}>
+              <Text style={styles.otpLabel}>DELIVERY OTP</Text>
+              <Text style={styles.otpValue}>{deliveryOtp}</Text>
+            </View>
+          )}
+        </View>
+
         {etaMinutes != null && !completed && (
           <Text style={styles.eta}>ETA: {etaMinutes} min</Text>
         )}
@@ -182,10 +195,35 @@ const styles = StyleSheet.create({
     padding: theme.spacing.l,
     ...theme.shadows.card,
   },
+  row: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: theme.spacing.m,
+  },
+  otpBox: {
+    backgroundColor: theme.colors.primary + '15',
+    padding: theme.spacing.s,
+    borderRadius: theme.borderRadius.s,
+    alignItems: 'center',
+    borderWidth: 1,
+    borderColor: theme.colors.primary,
+  },
+  otpLabel: {
+    fontSize: 8,
+    fontFamily: theme.typography.fontFamily.bold,
+    color: theme.colors.primary,
+    letterSpacing: 1,
+  },
+  otpValue: {
+    fontSize: 18,
+    fontFamily: theme.typography.fontFamily.bold,
+    color: theme.colors.text.primary,
+    letterSpacing: 2,
+  },
   orderId: {
     fontSize: theme.typography.size.s,
     color: theme.colors.text.secondary,
-    marginBottom: theme.spacing.xs,
   },
   statusLabel: {
     fontSize: theme.typography.size.xl,

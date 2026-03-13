@@ -46,9 +46,14 @@ final class SocketService: ObservableObject {
 
         socket.on(clientEvent: .connect) { [weak self] _, _ in
             DispatchQueue.main.async { self?.isConnected = true }
+            self?.startHeartbeat()
         }
         socket.on(clientEvent: .disconnect) { [weak self] _, _ in
             DispatchQueue.main.async { self?.isConnected = false }
+            self?.stopHeartbeat()
+        }
+        socket.on("heartbeat:ack") { data, _ in
+            print("[Socket] Heartbeat ACK received at \(Date())")
         }
         socket.on("error") { data, _ in
             print("[Socket] Error: \(data)")
@@ -87,6 +92,21 @@ final class SocketService: ObservableObject {
         socket.connect()
         
         print("[SocketService] Connecting to \(serverURLString)...")
+    }
+
+    // MARK: - CRITICAL-4: Heartbeat Logic
+    private var heartbeatTimer: Timer?
+    
+    private func startHeartbeat() {
+        stopHeartbeat()
+        heartbeatTimer = Timer.scheduledTimer(withTimeInterval: 25.0, repeats: true) { [weak self] _ in
+            self?.socket?.emit("heartbeat")
+        }
+    }
+    
+    private func stopHeartbeat() {
+        heartbeatTimer?.invalidate()
+        heartbeatTimer = nil
     }
 
     // MARK: - Emit Location (DRIVER-ONLY, no REST fallback)

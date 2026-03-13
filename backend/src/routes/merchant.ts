@@ -111,10 +111,12 @@ router.patch('/profile', async (req: AuthRequest, res) => {
   const {
     storeName, storeType, imageUrl, bannerUrl,
     deliveryTimeMin, cuisineTags, phone, ownerName, businessHours,
+    estPrepTimeMin, isPaused,
   } = req.body as {
     storeName?: string; storeType?: string; imageUrl?: string; bannerUrl?: string;
     deliveryTimeMin?: number; cuisineTags?: string[]; phone?: string; ownerName?: string;
     businessHours?: { open?: string; close?: string; closedDays?: string[] };
+    estPrepTimeMin?: number; isPaused?: boolean;
   };
 
   const result = await pool.query(
@@ -127,12 +129,14 @@ router.patch('/profile', async (req: AuthRequest, res) => {
        cuisine_tags     = COALESCE($6, cuisine_tags),
        phone            = COALESCE($7, phone),
        owner_name       = COALESCE($8, owner_name),
-       business_hours   = COALESCE($9, business_hours)
-     WHERE id=$10 RETURNING *`,
+       business_hours   = COALESCE($9, business_hours),
+       est_prep_time_min = COALESCE($10, est_prep_time_min),
+       is_paused        = COALESCE($11, is_paused)
+     WHERE id=$12 RETURNING *`,
     [
       storeName ?? null, storeType ?? null, imageUrl ?? null, bannerUrl ?? null,
       deliveryTimeMin ?? null, cuisineTags ?? null, phone ?? null, ownerName ?? null,
-      businessHours ?? null, storeId,
+      businessHours ?? null, estPrepTimeMin ?? null, isPaused ?? null, storeId,
     ]
   );
   res.json({ store: result.rows[0] });

@@ -7,6 +7,9 @@ interface Driver {
   name: string;
   phone: string;
   isOnline: boolean;
+  kycStatus: 'not_started' | 'pending' | 'verified' | 'rejected';
+  kycDocumentUrl?: string;
+  kycLicenseNumber?: string;
   deliveryStatus: string | null;
   activeOrderId: string | null;
   lastLat: number | null;
@@ -17,6 +20,7 @@ export const FleetManagement = () => {
   const [fleet, setFleet] = useState<Driver[]>([]);
   const [loading, setLoading] = useState(true);
   const [showForm, setShowForm] = useState(false);
+  const [selectedDriver, setSelectedDriver] = useState<Driver | null>(null);
   const [formName, setFormName] = useState('');
   const [formPhone, setFormPhone] = useState('');
   const [formPassword, setFormPassword] = useState('');
@@ -35,6 +39,17 @@ export const FleetManagement = () => {
   };
 
   useEffect(() => { fetchFleet(); }, []);
+
+  const handleKycUpdate = async (driverId: string, status: 'verified' | 'rejected', reason?: string) => {
+    try {
+      await api.patch(`/admin/drivers/${driverId}/kyc`, { status, reason });
+      fetchFleet();
+      setSelectedDriver(null);
+    } catch (err) {
+      console.error('Failed to update KYC:', err);
+      alert('Failed to update KYC status');
+    }
+  };
 
   const handleRegister = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -131,10 +146,70 @@ export const FleetManagement = () => {
                   disabled={submitting}
                   className="flex-1 py-2 rounded-lg bg-emerald-600 text-white text-sm font-medium hover:bg-emerald-700 disabled:opacity-60 transition-colors"
                 >
-                  {submitting ? 'Registering…' : 'Register Driver'}
+                  {submitting ? 'Registering...' : 'Register Driver'}
                 </button>
               </div>
             </form>
+          </div>
+        </div>
+      )}
+
+      {selectedDriver && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4">
+          <div className="bg-white rounded-xl shadow-xl w-full max-w-2xl overflow-hidden">
+            <div className="flex items-center justify-between p-6 border-b border-slate-100">
+              <h3 className="text-xl font-bold text-slate-800">Review Driver KYC: {selectedDriver.name}</h3>
+              <button onClick={() => setSelectedDriver(null)} className="text-slate-400 hover:text-slate-600">
+                <X size={24} />
+              </button>
+            </div>
+            <div className="p-6 grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div className="space-y-4">
+                <div className="aspect-video bg-slate-100 rounded-lg overflow-hidden border border-slate-200 relative group">
+                  {selectedDriver.kycDocumentUrl ? (
+                    <img src={selectedDriver.kycDocumentUrl} alt="KYC Document" className="w-full h-full object-contain" />
+                  ) : (
+                    <div className="w-full h-full flex flex-col items-center justify-center text-slate-400 gap-2">
+                      <Shield size={32} />
+                      <p className="text-sm">No document uploaded</p>
+                    </div>
+                  )}
+                </div>
+                <div className="p-4 bg-slate-50 rounded-lg">
+                  <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1">License Number</p>
+                  <p className="font-mono text-slate-700 text-sm">{selectedDriver.kycLicenseNumber || 'Not provided'}</p>
+                </div>
+              </div>
+              <div className="flex flex-col justify-between">
+                <div>
+                  <h4 className="font-bold text-slate-800 mb-2">Decision Required</h4>
+                  <p className="text-sm text-slate-500 mb-6 leading-relaxed">
+                    Verify the license number matches the image and check for expiry dates. 
+                    Approving will allow this driver to accept orders.
+                  </p>
+                  <div className="space-y-3">
+                    <button
+                      onClick={() => handleKycUpdate(selectedDriver.id, 'verified')}
+                      className="w-full bg-emerald-600 text-white py-3 rounded-xl font-bold hover:bg-emerald-700 transition-colors flex items-center justify-center gap-2 shadow-sm"
+                    >
+                      <Shield size={18} /> Approve & Verify
+                    </button>
+                    <button
+                      onClick={() => {
+                        const reason = prompt('Enter rejection reason:');
+                        if (reason) handleKycUpdate(selectedDriver.id, 'rejected', reason);
+                      }}
+                      className="w-full bg-white text-rose-600 border border-rose-200 py-3 rounded-xl font-bold hover:bg-rose-50 transition-colors"
+                    >
+                      Reject Documentation
+                    </button>
+                  </div>
+                </div>
+                <p className="text-[10px] text-slate-400 text-center mt-6 italic">
+                  Driver will be notified of the decision via push notification.
+                </p>
+              </div>
+            </div>
           </div>
         </div>
       )}
@@ -163,10 +238,19 @@ export const FleetManagement = () => {
                       </div>
                     </div>
                   </div>
-                  <div className={`px-2 py-1 rounded text-[10px] font-bold uppercase tracking-wider ${
-                    driver.isOnline ? 'bg-emerald-50 text-emerald-600' : 'bg-slate-50 text-slate-400'
-                  }`}>
-                    {driver.isOnline ? 'Online' : 'Offline'}
+                  <div className="flex flex-col items-end gap-1.5">
+                    <div className={`px-2 py-1 rounded text-[10px] font-bold uppercase tracking-wider ${
+                      driver.isOnline ? 'bg-emerald-50 text-emerald-600' : 'bg-slate-50 text-slate-400'
+                    }`}>
+                      {driver.isOnline ? 'Online' : 'Offline'}
+                    </div>
+                    <div className={`px-2 py-0.5 rounded-full text-[9px] font-black uppercase ring-1 ${
+                      driver.kycStatus === 'verified' ? 'bg-blue-50 text-blue-600 ring-blue-100' : 
+                      driver.kycStatus === 'pending' ? 'bg-orange-50 text-orange-600 ring-orange-100 animate-pulse' : 
+                      'bg-slate-50 text-slate-400 ring-slate-100'
+                    }`}>
+                      KYC: {driver.kycStatus}
+                    </div>
                   </div>
                 </div>
               </div>
@@ -208,9 +292,17 @@ export const FleetManagement = () => {
                   </div>
                 )}
 
-                <button className="w-full py-2 bg-slate-50 text-slate-600 rounded-lg text-sm font-medium hover:bg-slate-100 transition-colors border border-slate-100">
-                  View Full Tracking
-                </button>
+                <div className="grid grid-cols-2 gap-2">
+                  <button 
+                    onClick={() => setSelectedDriver(driver)}
+                    className="py-2 bg-indigo-50 text-indigo-600 rounded-lg text-sm font-semibold hover:bg-indigo-100 transition-colors border border-indigo-100 flex items-center justify-center gap-1.5"
+                  >
+                    <Shield size={14} /> KYC Review
+                  </button>
+                  <button className="py-2 bg-slate-50 text-slate-600 rounded-lg text-sm font-medium hover:bg-slate-100 transition-colors border border-slate-100">
+                    Full Tracking
+                  </button>
+                </div>
               </div>
             </div>
           ))}

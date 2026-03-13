@@ -5,6 +5,7 @@ import { io } from '../server';
 import { publishOrderEvent } from '../services/eventBus';
 import { getSurgeMultiplier } from '../services/surge';
 import { isEnabled } from '../services/featureFlags';
+import { earnPoints, redeemPoints } from '../services/loyalty';
 import { redis, DRIVER_GEO_KEY } from '../redis';
 
 const router = Router();
@@ -180,26 +181,35 @@ router.post('/', async (req: AuthRequest, res) => {
     const orderNumber = generateOrderNumber();
     const deliveryOtp = generateDeliveryOtp();
 
+    // CRITICAL-3: Tax Calculation (Example: 5% GST for Food/Grocery)
+    const taxRate = 0.05; 
+    const taxAmount = Math.round(subtotal * taxRate);
+    const finalTotal = totalAmount + taxAmount;
+
     // Insert order
     const orderRes = await client.query(
       `INSERT INTO orders
          (order_number, customer_id, store_id, store_name,
           subtotal, delivery_fee, handling_fee, discount_amount, total_amount,
           coupon_id, coupon_code, delivery_address, payment_method, payment_status, instructions,
-          metadata)
-       VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16)
+          delivery_otp, metadata)
+       VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16,$17)
        RETURNING *`,
       [
         orderNumber, req.user!.id, resolvedStoreId, storeName,
-        subtotal, deliveryFee, handlingFee, discountAmount, totalAmount,
+        subtotal, deliveryFee, handlingFee, discountAmount, finalTotal,
         couponId, couponCode?.toUpperCase() ?? null,
         JSON.stringify(deliveryAddress),
         paymentMethod,
         paymentMethod === 'cod' ? 'pending' : 'pending',
         instructions ?? null,
+        deliveryOtp,
         JSON.stringify({
-          delivery_otp: deliveryOtp,
-          ...(idempotencyKey ? { idempotency_key: idempotencyKey } : {}),
+          tax_amount: taxAmount,
+          tax_rate: taxRate,
+          idempotency_key: idempotencyKey,
+          platform_commission_rate: 0.15, // 15%
+          driver_payout_rate: 0.20,      // 20%
         }),
       ]
     );
@@ -242,6 +252,10 @@ router.post('/', async (req: AuthRequest, res) => {
       }),
       requestId:  req.requestId ?? '',
     });
+
+    // Phase 3: Earn Loyalty Points (₹100 = 1 point)
+    earnPoints(req.user!.id, order.id, Math.floor(finalTotal / 100))
+      .catch(err => console.error('[loyalty/earn]', err));
 
     res.status(201).json({
       order: {

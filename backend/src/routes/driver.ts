@@ -5,6 +5,7 @@ import { io } from '../server';
 import { sendPushToUser } from '../services/fcm';
 import { notifyUser } from '../services/notify';
 import { redis, DRIVER_GEO_KEY } from '../redis';
+import { getRoadDistance } from '../services/routing';
 
 // Haversine great-circle distance (km)
 function haversineKm(lat1: number, lng1: number, lat2: number, lng2: number): number {
@@ -17,11 +18,35 @@ function haversineKm(lat1: number, lng1: number, lat2: number, lng2: number): nu
   return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
 }
 
-const router = Router();
-router.use(requireAuth);
-router.use(requireRole('driver'));
+// ─── POST /driver/kyc ─── Submit KYC documents ────────────────────────────
+router.post('/kyc', async (req: AuthRequest, res) => {
+  const { documentUrl, licenseNumber } = req.body as { documentUrl: string, licenseNumber: string };
+  if (!documentUrl || !licenseNumber) {
+    res.status(400).json({ error: 'documentUrl and licenseNumber are required.' });
+    return;
+  }
+  try {
+    const result = await pool.query(
+      `UPDATE drivers 
+       SET kyc_document_url = $1, 
+           kyc_license_number = $2, 
+           kyc_status = 'pending',
+           kyc_submitted_at = NOW()
+       WHERE user_id = $3
+       RETURNING id, kyc_status`,
+      [documentUrl, licenseNumber, req.user!.id]
+    );
+    if (result.rows.length === 0) {
+      res.status(404).json({ error: 'Driver profile not found.' });
+      return;
+    }
+    res.json({ success: true, status: result.rows[0].kyc_status });
+  } catch (err) {
+    console.error('[driver/kyc] error:', err);
+    res.status(500).json({ error: 'Failed to submit KYC.' });
+  }
+});
 
-// ─── GET /driver/orders ─── Orders assigned / available to this driver ──────
 router.get('/orders', async (req: AuthRequest, res) => {
   try {
     const driverRes = await pool.query(
@@ -63,31 +88,37 @@ router.get('/orders', async (req: AuthRequest, res) => {
       [driverId]
     );
 
-    // Return camelCase to match AvailableOrder / ActiveOrder store interfaces
-    const orders = result.rows.map((r) => ({
-      id:              r.id,
-      orderNumber:     r.order_number ?? '',
-      storeName:       r.store_name ?? '',
-      storeAddress:    r.store_address ?? '',
-      storeLat:        r.store_lat ? Number(r.store_lat) : 0,
-      storeLng:        r.store_lng ? Number(r.store_lng) : 0,
-      deliveryAddress: r.delivery_address ?? '',
-      deliveryLat:     r.delivery_lat ? Number(r.delivery_lat) : 0,
-      deliveryLng:     r.delivery_lng ? Number(r.delivery_lng) : 0,
-      totalAmount:     r.total_amount,
-      itemCount:       Number(r.items_count),
-      estimatedKm: (() => {
-        const sLat = r.store_lat ? Number(r.store_lat) : 0;
-        const sLng = r.store_lng ? Number(r.store_lng) : 0;
-        const dLat = r.delivery_lat ? Number(r.delivery_lat) : 0;
-        const dLng = r.delivery_lng ? Number(r.delivery_lng) : 0;
-        return (sLat && sLng && dLat && dLng) ? haversineKm(sLat, sLng, dLat, dLng) : 0;
-      })(),
-      driverPayout:    Math.round(r.total_amount * 0.2),
-      status:          r.status,
-      customerName:    r.customer_name ?? '',
-      customerPhone:   r.customer_phone ?? '',
-      deliveryOtp:     r.delivery_otp ?? '',
+    const orders = await Promise.all(result.rows.map(async (r) => {
+      const sLat = r.store_lat ? Number(r.store_lat) : 0;
+      const sLng = r.store_lng ? Number(r.store_lng) : 0;
+      const dLat = r.delivery_lat ? Number(r.delivery_lat) : 0;
+      const dLng = r.delivery_lng ? Number(r.delivery_lng) : 0;
+
+      // Use Road Distance for accurate fulfillment
+      const route = (sLat && sLng && dLat && dLng) 
+        ? await getRoadDistance(sLat, sLng, dLat, dLng) 
+        : { distanceKm: 0, durationMin: 0 };
+
+      return {
+        id:              r.id,
+        orderNumber:     r.order_number ?? '',
+        storeName:       r.store_name ?? '',
+        storeAddress:    r.store_address ?? '',
+        storeLat:        sLat,
+        storeLng:        sLng,
+        deliveryAddress: r.delivery_address ?? '',
+        deliveryLat:     dLat,
+        deliveryLng:     dLng,
+        totalAmount:     r.total_amount,
+        itemCount:       Number(r.items_count),
+        estimatedKm:     route.distanceKm,
+        estimatedMin:    route.durationMin,
+        driverPayout:    Math.round(r.total_amount * 0.2),
+        status:          r.status,
+        customerName:    r.customer_name ?? '',
+        customerPhone:   r.customer_phone ?? '',
+        deliveryOtp:     r.delivery_otp ?? '',
+      };
     }));
 
     res.json(orders);
@@ -182,6 +213,10 @@ router.post('/accept', async (req: AuthRequest, res) => {
     io.to(`order:${orderId}`).emit('order:status', { status: 'assigned', orderId });
     io.to('admin').emit('order.platform.update', { id: orderId, status: 'assigned' });
 
+    // CRITICAL-2: Fetch OTP to notify customer
+    const otpRes = await pool.query(`SELECT delivery_otp FROM orders WHERE id=$1`, [orderId]);
+    const deliveryOtp = otpRes.rows[0]?.delivery_otp ?? '****';
+
     // FCM push to customer (non-critical)
     const custRes = await pool.query(
       `SELECT customer_id FROM orders WHERE id=$1`,
@@ -192,12 +227,12 @@ router.post('/accept', async (req: AuthRequest, res) => {
       sendPushToUser(
         custId,
         '🛵 Driver Assigned',
-        'Your delivery partner is on the way to collect your order.',
-        { screen: 'OrderTracking', orderId: String(orderId) }
+        `Your delivery partner is on the way! OTP for delivery: ${deliveryOtp}`,
+        { screen: 'OrderTracking', orderId: String(orderId), deliveryOtp }
       );
       notifyUser(custId, '🛵 Driver Assigned',
-        'Your delivery partner is on the way to collect your order.',
-        'order', { screen: 'OrderTracking', orderId: String(orderId) });
+        `Your delivery partner is on the way! OTP for delivery: ${deliveryOtp}`,
+        'order', { screen: 'OrderTracking', orderId: String(orderId), deliveryOtp });
     }
 
     // Fetch updated order to return full ActiveOrder shape to the app

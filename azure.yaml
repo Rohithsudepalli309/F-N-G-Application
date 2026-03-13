@@ -1,0 +1,17 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/Azure/azure-dev/main/schemas/v1.0/azure.yaml.json
+name: fng-delivery-platform
+metadata:
+  template: fng-delivery-app-azure
+services:
+  backend:
+    project: ./backend
+    language: ts
+    host: containerapp
+  admin-dashboard:
+    project: ./apps/admin-dashboard
+    language: ts
+    host: staticwebapp
+  merchant-dashboard:
+    project: ./apps/merchant-dashboard
+    language: ts
+    host: staticwebapp

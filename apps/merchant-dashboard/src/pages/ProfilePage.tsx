@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { User, Store, Clock, Image, Phone, Save, RefreshCw } from 'lucide-react';
+import { User, Store, Clock, Image, Phone, Save, RefreshCw, Coffee, AlertTriangle } from 'lucide-react';
 import api from '../services/api';
 import { useToast } from '../components/Toast';
 
@@ -15,6 +15,8 @@ interface ProfileData {
   businessOpen: string;
   businessClose: string;
   closedDays: string;
+  estPrepTimeMin: number;
+  isPaused: boolean;
 }
 
 const FIELD_DEFAULTS: ProfileData = {
@@ -29,6 +31,8 @@ const FIELD_DEFAULTS: ProfileData = {
   businessOpen: '',
   businessClose: '',
   closedDays: '',
+  estPrepTimeMin: 15,
+  isPaused: false,
 };
 
 export default function ProfilePage() {
@@ -60,6 +64,8 @@ export default function ProfilePage() {
           businessOpen:    s.business_hours?.open ?? '',
           businessClose:   s.business_hours?.close ?? '',
           closedDays:      Array.isArray(s.business_hours?.closedDays) ? s.business_hours.closedDays.join(', ') : '',
+          estPrepTimeMin:  s.est_prep_time_min ?? 15,
+          isPaused:        !!s.is_paused,
         });
       } catch {
         toast('error', 'Could not load profile.');
@@ -84,6 +90,8 @@ export default function ProfilePage() {
                            : undefined,
         ownerName:       form.ownerName.trim()       || undefined,
         phone:           form.phone.trim()           || undefined,
+        estPrepTimeMin:  form.estPrepTimeMin,
+        isPaused:        form.isPaused,
         businessHours:
           form.businessOpen || form.businessClose || form.closedDays
             ? {
@@ -103,6 +111,8 @@ export default function ProfilePage() {
         ownerName:  s.owner_name ?? f.ownerName,
         phone:      s.phone ?? f.phone,
         imageUrl:   s.image_url ?? f.imageUrl,
+        estPrepTimeMin: s.est_prep_time_min ?? f.estPrepTimeMin,
+        isPaused:   !!s.is_paused,
         businessOpen: s.business_hours?.open ?? f.businessOpen,
         businessClose: s.business_hours?.close ?? f.businessClose,
         closedDays: Array.isArray(s.business_hours?.closedDays)
@@ -133,6 +143,58 @@ export default function ProfilePage() {
       </div>
 
       <form onSubmit={handleSave} className="space-y-5">
+
+        {/* ── Store Fulfillment (NEW) ────────────────────────────────── */}
+        <section className={`card space-y-4 border-l-4 transition-colors ${form.isPaused ? 'border-amber-500 bg-amber-500/5' : 'border-emerald-500'}`}>
+          <div className="flex items-center justify-between">
+            <h2 className="flex items-center gap-2 text-sm font-semibold text-slate-400 uppercase tracking-widest">
+              <Coffee size={14} /> Fulfillment Status
+            </h2>
+            <div className="flex items-center gap-2">
+              <span className={`text-xs font-bold px-2 py-0.5 rounded-full ${form.isPaused ? 'bg-amber-500/20 text-amber-500' : 'bg-emerald-500/20 text-emerald-500'}`}>
+                {form.isPaused ? 'PAUSED' : 'ONLINE'}
+              </span>
+              <button
+                type="button"
+                onClick={() => setForm(f => ({ ...f, isPaused: !f.isPaused }))}
+                className={`text-xs px-3 py-1 rounded-lg font-medium transition-colors ${
+                  form.isPaused 
+                    ? 'bg-emerald-600 hover:bg-emerald-700 text-white' 
+                    : 'bg-amber-600 hover:bg-amber-700 text-white'
+                }`}
+              >
+                {form.isPaused ? 'Resume Orders' : 'Pause Orders'}
+              </button>
+            </div>
+          </div>
+
+          {form.isPaused && (
+            <div className="flex items-start gap-2 p-3 bg-amber-500/10 rounded-lg text-amber-200 text-xs">
+              <AlertTriangle size={14} className="shrink-0 mt-0.5" />
+              <p>While paused, customers will see your store as closed and won't be able to place new orders.</p>
+            </div>
+          )}
+
+          <div>
+            <div className="flex items-center justify-between mb-2">
+              <label className="text-xs font-medium text-slate-400">Merchant Prep Time (Estimated)</label>
+              <span className="text-sm font-bold text-emerald-400">{form.estPrepTimeMin} mins</span>
+            </div>
+            <input
+              type="range"
+              min="5"
+              max="120"
+              step="5"
+              className="w-full accent-emerald-500 bg-slate-700 h-1.5 rounded-lg appearance-none cursor-pointer"
+              value={form.estPrepTimeMin}
+              onChange={(e) => setForm(f => ({ ...f, estPrepTimeMin: parseInt(e.target.value) }))}
+            />
+            <div className="flex justify-between text-[10px] text-slate-500 mt-1">
+              <span>Quick (5m)</span>
+              <span>Long (2h)</span>
+            </div>
+          </div>
+        </section>
 
         {/* ── Store info ─────────────────────────────────────────────── */}
         <section className="card space-y-4">

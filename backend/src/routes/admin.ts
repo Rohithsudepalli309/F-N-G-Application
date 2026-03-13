@@ -354,4 +354,88 @@ router.patch('/payouts/:driverId/mark-paid', async (req, res) => {
   }
 });
 
+// ─── GET /admin/disputes ─────────────────────────────────────────────────
+router.get('/disputes', async (_req, res) => {
+  try {
+    const result = await pool.query(
+      `SELECT d.id, d.order_id AS "orderId", d.user_id AS "userId",
+              u.name AS "userName", s.name AS "storeName", d.reason,
+              d.description, d.amount, d.status, d.resolution_note AS "resolutionNote",
+              d.created_at AS "createdAt"
+       FROM disputes d
+       JOIN users u ON u.id = d.user_id
+       JOIN stores s ON s.id = d.store_id
+       ORDER BY d.created_at DESC`
+    );
+    res.json(result.rows);
+  } catch (err) {
+    console.error('[admin/disputes]', err);
+    res.status(500).json({ error: 'Could not fetch disputes.' });
+  }
+});
+
+// ─── POST /admin/disputes/:id/resolve ─────────────────────────────────────
+router.post('/disputes/:id/resolve', async (req, res) => {
+  const { id } = req.params;
+  const { note } = req.body as { note: string };
+  const adminId = (req as AuthRequest).user?.id;
+
+  try {
+    const result = await pool.query(
+      `UPDATE disputes
+       SET status = 'resolved',
+           resolution_note = $1,
+           resolved_by = $2,
+           resolved_at = NOW(),
+           updated_at = NOW()
+       WHERE id = $3
+       RETURNING id, order_id`,
+      [note, adminId, id]
+    );
+
+    if (result.rows.length === 0) {
+      res.status(404).json({ error: 'Dispute not found.' });
+      return;
+    }
+
+    // TODO: In a real system, trigger refund via payment gateway (Stripe/Razorpay) here
+
+    res.json({ message: 'Dispute resolved and refund marked.' });
+  } catch (err) {
+    console.error('[admin/disputes/resolve]', err);
+    res.status(500).json({ error: 'Could not resolve dispute.' });
+  }
+});
+
+// ─── POST /admin/disputes/:id/reject ──────────────────────────────────────
+router.post('/disputes/:id/reject', async (req, res) => {
+  const { id } = req.params;
+  const { note } = req.body as { note: string };
+  const adminId = (req as AuthRequest).user?.id;
+
+  try {
+    const result = await pool.query(
+      `UPDATE disputes
+       SET status = 'rejected',
+           resolution_note = $1,
+           resolved_by = $2,
+           resolved_at = NOW(),
+           updated_at = NOW()
+       WHERE id = $3
+       RETURNING id`,
+      [note, adminId, id]
+    );
+
+    if (result.rows.length === 0) {
+      res.status(404).json({ error: 'Dispute not found.' });
+      return;
+    }
+
+    res.json({ message: 'Dispute rejected.' });
+  } catch (err) {
+    console.error('[admin/disputes/reject]', err);
+    res.status(500).json({ error: 'Could not reject dispute.' });
+  }
+});
+
 export default router;

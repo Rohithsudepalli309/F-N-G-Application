@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Navigate, Outlet, NavLink } from 'react-router-dom';
-import { LayoutDashboard, ShoppingBag, Users, Store, Truck, LogOut, Tag, TrendingUp, Wallet, Zap } from 'lucide-react';
+import { LayoutDashboard, ShoppingBag, Users, Store, Truck, LogOut, Tag, TrendingUp, Wallet, Zap, ShieldAlert } from 'lucide-react';
 import { useAuthStore } from '../store/useAuthStore';
 import api from '../services/api';
 
@@ -41,6 +41,7 @@ export const AdminLayout = () => {
     { label: 'Coupons',     path: '/coupons',     icon: Tag },
     { label: 'Analytics',   path: '/analytics',   icon: TrendingUp },
     { label: 'Payouts',     path: '/payouts',     icon: Wallet },
+    { label: 'Disputes',    path: '/disputes',    icon: ShieldAlert },
   ];
 
   return (

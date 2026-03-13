@@ -9,6 +9,7 @@ import { FleetManagement } from './pages/FleetManagement';
 import { CouponsPage } from './pages/CouponsPage';
 import { AnalyticsPage } from './pages/AnalyticsPage';
 import { PayoutsPage } from './pages/PayoutsPage';
+import DisputesPage from './pages/DisputesPage';
 
 function App() {
   return (
@@ -26,6 +27,7 @@ function App() {
             <Route path="/coupons" element={<CouponsPage />} />
             <Route path="/analytics" element={<AnalyticsPage />} />
             <Route path="/payouts" element={<PayoutsPage />} />
+            <Route path="/disputes" element={<DisputesPage />} />
             {/* Catch all */}
             <Route path="*" element={<Navigate to="/" replace />} />
           </Route>
