@@ -37,4 +37,13 @@ router.patch('/:id/read', async (req: AuthRequest, res) => {
   res.json({ ok: true });
 });
 
+// ─── DELETE /notifications/clear ─── Delete all read notifications ───────────────────
+router.delete('/clear', async (req: AuthRequest, res) => {
+  await pool.query(
+    `DELETE FROM notifications WHERE user_id=$1 AND is_read=TRUE`,
+    [req.user!.id]
+  );
+  res.json({ ok: true });
+});
+
 export default router;

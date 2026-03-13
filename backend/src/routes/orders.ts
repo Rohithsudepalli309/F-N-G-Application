@@ -27,18 +27,32 @@ router.post('/', async (req: AuthRequest, res) => {
   const {
     storeId,
     items,           // [{ productId, quantity }]
-    deliveryAddress, // { label, address_line, city, pincode }
+    deliveryAddress, // { label, address_line, city, pincode, lat?, lng? }
     paymentMethod = 'cod',
     couponCode,
     instructions,
   } = req.body as {
     storeId?: number;
     items: { productId: number; quantity: number }[];
-    deliveryAddress: { label: string; address_line: string; city: string; pincode: string };
+    deliveryAddress: { label: string; address_line: string; city: string; pincode: string; lat?: number; lng?: number };
     paymentMethod?: string;
     couponCode?: string;
     instructions?: string;
   };
+
+  // ME-6: Idempotency — prevent duplicate orders from network retries
+  const idempotencyKey = req.headers['x-idempotency-key'] as string | undefined;
+  if (idempotencyKey) {
+    const existing = await pool.query(
+      `SELECT id, order_number, status FROM orders
+       WHERE metadata->>'idempotency_key' = $1 AND customer_id = $2 LIMIT 1`,
+      [idempotencyKey, req.user!.id]
+    );
+    if (existing.rows.length > 0) {
+      res.status(200).json({ order: existing.rows[0], duplicate: true });
+      return;
+    }
+  }
 
   // MED-6: cap items to prevent DoS via overly large orders
   if (!items?.length || !deliveryAddress) {
@@ -102,6 +116,14 @@ router.post('/', async (req: AuthRequest, res) => {
     // Delivery fee: free for orders > ₹499 (49900 paise)
     let deliveryFee = subtotal > 49900 ? 0 : 2500; // ₹25
     const handlingFee = 500; // ₹5
+
+    // B-3: Pro members always get free delivery
+    const proCheck = await client.query(
+      `SELECT id FROM pro_subscriptions
+       WHERE user_id=$1 AND status='active' AND expires_at > NOW() LIMIT 1`,
+      [req.user!.id]
+    );
+    if (proCheck.rows.length > 0) deliveryFee = 0;
 
     // Apply surge pricing if feature flag is on for this user
     const surgeEnabled = await isEnabled('surge_pricing', req.user!.id);
@@ -175,7 +197,10 @@ router.post('/', async (req: AuthRequest, res) => {
         paymentMethod,
         paymentMethod === 'cod' ? 'pending' : 'pending',
         instructions ?? null,
-        JSON.stringify({ delivery_otp: deliveryOtp }),
+        JSON.stringify({
+          delivery_otp: deliveryOtp,
+          ...(idempotencyKey ? { idempotency_key: idempotencyKey } : {}),
+        }),
       ]
     );
     const order = orderRes.rows[0];

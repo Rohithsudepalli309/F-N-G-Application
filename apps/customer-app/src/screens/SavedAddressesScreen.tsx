@@ -81,6 +81,8 @@ export const SavedAddressesScreen = () => {
           address_line: item.line1 + (item.line2 ? `, ${item.line2}` : ''),
           city: item.city,
           pincode: item.pincode,
+          lat: (item as any).lat ?? null,
+          lng: (item as any).lng ?? null,
         },
       });
     }

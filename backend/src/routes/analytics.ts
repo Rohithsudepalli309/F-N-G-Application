@@ -5,8 +5,13 @@ import { requireAuth, requireRole } from '../middleware/auth';
 const router = Router();
 router.use(requireAuth, requireRole('admin'));
 
-// ─── GET /analytics/stats ─── Platform-level KPIs ─────────────────────────
-router.get('/stats', async (_req, res) => {
+// ─── GET /analytics/stats ─── Platform-level KPIs (ME-5: optional date range) ──
+router.get('/stats', async (req, res) => {
+  const { startDate, endDate } = req.query as Record<string, string>;
+  const rangeFilter = startDate && endDate
+    ? `AND created_at BETWEEN '${startDate}' AND '${endDate} 23:59:59'`
+    : '';
+
   const [kpiRes, chartRes] = await Promise.all([
     pool.query(
       `SELECT
@@ -19,7 +24,7 @@ router.get('/stats', async (_req, res) => {
            SUM(total_amount) FILTER (WHERE created_at::date = CURRENT_DATE),
            0
          ) AS "dailyRevenue"
-       FROM orders`
+       FROM orders ${rangeFilter}`
     ),
     pool.query(
       `SELECT
@@ -60,7 +65,37 @@ router.get('/fleet', async (_req, res) => {
      WHERE d.is_active = TRUE
      ORDER BY d.is_available DESC, d.name`
   );
-  res.json(result.rows);   // array (matches admin FleetManagement expectation)
+  res.json(result.rows);
+});
+
+// ─── GET /analytics/export/orders ─── CSV export (A-2) ────────────────────
+router.get('/export/orders', async (req, res) => {
+  const { startDate, endDate } = req.query as Record<string, string>;
+  const params: string[] = [];
+  let where = 'WHERE 1=1';
+  if (startDate) { params.push(startDate); where += ` AND o.created_at::date >= $${params.length}`; }
+  if (endDate)   { params.push(endDate);   where += ` AND o.created_at::date <= $${params.length}`; }
+
+  const result = await pool.query(
+    `SELECT o.id, o.order_number, o.store_name, o.status,
+            o.total_amount, o.payment_method, o.payment_status,
+            o.created_at, u.name AS customer, u.phone AS customer_phone
+     FROM orders o JOIN users u ON u.id = o.customer_id
+     ${where} ORDER BY o.created_at DESC LIMIT 5000`,
+    params
+  );
+
+  const header = 'ID,Order Number,Store,Status,Total(paise),Payment,Payment Status,Created At,Customer,Phone\n';
+  const csv = header + result.rows.map(r =>
+    [r.id, r.order_number, `"${(r.store_name ?? '').replace(/"/g, '""')}"`, r.status,
+     r.total_amount, r.payment_method, r.payment_status,
+     new Date(r.created_at).toISOString(),
+     `"${(r.customer ?? '').replace(/"/g, '""')}"`, r.customer_phone].join(',')
+  ).join('\n');
+
+  res.setHeader('Content-Type', 'text/csv');
+  res.setHeader('Content-Disposition', 'attachment; filename="fng-orders.csv"');
+  res.send(csv);
 });
 
 export default router;

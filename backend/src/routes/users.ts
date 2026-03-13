@@ -42,4 +42,18 @@ router.delete('/favorites/:storeId', async (req: AuthRequest, res) => {
   res.json({ ok: true });
 });
 
+// ─── PATCH /users/fcm-token ─── Register / update FCM push token ─────────────────
+router.patch('/fcm-token', async (req: AuthRequest, res) => {
+  const { fcmToken } = req.body as { fcmToken?: string };
+  if (!fcmToken || typeof fcmToken !== 'string' || fcmToken.length > 500) {
+    res.status(400).json({ error: 'fcmToken is required (max 500 chars).' });
+    return;
+  }
+  await pool.query(
+    `UPDATE users SET fcm_token=$1, updated_at=NOW() WHERE id=$2`,
+    [fcmToken, req.user!.id]
+  );
+  res.json({ ok: true });
+});
+
 export default router;

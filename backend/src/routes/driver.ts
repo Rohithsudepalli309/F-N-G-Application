@@ -4,6 +4,18 @@ import { requireAuth, requireRole, AuthRequest } from '../middleware/auth';
 import { io } from '../server';
 import { sendPushToUser } from '../services/fcm';
 import { notifyUser } from '../services/notify';
+import { redis, DRIVER_GEO_KEY } from '../redis';
+
+// Haversine great-circle distance (km)
+function haversineKm(lat1: number, lng1: number, lat2: number, lng2: number): number {
+  const R = 6371;
+  const dLat = (lat2 - lat1) * Math.PI / 180;
+  const dLng = (lng2 - lng1) * Math.PI / 180;
+  const a = Math.sin(dLat / 2) ** 2 +
+    Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) *
+    Math.sin(dLng / 2) ** 2;
+  return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+}
 
 const router = Router();
 router.use(requireAuth);
@@ -33,6 +45,8 @@ router.get('/orders', async (req: AuthRequest, res) => {
          o.delivery_address,
          o.created_at,
          o.metadata->>'delivery_otp' AS delivery_otp,
+         (o.delivery_address->>'lat')::numeric  AS delivery_lat,
+         (o.delivery_address->>'lng')::numeric  AS delivery_lng,
          u.name  AS customer_name,
          u.phone AS customer_phone,
          s.lat   AS store_lat,
@@ -58,12 +72,18 @@ router.get('/orders', async (req: AuthRequest, res) => {
       storeLat:        r.store_lat ? Number(r.store_lat) : 0,
       storeLng:        r.store_lng ? Number(r.store_lng) : 0,
       deliveryAddress: r.delivery_address ?? '',
-      deliveryLat:     0,  // geospatial lookup not available; default 0
-      deliveryLng:     0,
+      deliveryLat:     r.delivery_lat ? Number(r.delivery_lat) : 0,
+      deliveryLng:     r.delivery_lng ? Number(r.delivery_lng) : 0,
       totalAmount:     r.total_amount,
       itemCount:       Number(r.items_count),
-      estimatedKm:     0,  // requires geospatial calculation
-      driverPayout:    Math.round(r.total_amount * 0.2),  // 20% of order value as delivery fee
+      estimatedKm: (() => {
+        const sLat = r.store_lat ? Number(r.store_lat) : 0;
+        const sLng = r.store_lng ? Number(r.store_lng) : 0;
+        const dLat = r.delivery_lat ? Number(r.delivery_lat) : 0;
+        const dLng = r.delivery_lng ? Number(r.delivery_lng) : 0;
+        return (sLat && sLng && dLat && dLng) ? haversineKm(sLat, sLng, dLat, dLng) : 0;
+      })(),
+      driverPayout:    Math.round(r.total_amount * 0.2),
       status:          r.status,
       customerName:    r.customer_name ?? '',
       customerPhone:   r.customer_phone ?? '',
@@ -203,11 +223,17 @@ router.post('/accept', async (req: AuthRequest, res) => {
       storeLat:        r.store_lat ? Number(r.store_lat) : 0,
       storeLng:        r.store_lng ? Number(r.store_lng) : 0,
       deliveryAddress: r.delivery_address ?? '',
-      deliveryLat:     0,
-      deliveryLng:     0,
+      deliveryLat:     r.delivery_address?.lat ? Number(r.delivery_address.lat) : 0,
+      deliveryLng:     r.delivery_address?.lng ? Number(r.delivery_address.lng) : 0,
       totalAmount:     r.total_amount,
       itemCount:       Number(r.items_count),
-      estimatedKm:     0,
+      estimatedKm: (() => {
+        const sLat = r.store_lat ? Number(r.store_lat) : 0;
+        const sLng = r.store_lng ? Number(r.store_lng) : 0;
+        const dLat = r.delivery_address?.lat ? Number(r.delivery_address.lat) : 0;
+        const dLng = r.delivery_address?.lng ? Number(r.delivery_address.lng) : 0;
+        return (sLat && sLng && dLat && dLng) ? haversineKm(sLat, sLng, dLat, dLng) : 0;
+      })(),
       driverPayout:    Math.round(r.total_amount * 0.2),
       status:          r.status,
       customerName:    r.customer_name ?? '',
@@ -225,11 +251,66 @@ router.post('/accept', async (req: AuthRequest, res) => {
   }
 });
 
-// ─── POST /driver/reject ─── Decline/reject an order (non-blocking) ─────────
+// ─── POST /driver/reject ─── Decline order + re-dispatch to next available driver ─
 router.post('/reject', async (req: AuthRequest, res) => {
-  // Non-critical: driver passes; other drivers remain eligible.
-  // No status change on the order itself.
-  res.json({ success: true });
+  const { orderId } = req.body as { orderId?: string };
+  res.json({ success: true }); // respond immediately — async work below
+
+  if (!orderId) return;
+  try {
+    const driverRes = await pool.query(
+      `SELECT id FROM drivers WHERE user_id=$1 LIMIT 1`, [req.user!.id]
+    );
+    const driverId: number | undefined = driverRes.rows[0]?.id;
+    if (!driverId) return;
+
+    // Revert assignment so another driver can pick it up
+    const revertRes = await pool.query(
+      `UPDATE orders
+       SET status='ready', driver_id=NULL
+       WHERE id=$1 AND driver_id=$2 AND status IN ('assigned','ready')
+       RETURNING id, store_id, store_name, total_amount, delivery_address, created_at`,
+      [orderId, driverId]
+    );
+    await pool.query(`UPDATE drivers SET is_available=TRUE WHERE id=$1`, [driverId]);
+
+    if (!revertRes.rows.length) return;
+    const order = revertRes.rows[0];
+    io.to('admin').emit('order.platform.update', { id: order.id, status: 'ready' });
+
+    // Re-dispatch to next nearest available driver via Redis GEO
+    const storeRes = await pool.query(`SELECT lat, lng FROM stores WHERE id=$1`, [order.store_id]);
+    const store = storeRes.rows[0];
+    if (!store?.lat || !store?.lng) return;
+
+    const nearbyRaw = await redis.georadius(
+      DRIVER_GEO_KEY, Number(store.lng), Number(store.lat),
+      10, 'km', 'ASC', 'COUNT', 5
+    ) as string[];
+    if (!nearbyRaw.length) return;
+
+    const availRes = await pool.query(
+      `SELECT d.id, d.user_id FROM drivers d
+       WHERE d.user_id = ANY($1::int[])
+         AND d.is_available=TRUE AND d.is_active=TRUE
+         AND d.id != $2
+         AND NOT EXISTS (
+           SELECT 1 FROM orders ao WHERE ao.driver_id=d.id
+             AND ao.status IN ('assigned','pickup','out_for_delivery')
+         )
+       LIMIT 3`,
+      [nearbyRaw.map(Number), driverId]
+    );
+    for (const d of availRes.rows) {
+      io.to(`driver:${d.user_id}`).emit('driver:order_assigned', {
+        orderId: order.id,
+        storeId: order.store_id,
+        storeName: order.store_name,
+      });
+    }
+  } catch (err) {
+    console.error('[driver/reject] re-dispatch error:', err);
+  }
 });
 
 // ─── POST /driver/pickup ─── Driver collected order from store ───────────────

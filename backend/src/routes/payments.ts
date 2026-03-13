@@ -218,6 +218,61 @@ router.post('/webhook', async (req, res) => {
   res.json({ received: true });
 });
 
+// ── POST /payments/refund ─── Initiate Razorpay refund for a paid cancelled order ─
+router.post('/refund', async (req: AuthRequest, res) => {
+  const { orderId } = req.body as { orderId?: number };
+  if (!orderId) {
+    res.status(400).json({ error: 'orderId is required.' });
+    return;
+  }
+
+  const orderRes = await pool.query(
+    `SELECT id, payment_status, razorpay_payment_id, total_amount, status
+     FROM orders WHERE id=$1 AND customer_id=$2`,
+    [orderId, req.user!.id]
+  );
+  if (orderRes.rows.length === 0) {
+    res.status(404).json({ error: 'Order not found.' });
+    return;
+  }
+  const order = orderRes.rows[0];
+
+  if (order.payment_status !== 'paid') {
+    res.status(400).json({ error: 'Only paid orders can be refunded.' });
+    return;
+  }
+  if (!['cancelled', 'refunded'].includes(order.status)) {
+    res.status(400).json({ error: 'Order must be cancelled before requesting a refund.' });
+    return;
+  }
+  if (order.payment_status === 'refunded') {
+    res.status(400).json({ error: 'Order has already been refunded.' });
+    return;
+  }
+  if (!order.razorpay_payment_id) {
+    res.status(400).json({ error: 'No payment found for this order.' });
+    return;
+  }
+
+  try {
+    const rzp = getRazorpay();
+    await rzp.payments.refund(order.razorpay_payment_id, {
+      amount: order.total_amount,            // full refund in paise
+      speed: 'optimum',
+      notes: { reason: 'Customer cancellation', fng_order_id: String(orderId) },
+    });
+
+    await pool.query(
+      `UPDATE orders SET payment_status='refunded', status='refunded' WHERE id=$1`,
+      [orderId]
+    );
+    res.json({ ok: true, message: 'Refund initiated. Amount will credit in 5-7 business days.' });
+  } catch (e) {
+    console.error('[payments/refund]', e);
+    res.status(502).json({ error: 'Could not process refund. Please contact support.' });
+  }
+});
+
 // ── GET /payments/surge/:storeId ─── Current surge multiplier ──────────────
 router.get('/surge/:storeId', async (req: AuthRequest, res) => {
   const { storeId } = req.params;

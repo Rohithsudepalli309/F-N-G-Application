@@ -1,4 +1,5 @@
 import { Router } from 'express';
+import Razorpay from 'razorpay';
 import pool from '../db';
 import { requireAuth, AuthRequest } from '../middleware/auth';
 
@@ -53,6 +54,24 @@ router.post('/topup', async (req: AuthRequest, res) => {
     res.status(400).json({ error: 'razorpayPaymentId is required.' });
     return;
   }
+
+  // ME-7: Always verify actual paid amount via Razorpay — never trust client-supplied amount
+  let verifiedAmount: number;
+  try {
+    const rzp = new Razorpay({
+      key_id:     process.env.RAZORPAY_KEY_ID!,
+      key_secret: process.env.RAZORPAY_KEY_SECRET!,
+    });
+    const payment = await rzp.payments.fetch(razorpayPaymentId);
+    if (payment.status !== 'captured') {
+      res.status(400).json({ error: 'Payment has not been captured yet.' });
+      return;
+    }
+    verifiedAmount = Number(payment.amount); // paise — authoritative
+  } catch {
+    res.status(502).json({ error: 'Could not verify payment with Razorpay.' });
+    return;
+  }
   const client = await pool.connect();
   try {
     await client.query('BEGIN');
@@ -65,7 +84,7 @@ router.post('/topup', async (req: AuthRequest, res) => {
     const walletRes = await client.query(
       `UPDATE wallets SET balance = balance + $1, updated_at=NOW()
        WHERE user_id=$2 RETURNING id, balance`,
-      [amount, req.user!.id]
+      [verifiedAmount, req.user!.id]  // use server-verified amount
     );
     const wallet = walletRes.rows[0];
     await client.query(
