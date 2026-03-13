@@ -12,35 +12,118 @@ struct DriverUser: Codable {
     let role: String
 }
 
-// MARK: - Order
-struct AssignedOrder: Codable, Identifiable {
-    let id: String
-    let storeId: String?
-    let status: OrderStatus
-    let totalAmount: Int          // paisa
-    let deliveryAddress: Address
-    let createdAt: String
-    // Fields added for incoming order card (populated by enhanced GET /driver/orders)
-    let storeName: String?
-    let pickupAddress: Address?
-    let itemsCount: Int?
+// MARK: - Driver Profile
+struct DriverProfile: Codable {
+    let id: Int
+    let name: String
+    let phone: String
+    let vehicleType: String
+    let isAvailable: Bool
+    let totalDeliveries: Int
 
     enum CodingKeys: String, CodingKey {
-        case id, status
-        case storeId          = "store_id"
-        case totalAmount      = "total_amount"
-        case deliveryAddress  = "delivery_address"
-        case createdAt        = "created_at"
-        case storeName        = "store_name"
-        case pickupAddress    = "pickup_address"
-        case itemsCount       = "items_count"
+        case id, name, phone
+        case vehicleType     = "vehicle_type"
+        case isAvailable     = "is_available"
+        case totalDeliveries = "total_deliveries"
     }
 }
 
-struct Address: Codable {
-    let lat: Double
-    let lng: Double
-    let text: String
+// MARK: - Order
+/// Matches the camelCase shape returned by GET /driver/orders and POST /driver/accept.
+struct AssignedOrder: Codable, Identifiable {
+    let id: Int
+    let orderNumber: String
+    let storeName: String
+    let storeAddress: String
+    let storeLat: Double
+    let storeLng: Double
+    let status: OrderStatus
+    let totalAmount: Int          // paise
+    let itemCount: Int
+    let estimatedKm: Double
+    let driverPayout: Int         // paise
+    let customerName: String
+    let customerPhone: String
+    let deliveryOtp: String
+    let createdAt: String?
+
+    // deliveryAddress comes as a nested JSON object from Postgres JSONB
+    let deliveryAddress: DeliveryAddress
+
+    enum CodingKeys: String, CodingKey {
+        case id, status
+        case orderNumber     = "orderNumber"
+        case storeName       = "storeName"
+        case storeAddress    = "storeAddress"
+        case storeLat        = "storeLat"
+        case storeLng        = "storeLng"
+        case totalAmount     = "totalAmount"
+        case itemCount       = "itemCount"
+        case estimatedKm     = "estimatedKm"
+        case driverPayout    = "driverPayout"
+        case customerName    = "customerName"
+        case customerPhone   = "customerPhone"
+        case deliveryOtp     = "deliveryOtp"
+        case createdAt       = "createdAt"
+        case deliveryAddress = "deliveryAddress"
+    }
+}
+
+/// Delivery address stored as JSONB — matches fields from AddAddressScreen / addresses table.
+struct DeliveryAddress: Codable {
+    let lat: Double?
+    let lng: Double?
+    let label: String?
+    let addressLine: String?
+    let city: String?
+    let pincode: String?
+
+    enum CodingKeys: String, CodingKey {
+        case lat, lng, label
+        case addressLine = "address_line"
+        case city, pincode
+    }
+
+    var displayText: String {
+        [addressLine, city, pincode].compactMap { $0 }.filter { !$0.isEmpty }.joined(separator: ", ")
+    }
+}
+
+// MARK: - Earnings
+struct EarningsSummary: Codable {
+    let period: String
+    let totalPayout: Int
+    let deliveries: Int
+    let avgPerDelivery: Int
+
+    enum CodingKeys: String, CodingKey {
+        case period
+        case totalPayout     = "totalPayout"
+        case deliveries
+        case avgPerDelivery  = "avgPerDelivery"
+    }
+}
+
+struct EarningsResponse: Codable {
+    let earnings: EarningsSummary
+    let history: [DeliveryHistoryItem]?
+}
+
+struct DeliveryHistoryItem: Codable, Identifiable {
+    let id: Int
+    let orderNumber: String
+    let storeName: String
+    let payout: Int
+    let deliveredAt: String
+
+    enum CodingKeys: String, CodingKey {
+        case id
+        case orderNumber = "orderNumber"
+        case storeName   = "storeName"
+        case payout
+        case deliveredAt = "deliveredAt"
+    }
 }
 
 enum OrderStatus: String, Codable {
@@ -51,7 +134,7 @@ enum OrderStatus: String, Codable {
 
 // MARK: - Location
 struct LocationPayload: Encodable {
-    let orderId: String
+    let orderId: Int
     let lat: Double
     let lng: Double
     let bearing: Double
