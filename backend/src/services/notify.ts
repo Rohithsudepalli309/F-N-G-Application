@@ -1,4 +1,5 @@
 import pool from '../db';
+import { io } from '../server';
 
 type NotificationType = 'order' | 'offer' | 'system' | 'delivery';
 
@@ -16,5 +17,13 @@ export async function notifyUser(
     `INSERT INTO notifications (user_id, title, body, type, data)
      VALUES ($1, $2, $3, $4, $5)`,
     [userId, title, body, type, data ? JSON.stringify(data) : null]
-  ).catch(() => {/* non-critical */});
+  ).then(() => {
+    io.to(`user:${userId}`).emit('notification:new', {
+      title,
+      body,
+      type,
+      data: data ?? {},
+      created_at: new Date().toISOString(),
+    });
+  }).catch(() => {/* non-critical */});
 }

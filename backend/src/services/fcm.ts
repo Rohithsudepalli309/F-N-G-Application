@@ -1,5 +1,6 @@
 import admin from 'firebase-admin';
 import pool from '../db';
+import { io } from '../server';
 
 let initialized = false;
 
@@ -29,6 +30,13 @@ async function saveNotification(
        VALUES ($1,$2,$3,$4,$5)`,
       [userId, title, body, type, JSON.stringify(data)]
     );
+    io.to(`user:${userId}`).emit('notification:new', {
+      title,
+      body,
+      type,
+      data,
+      created_at: new Date().toISOString(),
+    });
   } catch {/* non-critical — notifications table may not be migrated yet */}
 }
 

@@ -187,9 +187,18 @@ export const FleetManagement = () => {
                       <MapPin size={16} className="text-slate-400" />
                       Location
                    </div>
-                   <span className="text-slate-500">
-                     {driver.lastLat ? `${driver.lastLat.toFixed(4)}, ${driver.lastLng?.toFixed(4)}` : 'Unknown'}
-                   </span>
+                   {driver.lastLat && driver.lastLng ? (
+                     <a
+                       href={`https://maps.google.com/?q=${driver.lastLat},${driver.lastLng}`}
+                       target="_blank"
+                       rel="noreferrer"
+                       className="text-blue-600 hover:underline"
+                     >
+                       {driver.lastLat.toFixed(4)}, {driver.lastLng.toFixed(4)}
+                     </a>
+                   ) : (
+                     <span className="text-slate-500">Unknown</span>
+                   )}
                 </div>
 
                 {driver.activeOrderId && (

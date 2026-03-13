@@ -249,7 +249,7 @@ export default function MenuPage() {
 
                     {/* Stock warning */}
                     {product.stock < 5 && product.is_available && (
-                      <div className="flex items-center gap-1.5 text-xs text-orange-400 bg-orange-500/10 px-2.5 py-1.5 rounded-lg border border-orange-500/20">
+                      <div className="flex items-center gap-1.5 text-xs text-red-300 bg-red-500/10 px-2.5 py-1.5 rounded-lg border border-red-500/25">
                         <AlertCircle size={12} />
                         Only {product.stock} left
                       </div>

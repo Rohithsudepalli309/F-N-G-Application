@@ -42,22 +42,51 @@ export const OrderTrackingScreen = () => {
 
   const [status, setStatus] = useState<OrderStatus>('placed');
   const [driverLocation, setDriverLocation] = useState<LocationPayload | null>(null);
+  const [destination, setDestination] = useState<{ lat: number; lng: number } | null>(null);
+  const [etaMinutes, setEtaMinutes] = useState<number | null>(null);
   const [completed, setCompleted] = useState(false);
   const [loading, setLoading] = useState(false);
   const mapRef = useRef<MapView>(null);
+
+  const calcDistanceKm = (aLat: number, aLng: number, bLat: number, bLng: number) => {
+    const toRad = (deg: number) => (deg * Math.PI) / 180;
+    const dLat = toRad(bLat - aLat);
+    const dLng = toRad(bLng - aLng);
+    const rLat1 = toRad(aLat);
+    const rLat2 = toRad(bLat);
+    const h =
+      Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+      Math.cos(rLat1) * Math.cos(rLat2) * Math.sin(dLng / 2) * Math.sin(dLng / 2);
+    return 6371 * (2 * Math.atan2(Math.sqrt(h), Math.sqrt(1 - h)));
+  };
 
   // ── Fallback polling ──────────────────────────────────────────────────────
   const pollOrder = useCallback(async () => {
     try {
       const { data } = await api.get(`/orders/${orderId}`);
-      setStatus(data.status);
-      if (data.driver?.lat && data.driver?.lng) {
-        setDriverLocation({ lat: data.driver.lat, lng: data.driver.lng, bearing: 0 });
+      const order = data?.order;
+      if (!order) return;
+
+      setStatus(order.status);
+
+      const dest = order.delivery_address;
+      if (dest && typeof dest.lat === 'number' && typeof dest.lng === 'number') {
+        setDestination({ lat: dest.lat, lng: dest.lng });
+      }
+
+      if (order.driver?.lat && order.driver?.lng) {
+        const loc = { lat: order.driver.lat, lng: order.driver.lng, bearing: 0 };
+        setDriverLocation(loc);
+
+        if (destination) {
+          const km = calcDistanceKm(loc.lat, loc.lng, destination.lat, destination.lng);
+          setEtaMinutes(Math.max(4, Math.round((km / 25) * 60)));
+        }
       }
     } catch (e) {
       console.warn('[Poll] Failed to fetch order:', e);
     }
-  }, [orderId]);
+  }, [orderId, destination]);
 
   // ── Real-time socket (read-only for customer) ─────────────────────────────
   useOrderSocket({
@@ -66,6 +95,12 @@ export const OrderTrackingScreen = () => {
     onLocationUpdate: (loc: LocationPayload) => {
       if (!loc || typeof loc.lat !== 'number' || typeof loc.lng !== 'number') return;
       setDriverLocation(loc);
+
+      if (destination) {
+        const km = calcDistanceKm(loc.lat, loc.lng, destination.lat, destination.lng);
+        setEtaMinutes(Math.max(4, Math.round((km / 25) * 60)));
+      }
+
       // Animate map camera to driver position (SAFE CHECK)
       if (mapRef.current) {
         mapRef.current.animateCamera(
@@ -90,8 +125,8 @@ export const OrderTrackingScreen = () => {
         provider={PROVIDER_GOOGLE}
         style={styles.map}
         initialRegion={{
-          latitude: driverLocation?.lat ?? 12.9716,
-          longitude: driverLocation?.lng ?? 77.5946,
+          latitude: driverLocation?.lat ?? destination?.lat ?? 12.9716,
+          longitude: driverLocation?.lng ?? destination?.lng ?? 77.5946,
           latitudeDelta: 0.02,
           longitudeDelta: 0.02,
         }}
@@ -104,12 +139,23 @@ export const OrderTrackingScreen = () => {
             rotation={driverLocation.bearing}
           />
         )}
+        {destination && (
+          <Marker
+            coordinate={{ latitude: destination.lat, longitude: destination.lng }}
+            title="Delivery destination"
+            description="Your address"
+            pinColor="#ef4444"
+          />
+        )}
       </MapView>
 
       {/* ── Status Card ──────────────────────────────────────────────────── */}
       <View style={styles.card}>
         <Text style={styles.orderId}>Order #{orderId.slice(0, 8)}</Text>
         <Text style={styles.statusLabel}>{STATUS_LABELS[status]}</Text>
+        {etaMinutes != null && !completed && (
+          <Text style={styles.eta}>ETA: {etaMinutes} min</Text>
+        )}
         {!driverLocation && !completed && (
           <Text style={styles.hint}>Waiting for driver to be assigned…</Text>
         )}
@@ -156,6 +202,12 @@ const styles = StyleSheet.create({
     marginTop: theme.spacing.s,
     fontSize: theme.typography.size.m,
     color: theme.colors.success,
+    fontFamily: theme.typography.fontFamily.medium,
+  },
+  eta: {
+    marginTop: theme.spacing.xs,
+    fontSize: theme.typography.size.m,
+    color: theme.colors.primary,
     fontFamily: theme.typography.fontFamily.medium,
   },
 });

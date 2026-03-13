@@ -52,7 +52,7 @@ export const usePushNotifications = () => {
         // ── 2. Get & register FCM token ──────────────────────────────────────
         if (!isRegistered.current) {
           const token = await messaging().getToken();
-          await api.post('auth/fcm-token', { token });
+          await api.patch('/users/fcm-token', { token });
           isRegistered.current = true;
           console.log('[Push] Token registered');
         }
@@ -66,7 +66,7 @@ export const usePushNotifications = () => {
     // ── 3. Token refresh ─────────────────────────────────────────────────────
     const unsubRefresh = messaging().onTokenRefresh(async (token) => {
       try {
-        await api.post('auth/fcm-token', { token });
+        await api.patch('/users/fcm-token', { token });
         console.log('[Push] Token refreshed + re-registered');
       } catch (err) {
         console.warn('[Push] Token refresh registration failed:', err);

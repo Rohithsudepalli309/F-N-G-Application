@@ -11,6 +11,7 @@ import {
 import { useNavigation, useFocusEffect } from '@react-navigation/native';
 import { api } from '../services/api';
 import { theme } from '../theme';
+import { socketService } from '../services/socket';
 
 interface Notification {
   id: string;
@@ -67,6 +68,29 @@ export const NotificationsScreen = () => {
       setNotifications(p => p.map(n => ({ ...n, is_read: true })));
     } catch {}
   };
+
+  const clearRead = async () => {
+    try {
+      await api.delete('/notifications/clear');
+      setNotifications((prev) => prev.filter((n) => !n.is_read));
+    } catch {}
+  };
+
+  useEffect(() => {
+    const refresh = () => {
+      fetchNotifications();
+    };
+
+    socketService.on('notification:new', refresh);
+    socketService.on('notification', refresh);
+    socketService.on('notifications:update', refresh);
+
+    return () => {
+      socketService.off('notification:new');
+      socketService.off('notification');
+      socketService.off('notifications:update');
+    };
+  }, []);
 
   const handleTap = (notif: Notification) => {
     // Mark single as read
@@ -125,6 +149,12 @@ export const NotificationsScreen = () => {
         {unreadCount === 0 && <View style={{ width: 60 }} />}
       </View>
 
+      <View style={styles.actionsRow}>
+        <TouchableOpacity onPress={clearRead} style={styles.clearBtn}>
+          <Text style={styles.clearBtnText}>Clear Read</Text>
+        </TouchableOpacity>
+      </View>
+
       {loading ? (
         <View style={styles.center}>
           <ActivityIndicator size="large" color={theme.colors.primary} />
@@ -174,6 +204,25 @@ const styles = StyleSheet.create({
   },
   unreadBadgeText: { color: '#fff', fontSize: 11, fontWeight: '800' },
   readAllText: { color: '#163D26', fontWeight: '600', fontSize: 13 },
+  actionsRow: {
+    paddingHorizontal: 16,
+    paddingTop: 10,
+    paddingBottom: 4,
+    alignItems: 'flex-end',
+  },
+  clearBtn: {
+    borderWidth: 1,
+    borderColor: '#D1D5DB',
+    borderRadius: 8,
+    paddingHorizontal: 10,
+    paddingVertical: 6,
+    backgroundColor: '#fff',
+  },
+  clearBtnText: {
+    fontSize: 12,
+    fontWeight: '600',
+    color: '#374151',
+  },
   center: { flex: 1, alignItems: 'center', justifyContent: 'center' },
   list: { paddingVertical: 8, paddingHorizontal: 0, paddingBottom: 40 },
 

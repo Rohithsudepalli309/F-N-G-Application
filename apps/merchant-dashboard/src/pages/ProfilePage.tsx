@@ -12,6 +12,9 @@ interface ProfileData {
   ownerName: string;
   email: string;
   phone: string;
+  businessOpen: string;
+  businessClose: string;
+  closedDays: string;
 }
 
 const FIELD_DEFAULTS: ProfileData = {
@@ -23,6 +26,9 @@ const FIELD_DEFAULTS: ProfileData = {
   ownerName: '',
   email: '',
   phone: '',
+  businessOpen: '',
+  businessClose: '',
+  closedDays: '',
 };
 
 export default function ProfilePage() {
@@ -51,6 +57,9 @@ export default function ProfilePage() {
           ownerName:       s.owner_name ?? '',
           email:           s.email ?? '',
           phone:           s.phone ?? '',
+          businessOpen:    s.business_hours?.open ?? '',
+          businessClose:   s.business_hours?.close ?? '',
+          closedDays:      Array.isArray(s.business_hours?.closedDays) ? s.business_hours.closedDays.join(', ') : '',
         });
       } catch {
         toast('error', 'Could not load profile.');
@@ -75,6 +84,16 @@ export default function ProfilePage() {
                            : undefined,
         ownerName:       form.ownerName.trim()       || undefined,
         phone:           form.phone.trim()           || undefined,
+        businessHours:
+          form.businessOpen || form.businessClose || form.closedDays
+            ? {
+                open: form.businessOpen || undefined,
+                close: form.businessClose || undefined,
+                closedDays: form.closedDays
+                  ? form.closedDays.split(',').map((d) => d.trim()).filter(Boolean)
+                  : [],
+              }
+            : undefined,
       };
       const { data } = await api.patch('/merchant/profile', payload);
       const s = data.store;
@@ -84,6 +103,11 @@ export default function ProfilePage() {
         ownerName:  s.owner_name ?? f.ownerName,
         phone:      s.phone ?? f.phone,
         imageUrl:   s.image_url ?? f.imageUrl,
+        businessOpen: s.business_hours?.open ?? f.businessOpen,
+        businessClose: s.business_hours?.close ?? f.businessClose,
+        closedDays: Array.isArray(s.business_hours?.closedDays)
+          ? s.business_hours.closedDays.join(', ')
+          : f.closedDays,
       }));
       toast('success', 'Profile saved successfully.');
     } catch {
@@ -141,6 +165,38 @@ export default function ProfilePage() {
                 <option value="tools">Tools &amp; Hardware</option>
                 <option value="household">Household</option>
               </select>
+            </div>
+          </div>
+
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+            <div>
+              <label className="block text-xs font-medium text-slate-400 mb-1.5">Opens At</label>
+              <input
+                className="input w-full"
+                type="time"
+                value={form.businessOpen}
+                onChange={set('businessOpen')}
+                title="Business opening time"
+              />
+            </div>
+            <div>
+              <label className="block text-xs font-medium text-slate-400 mb-1.5">Closes At</label>
+              <input
+                className="input w-full"
+                type="time"
+                value={form.businessClose}
+                onChange={set('businessClose')}
+                title="Business closing time"
+              />
+            </div>
+            <div>
+              <label className="block text-xs font-medium text-slate-400 mb-1.5">Closed Days</label>
+              <input
+                className="input w-full"
+                value={form.closedDays}
+                onChange={set('closedDays')}
+                placeholder="Sun, Tue"
+              />
             </div>
           </div>
 

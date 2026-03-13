@@ -1,5 +1,5 @@
 import React, { useEffect, useState, useCallback } from 'react';
-import { TrendingUp, Package, IndianRupee, Store, Loader2, RefreshCw } from 'lucide-react';
+import { TrendingUp, Package, IndianRupee, Store, Loader2, RefreshCw, Download } from 'lucide-react';
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer } from 'recharts';
 import api from '../services/api';
 
@@ -12,25 +12,56 @@ export const AnalyticsPage: React.FC = () => {
   const [stats, setStats] = useState({ ordersToday: 0, totalCustomers: 0, totalDrivers: 0, revenueToday: 0 });
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
+  const [startDate, setStartDate] = useState('');
+  const [endDate, setEndDate] = useState('');
 
   const fetchData = useCallback(async (silent = false) => {
     if (!silent) setLoading(true);
     else setRefreshing(true);
     try {
-      const [analyticsRes, statsRes] = await Promise.all([
-        api.get('/admin/analytics'),
+      const params = new URLSearchParams();
+      if (startDate) params.set('startDate', startDate);
+      if (endDate) params.set('endDate', endDate);
+      const qs = params.toString();
+
+      const [analyticsRes, statsRes, adminStatsRes] = await Promise.all([
+        api.get(`/admin/analytics${qs ? `?${qs}` : ''}`),
+        api.get(`/analytics/stats${qs ? `?${qs}` : ''}`),
         api.get('/admin/stats'),
       ]);
-      setDaily(analyticsRes.data.daily ?? []);
+      setDaily(statsRes.data.chartData ?? analyticsRes.data.daily ?? []);
       setTopStores(analyticsRes.data.topStores ?? []);
-      setStats(statsRes.data);
+      setStats({
+        ordersToday: statsRes.data.totalOrders ?? statsRes.data.ordersToday ?? 0,
+        totalCustomers: adminStatsRes.data.totalCustomers ?? statsRes.data.totalCustomers ?? 0,
+        totalDrivers: statsRes.data.activeDrivers ?? statsRes.data.totalDrivers ?? 0,
+        revenueToday: statsRes.data.dailyRevenue ?? statsRes.data.revenueToday ?? 0,
+      });
     } finally {
       setLoading(false);
       setRefreshing(false);
     }
-  }, []);
+  }, [startDate, endDate]);
 
   useEffect(() => { fetchData(false); }, [fetchData]);
+
+  const exportCsv = async () => {
+    const params = new URLSearchParams();
+    if (startDate) params.set('startDate', startDate);
+    if (endDate) params.set('endDate', endDate);
+    const qs = params.toString();
+    const res = await api.get(`/analytics/export/orders${qs ? `?${qs}` : ''}`, {
+      responseType: 'blob',
+    });
+    const blobUrl = window.URL.createObjectURL(new Blob([res.data], { type: 'text/csv' }));
+    const link = document.createElement('a');
+    link.href = blobUrl;
+    link.download = 'fng-orders.csv';
+    document.body.appendChild(link);
+    link.click();
+    link.remove();
+    window.URL.revokeObjectURL(blobUrl);
+  };
 
   const metricCards = [
     { label: 'Orders Today', value: stats.ordersToday, icon: Package, color: 'text-blue-600', bg: 'bg-blue-50' },
@@ -54,14 +85,37 @@ export const AnalyticsPage: React.FC = () => {
           <h2 className="text-2xl font-bold text-slate-800">Analytics</h2>
           <p className="text-sm text-slate-500 mt-1">Revenue and performance overview</p>
         </div>
-        <button
-          onClick={() => fetchData(true)}
-          disabled={refreshing}
-          className="flex items-center gap-1.5 text-xs font-medium px-3 py-1.5 rounded-lg border border-gray-200 hover:bg-gray-50 transition-colors disabled:opacity-50"
-        >
-          <RefreshCw size={13} className={refreshing ? 'animate-spin' : ''} />
-          {refreshing ? 'Refreshing…' : 'Refresh'}
-        </button>
+        <div className="flex items-center gap-2">
+          <input
+            type="date"
+            value={startDate}
+            onChange={(e) => setStartDate(e.target.value)}
+            className="px-2 py-1.5 text-xs border border-gray-200 rounded-lg"
+            aria-label="Start date"
+          />
+          <input
+            type="date"
+            value={endDate}
+            onChange={(e) => setEndDate(e.target.value)}
+            className="px-2 py-1.5 text-xs border border-gray-200 rounded-lg"
+            aria-label="End date"
+          />
+          <button
+            onClick={exportCsv}
+            className="flex items-center gap-1.5 text-xs font-medium px-3 py-1.5 rounded-lg border border-emerald-200 text-emerald-700 hover:bg-emerald-50 transition-colors"
+          >
+            <Download size={13} />
+            Export CSV
+          </button>
+          <button
+            onClick={() => fetchData(true)}
+            disabled={refreshing}
+            className="flex items-center gap-1.5 text-xs font-medium px-3 py-1.5 rounded-lg border border-gray-200 hover:bg-gray-50 transition-colors disabled:opacity-50"
+          >
+            <RefreshCw size={13} className={refreshing ? 'animate-spin' : ''} />
+            {refreshing ? 'Refreshing…' : 'Refresh'}
+          </button>
+        </div>
       </div>
 
       {/* KPI Cards */}

@@ -77,6 +77,9 @@ export function initSocket(httpServer: HttpServer): SocketServer {
     const userId: number = socket.data.id;
     const role: string   = socket.data.role;
 
+    // Every authenticated client joins a stable user room for personal events.
+    socket.join(`user:${userId}`);
+
     // Lookup drivers.id once at connection for FK correctness in delivery_tracking
     let driverId: number | null = null;
     if (role === 'driver') {
