@@ -6,6 +6,10 @@ import { sendPushToUser } from '../services/fcm';
 import { notifyUser } from '../services/notify';
 import { redis, DRIVER_GEO_KEY } from '../redis';
 import { getRoadDistance } from '../services/routing';
+import { validate, schemas } from '../utils/validation';
+
+const router = Router();
+router.use(requireAuth, requireRole(['driver', 'admin']));
 
 // Haversine great-circle distance (km)
 function haversineKm(lat1: number, lng1: number, lat2: number, lng2: number): number {

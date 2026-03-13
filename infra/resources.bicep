@@ -14,6 +14,17 @@ resource logAnalyticsWorkspace 'Microsoft.OperationalInsights/workspaces@2021-06
   }
 }
 
+resource applicationInsights 'Microsoft.Insights/components@2020-02-02' = {
+  name: 'app-insights-${resourceToken}'
+  location: location
+  tags: tags
+  kind: 'web'
+  properties: {
+    Application_Type: 'web'
+    WorkspaceResourceId: logAnalyticsWorkspace.id
+  }
+}
+
 resource containerAppsEnv 'Microsoft.App/managedEnvironments@2022-03-01' = {
   name: 'cae-${resourceToken}'
   location: location
@@ -46,6 +57,10 @@ resource backendApp 'Microsoft.App/containerApps@2022-03-01' = {
           name: 'db-url'
           value: 'postgres://fng:password@db-host:5432/fng'
         }
+        {
+          name: 'app-insights-connection-string'
+          value: applicationInsights.properties.ConnectionString
+        }
       ]
     }
     template: {
@@ -57,6 +72,10 @@ resource backendApp 'Microsoft.App/containerApps@2022-03-01' = {
             {
               name: 'DATABASE_URL'
               secretRef: 'db-url'
+            }
+            {
+              name: 'APPLICATIONINSIGHTS_CONNECTION_STRING'
+              secretRef: 'app-insights-connection-string'
             }
           ]
           resources: {

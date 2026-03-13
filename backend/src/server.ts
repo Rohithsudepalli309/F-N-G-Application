@@ -39,6 +39,7 @@ import referralsRouter     from './routes/referrals';
 import productsRouter      from './routes/products';
 import paymentMethodsRouter from './routes/paymentMethods';
 import walletRouter         from './routes/wallet';
+import { errorHandler }     from './middleware/errorHandler';
 
 const app = express();
 const server = http.createServer(app);
@@ -98,7 +99,18 @@ const authLimiter = rateLimit({
   message: { error: 'Too many requests, please try again later.' },
   store: makeRedisStore(),
 });
+
+// Search rate-limit (60 req/min)
+const searchLimiter = rateLimit({
+  windowMs: 60 * 1000,
+  max: 60,
+  message: { error: 'Search limit exceeded. Please wait a moment.' },
+  store: makeRedisStore(),
+});
+
 app.use('/api/v1/auth', authLimiter);
+app.use('/api/v1/stores/search', searchLimiter);
+app.use('/api/v1/products/search', searchLimiter);
 
 // ── Routes ─────────────────────────────────────────────────────────────────
 app.use('/api/v1/auth',           authRouter);
@@ -131,14 +143,7 @@ app.use((_req, res) => {
 });
 
 // ── Error handler ─────────────────────────────────────────────────────────
-app.use((err: Error, req: express.Request, res: express.Response, _next: express.NextFunction) => {
-  logger.error('Unhandled request error', {
-    requestId: (req as express.Request & { requestId?: string }).requestId,
-    error: err.message,
-    stack: err.stack,
-  });
-  res.status(500).json({ error: 'Internal server error' });
-});
+app.use(errorHandler);
 
 // ── Start ─────────────────────────────────────────────────────────────────
 const PORT = Number(process.env.PORT ?? 3002);

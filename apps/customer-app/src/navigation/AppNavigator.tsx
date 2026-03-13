@@ -6,7 +6,7 @@
  *   Each tab has its own nested Stack.
  */
 import React from 'react';
-import { View, Text, TouchableOpacity, StyleSheet, Platform } from 'react-native';
+import { View, Text, TouchableOpacity, StyleSheet, Platform, Linking } from 'react-native';
 import { NavigationContainer } from '@react-navigation/native';
 import { navigationRef } from './navigationRef';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
@@ -16,6 +16,31 @@ import { useUIStore } from '../store/useUIStore';
 import { useCartStore } from '../store/useCartStore';
 import { useGroceryCartStore } from '../store/useGroceryCartStore';
 import { theme } from '../theme';
+
+// Deep Linking Configuration
+const linking = {
+  prefixes: ['fng://', 'https://fng.app', 'https://*.fng.app'],
+  config: {
+    screens: {
+      MainTabs: {
+        screens: {
+          HomeTab: {
+            screens: {
+              Store: 'store/:storeId',
+              ProductList: 'category/:categoryId',
+            },
+          },
+          OrdersTab: {
+            screens: {
+              OrderTracking: 'track/:orderId',
+              OrderDetail: 'order/:orderId',
+            },
+          },
+        },
+      },
+    },
+  },
+};
 
 // ─── Auth Screens ─────────────────────────────────────────────────────────────
 import { SplashScreen } from '../screens/SplashScreen';
@@ -261,7 +286,7 @@ export const AppNavigator = () => {
   const isAuthenticated = useAuthStore((state) => state.isAuthenticated);
 
   return (
-    <NavigationContainer ref={navigationRef}>
+    <NavigationContainer ref={navigationRef} linking={linking}>
       <RootStack.Navigator screenOptions={NO_HEADER}>
         {!isAuthenticated ? (
           <RootStack.Screen name="Auth" component={AuthStackNav} />

@@ -1,0 +1,27 @@
+{
+  "common": {
+    "welcome": "Welcome to F&G",
+    "retry": "Retry",
+    "cancel": "Cancel",
+    "save": "Save",
+    "search_placeholder": "Search for food, groceries and more"
+  },
+  "auth": {
+    "login": "Login or Signup",
+    "enter_phone": "Enter your phone number",
+    "send_otp": "Send OTP",
+    "verify_otp": "Verify OTP"
+  },
+  "order": {
+    "tracking": "Track your order",
+    "details": "Order Details",
+    "items": "Items",
+    "total": "Total",
+    "placed": "Order Placed",
+    "confirmed": "Confirmed",
+    "preparing": "Preparing",
+    "ready": "Ready for Pickup",
+    "out_for_delivery": "Out for Delivery",
+    "delivered": "Delivered"
+  }
+}

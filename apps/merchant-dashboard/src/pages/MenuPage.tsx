@@ -3,6 +3,7 @@ import { clsx } from 'clsx';
 import { Search, ToggleLeft, ToggleRight, Package, RefreshCw, AlertCircle, Plus, Pencil, Trash2, X } from 'lucide-react';
 import api from '../services/api';
 import { useToast } from '../components/Toast';
+import { DashboardSkeleton } from '../components/Skeletons';
 
 interface Product {
   id: string;
@@ -149,8 +150,8 @@ export default function MenuPage() {
     <div className="p-6 space-y-6 animate-fade-in">
       <div className="flex items-center justify-between flex-wrap gap-3">
         <div>
-          <h1 className="text-2xl font-bold text-slate-100">Menu</h1>
-          <p className="text-sm text-slate-400">{products.length} items in your store</p>
+          <h1 className="text-2xl font-bold text-slate-800 dark:text-slate-100">Menu</h1>
+          <p className="text-sm text-slate-500 dark:text-slate-400">{products.length} items in your store</p>
         </div>
         <div className="flex items-center gap-3">
           <button onClick={fetchMenu} className="btn-secondary flex items-center gap-2 text-sm">
@@ -176,11 +177,9 @@ export default function MenuPage() {
       </div>
 
       {loading ? (
-        <div className="flex items-center justify-center py-20">
-          <RefreshCw size={28} className="animate-spin text-emerald-500" />
-        </div>
+        <DashboardSkeleton />
       ) : filtered.length === 0 ? (
-        <div className="flex flex-col items-center justify-center py-20 text-slate-500">
+        <div className="flex flex-col items-center justify-center py-20 text-slate-400 dark:text-slate-500">
           <Package size={48} className="mb-3 opacity-30" />
           <p className="text-lg font-medium">No products found</p>
         </div>
@@ -188,10 +187,10 @@ export default function MenuPage() {
         <div className="space-y-8">
           {Object.entries(grouped).map(([category, items]) => (
             <section key={category}>
-              <h2 className="text-xs font-semibold uppercase tracking-widest text-slate-500 mb-3 flex items-center gap-2">
-                <span className="w-4 h-px bg-slate-700" />
+              <h2 className="text-xs font-semibold uppercase tracking-widest text-slate-500 dark:text-slate-500 mb-3 flex items-center gap-2">
+                <span className="w-4 h-px bg-slate-200 dark:bg-slate-700" />
                 {category}
-                <span className="text-slate-600">({items.length})</span>
+                <span className="text-slate-400 dark:text-slate-600">({items.length})</span>
               </h2>
 
               <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
@@ -204,7 +203,7 @@ export default function MenuPage() {
                     )}
                   >
                     {/* Image */}
-                    <div className="relative w-full h-28 rounded-lg overflow-hidden bg-slate-900">
+                    <div className="relative w-full h-28 rounded-lg overflow-hidden bg-slate-100 dark:bg-slate-900">
                       {product.image_url ? (
                         <img
                           src={product.image_url}
@@ -212,7 +211,7 @@ export default function MenuPage() {
                           className="w-full h-full object-cover"
                         />
                       ) : (
-                        <div className="w-full h-full flex items-center justify-center text-slate-700">
+                        <div className="w-full h-full flex items-center justify-center text-slate-300 dark:text-slate-700">
                           <Package size={32} />
                         </div>
                       )}
@@ -229,18 +228,18 @@ export default function MenuPage() {
 
                     {/* Info */}
                     <div className="flex-1">
-                      <p className="font-medium text-slate-100 text-sm leading-snug">
+                      <p className="font-medium text-slate-800 dark:text-slate-100 text-sm leading-snug">
                         {product.name}
                       </p>
                       {product.brand && (
-                        <p className="text-xs text-slate-500 mt-0.5">{product.brand}</p>
+                        <p className="text-xs text-slate-500 dark:text-slate-500 mt-0.5">{product.brand}</p>
                       )}
                       <div className="flex items-center gap-2 mt-1.5">
-                        <span className="text-emerald-400 font-semibold text-sm">
+                        <span className="text-emerald-600 dark:text-emerald-400 font-semibold text-sm">
                           {fmt(product.price)}
                         </span>
                         {product.original_price && product.original_price > product.price && (
-                          <span className="text-slate-600 line-through text-xs">
+                          <span className="text-slate-400 dark:text-slate-600 line-through text-xs">
                             {fmt(product.original_price)}
                           </span>
                         )}
@@ -249,7 +248,7 @@ export default function MenuPage() {
 
                     {/* Stock warning */}
                     {product.stock < 5 && product.is_available && (
-                      <div className="flex items-center gap-1.5 text-xs text-red-300 bg-red-500/10 px-2.5 py-1.5 rounded-lg border border-red-500/25">
+                      <div className="flex items-center gap-1.5 text-xs text-red-600 dark:text-red-300 bg-red-500/10 px-2.5 py-1.5 rounded-lg border border-red-500/25">
                         <AlertCircle size={12} />
                         Only {product.stock} left
                       </div>
@@ -262,8 +261,8 @@ export default function MenuPage() {
                       className={clsx(
                         'flex items-center justify-between px-3 py-2 rounded-lg border text-sm font-medium transition-all',
                         product.is_available
-                          ? 'bg-emerald-500/10 border-emerald-500/30 text-emerald-400 hover:bg-emerald-500/20'
-                          : 'bg-slate-800 border-slate-700 text-slate-500 hover:border-slate-600'
+                          ? 'bg-emerald-500/5 border-emerald-500/20 dark:bg-emerald-500/10 dark:border-emerald-500/30 text-emerald-600 dark:text-emerald-400 hover:bg-emerald-500/10 dark:hover:bg-emerald-500/20'
+                          : 'bg-slate-50 dark:bg-slate-800 border-slate-200 dark:border-slate-700 text-slate-500 hover:border-slate-300 dark:hover:border-slate-600'
                       )}
                     >
                       <span>{product.is_available ? 'Available' : 'Unavailable'}</span>
@@ -278,14 +277,14 @@ export default function MenuPage() {
                     <div className="flex gap-2">
                       <button
                         onClick={() => openEdit(product)}
-                        className="flex-1 flex items-center justify-center gap-1.5 px-3 py-2 rounded-lg border border-slate-700 text-slate-400 hover:border-slate-500 hover:text-slate-200 text-xs font-medium transition-all"
+                        className="flex-1 flex items-center justify-center gap-1.5 px-3 py-2 rounded-lg border border-slate-200 dark:border-slate-700 text-slate-500 dark:text-slate-400 hover:border-slate-400 dark:hover:border-slate-500 hover:text-slate-800 dark:hover:text-slate-200 text-xs font-medium transition-all"
                       >
                         <Pencil size={13} /> Edit
                       </button>
                       <button
                         onClick={() => handleDelete(product.id)}
                         disabled={deleting === product.id}
-                        className="flex items-center justify-center gap-1.5 px-3 py-2 rounded-lg border border-red-900/50 text-red-500 hover:bg-red-500/10 text-xs font-medium transition-all disabled:opacity-40"
+                        className="flex items-center justify-center gap-1.5 px-3 py-2 rounded-lg border border-red-200 dark:border-red-900/50 text-red-500 hover:bg-red-500/10 text-xs font-medium transition-all disabled:opacity-40"
                       >
                         {deleting === product.id
                           ? <RefreshCw size={13} className="animate-spin" />
@@ -302,67 +301,67 @@ export default function MenuPage() {
 
       {/* ── Add / Edit Product Modal ─────────────────────────────── */}
       {showForm && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60">
-          <div className="w-full max-w-lg bg-slate-900 rounded-2xl border border-slate-800 shadow-2xl overflow-y-auto max-h-[90vh]">
-            <div className="flex items-center justify-between p-5 border-b border-slate-800">
-              <h2 className="text-lg font-bold text-slate-100">
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm">
+          <div className="w-full max-w-lg bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-2xl overflow-y-auto max-h-[90vh] animate-in zoom-in-95 duration-200">
+            <div className="flex items-center justify-between p-5 border-b border-slate-100 dark:border-slate-800">
+              <h2 className="text-lg font-bold text-slate-800 dark:text-slate-100">
                 {editProduct ? 'Edit Product' : 'Add New Product'}
               </h2>
-              <button onClick={() => setShowForm(false)} aria-label="Close" className="text-slate-500 hover:text-slate-200 transition-colors">
+              <button onClick={() => setShowForm(false)} aria-label="Close" className="text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 transition-colors">
                 <X size={20} />
               </button>
             </div>
 
             <div className="p-5 space-y-4">
               <div>
-                <label className="text-xs font-semibold text-slate-400 uppercase tracking-wide mb-1.5 block">Product Name *</label>
+                <label className="text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wide mb-1.5 block">Product Name *</label>
                 <input className="input w-full" placeholder="e.g. Alphonso Mango" value={formData.name} onChange={(e) => setFormData(f => ({ ...f, name: e.target.value }))} />
               </div>
               <div>
-                <label className="text-xs font-semibold text-slate-400 uppercase tracking-wide mb-1.5 block">Description</label>
+                <label className="text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wide mb-1.5 block">Description</label>
                 <textarea className="input w-full h-20 resize-none" placeholder="Short description…" value={formData.description} onChange={(e) => setFormData(f => ({ ...f, description: e.target.value }))} />
               </div>
               <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <label className="text-xs font-semibold text-slate-400 uppercase tracking-wide mb-1.5 block">Price (₹) *</label>
+                  <label className="text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wide mb-1.5 block">Price (₹) *</label>
                   <input type="number" min="0" className="input w-full" placeholder="0" value={formData.price} onChange={(e) => setFormData(f => ({ ...f, price: e.target.value }))} />
                 </div>
                 <div>
-                  <label className="text-xs font-semibold text-slate-400 uppercase tracking-wide mb-1.5 block">Original Price (₹)</label>
+                  <label className="text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wide mb-1.5 block">Original Price (₹)</label>
                   <input type="number" min="0" className="input w-full" placeholder="0" value={formData.original_price} onChange={(e) => setFormData(f => ({ ...f, original_price: e.target.value }))} />
                 </div>
               </div>
               <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <label className="text-xs font-semibold text-slate-400 uppercase tracking-wide mb-1.5 block">Category</label>
+                  <label className="text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wide mb-1.5 block">Category</label>
                   <input className="input w-full" placeholder="e.g. Fresh, Snacks" value={formData.category} onChange={(e) => setFormData(f => ({ ...f, category: e.target.value }))} />
                 </div>
                 <div>
-                  <label className="text-xs font-semibold text-slate-400 uppercase tracking-wide mb-1.5 block">Brand</label>
+                  <label className="text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wide mb-1.5 block">Brand</label>
                   <input className="input w-full" placeholder="e.g. Fresho" value={formData.brand} onChange={(e) => setFormData(f => ({ ...f, brand: e.target.value }))} />
                 </div>
               </div>
               <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <label className="text-xs font-semibold text-slate-400 uppercase tracking-wide mb-1.5 block">Stock Qty</label>
+                  <label className="text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wide mb-1.5 block">Stock Qty</label>
                   <input type="number" min="0" className="input w-full" placeholder="0" value={formData.stock} onChange={(e) => setFormData(f => ({ ...f, stock: e.target.value }))} />
                 </div>
                 <div>
-                  <label className="text-xs font-semibold text-slate-400 uppercase tracking-wide mb-1.5 block">Unit</label>
+                  <label className="text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wide mb-1.5 block">Unit</label>
                   <input className="input w-full" placeholder="e.g. kg, pcs, L" value={formData.unit} onChange={(e) => setFormData(f => ({ ...f, unit: e.target.value }))} />
                 </div>
               </div>
               <div>
-                <label className="text-xs font-semibold text-slate-400 uppercase tracking-wide mb-1.5 block">Image URL</label>
+                <label className="text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wide mb-1.5 block">Image URL</label>
                 <input className="input w-full" placeholder="https://…" value={formData.image_url} onChange={(e) => setFormData(f => ({ ...f, image_url: e.target.value }))} />
               </div>
               <label className="flex items-center gap-3 cursor-pointer select-none">
                 <input type="checkbox" className="w-4 h-4 accent-emerald-500" checked={formData.is_veg} onChange={(e) => setFormData(f => ({ ...f, is_veg: e.target.checked }))} />
-                <span className="text-sm font-medium text-slate-300">Vegetarian / Vegan product</span>
+                <span className="text-sm font-medium text-slate-700 dark:text-slate-300">Vegetarian / Vegan product</span>
               </label>
             </div>
 
-            <div className="flex gap-3 p-5 border-t border-slate-800">
+            <div className="flex gap-3 p-5 border-t border-slate-100 dark:border-slate-800">
               <button onClick={() => setShowForm(false)} className="btn-secondary flex-1">Cancel</button>
               <button
                 onClick={handleSave}

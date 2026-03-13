@@ -3,9 +3,34 @@ import pool from '../db';
 import { requireAuth, requireRole, AuthRequest } from '../middleware/auth';
 import { io } from '../server';
 import { redis, DRIVER_GEO_KEY } from '../redis';
+import { validate, schemas } from '../utils/validation';
+import { AppError } from '../middleware/errorHandler';
 
 const router = Router();
-router.use(requireAuth, requireRole('merchant', 'admin'));
+router.use(requireAuth, requireRole(['merchant', 'admin']));
+
+// ─── Middleware: Ensure User Controls the Store ──────────────────────────
+async function authorizeStoreOwnership(req: AuthRequest, _res: any, next: any) {
+  const userId = req.user!.id;
+  const storeId = req.params.id || req.body.storeId;
+  
+  if (!storeId) return next();
+  
+  try {
+    const { rows } = await pool.query(
+      `SELECT owner_id FROM stores WHERE id = $1`,
+      [storeId]
+    );
+    
+    if (rows.length === 0) return next(new AppError('Store not found', 404));
+    if (rows[0].owner_id !== userId && req.user?.role !== 'admin') {
+      return next(new AppError('Access denied. You do not own this store.', 403));
+    }
+    next();
+  } catch (err) {
+    next(err);
+  }
+}
 
 // ─── Helper: dispatch order to nearest available driver ──────────────────
 async function assignNearestDriver(order: Record<string, unknown>): Promise<void> {

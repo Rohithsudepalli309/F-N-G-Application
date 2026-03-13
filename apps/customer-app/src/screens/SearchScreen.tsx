@@ -5,6 +5,7 @@ import {
   Keyboard, Dimensions, Image, ScrollView,
 } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
+import { useTranslation } from 'react-i18next';
 import { api } from '../services/api';
 import { theme } from '../theme';
 import { useGroceryCartStore } from '../store/useGroceryCartStore';
@@ -113,6 +114,7 @@ const mc = StyleSheet.create({
 
 export const SearchScreen = () => {
   const navigation = useNavigation<any>();
+  const { t } = useTranslation();
   const inputRef = useRef<TextInput>(null);
   const [query, setQuery]     = useState('');
   const [results, setResults] = useState<any[]>([]);
@@ -129,7 +131,8 @@ export const SearchScreen = () => {
     setLoading(true);
     setSearched(true);
     try {
-      const { data } = await api.get('/products', { params: { search: q.trim() } });
+      // Logic updated for Universal Search §4.3
+      const { data } = await api.get('/search', { params: { query: q.trim() } });
       setResults(Array.isArray(data) ? data : []);
     } catch { setResults([]); }
     finally { setLoading(false); }
@@ -157,7 +160,7 @@ export const SearchScreen = () => {
           <TextInput
             ref={inputRef}
             style={s.input}
-            placeholder="Search products, brands…"
+            placeholder={t('search_placeholder') || 'Search products, brands…'}
             placeholderTextColor="#9E9E9E"
             value={query}
             onChangeText={setQuery}

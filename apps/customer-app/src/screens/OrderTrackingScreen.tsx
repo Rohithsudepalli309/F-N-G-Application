@@ -6,7 +6,7 @@
  *  - Falls back to REST polling if socket drops.
  *  - Google Maps shows live driver marker + static destination.
  */
-import React, { useState, useCallback, useRef } from 'react';
+import React, { useState, useCallback, useRef, useEffect } from 'react';
 import {
   View,
   Text,
@@ -14,11 +14,15 @@ import {
   ActivityIndicator,
   AppState,
   AppStateStatus,
+  Share,
+  TouchableOpacity,
 } from 'react-native';
 import MapView, { Marker, PROVIDER_GOOGLE } from 'react-native-maps';
 import { useRoute } from '@react-navigation/native';
+import { useTranslation } from 'react-i18next';
 import { api } from '../services/api';
 import { theme } from '../theme';
+import { useOfflineOrderStore } from '../store/useOfflineOrderStore';
 import { useOrderSocket, LocationPayload, StatusPayload, OrderStatus } from '../hooks/useOrderSocket';
 
 const STATUS_LABELS: Record<OrderStatus, string> = {
@@ -36,6 +40,10 @@ const STATUS_LABELS: Record<OrderStatus, string> = {
 
 export const OrderTrackingScreen = () => {
   const route = useRoute();
+  const { t } = useTranslation();
+  const setCachedOrder = useOfflineOrderStore(s => s.setCachedOrder);
+  const cachedOrder = useOfflineOrderStore(s => s.cachedOrder);
+  
   // SAFE NAVIGATION: Ensure orderId defaults nicely and matches the expected format
   const params = route.params as { orderId: string } | undefined;
   const orderId = params?.orderId || 'DEMO-ORDER-000';
@@ -48,6 +56,30 @@ export const OrderTrackingScreen = () => {
   const [completed, setCompleted] = useState(false);
   const [loading, setLoading] = useState(false);
   const mapRef = useRef<MapView>(null);
+
+  // Sync with Offline Cache for resiliency §4.1
+  useEffect(() => {
+    if (orderId && status) {
+      setCachedOrder({
+        id: orderId,
+        status,
+        driverLocation: driverLocation || undefined,
+        destination: destination || undefined,
+        lastUpdated: Date.now()
+      });
+    }
+  }, [orderId, status, driverLocation, destination]);
+
+  const handleShare = async () => {
+    try {
+      await Share.share({
+        message: t('share_order_msg', { id: orderId }) || `Check out my order tracking: https://fng.app/track/${orderId}`,
+        url: `https://fng.app/track/${orderId}`
+      });
+    } catch (error) {
+      console.error('Sharing failed:', error);
+    }
+  };
 
   const calcDistanceKm = (aLat: number, aLng: number, bLat: number, bLng: number) => {
     const toRad = (deg: number) => (deg * Math.PI) / 180;

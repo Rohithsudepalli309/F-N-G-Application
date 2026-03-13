@@ -8,6 +8,7 @@ import { isEnabled } from '../services/featureFlags';
 import { earnPoints, redeemPoints } from '../services/loyalty';
 import { calculateLoyaltyBenefits } from '../services/loyaltyEngine';
 import { redis, DRIVER_GEO_KEY } from '../redis';
+import { validate, schemas } from '../utils/validation';
 
 const router = Router();
 router.use(requireAuth);
@@ -25,7 +26,7 @@ function generateDeliveryOtp(): string {
 }
 
 // ─── POST /orders ─── Place new order ─────────────────────────────────────
-router.post('/', async (req: AuthRequest, res) => {
+router.post('/', validate(schemas.orders.create), async (req: AuthRequest, res) => {
   const {
     storeId,
     items,           // [{ productId, quantity }]

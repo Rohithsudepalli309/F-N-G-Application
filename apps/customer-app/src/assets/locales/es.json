@@ -1,0 +1,27 @@
+{
+  "common": {
+    "welcome": "Bienvenido a F&G",
+    "retry": "Reintentar",
+    "cancel": "Cancelar",
+    "save": "Guardar",
+    "search_placeholder": "Buscar comida, comestibles y más"
+  },
+  "auth": {
+    "login": "Iniciar sesión o Registrarse",
+    "enter_phone": "Ingrese su número de teléfono",
+    "send_otp": "Enviar código OTP",
+    "verify_otp": "Verificar código OTP"
+  },
+  "order": {
+    "tracking": "Rastrea tu pedido",
+    "details": "Detalles del pedido",
+    "items": "Artículos",
+    "total": "Total",
+    "placed": "Pedido realizado",
+    "confirmed": "Confirmado",
+    "preparing": "Preparando",
+    "ready": "Listo para recoger",
+    "out_for_delivery": "En camino",
+    "delivered": "Entregado"
+  }
+}

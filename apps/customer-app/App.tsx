@@ -2,6 +2,7 @@ import React from 'react';
 import { StatusBar } from 'react-native';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { AppNavigator } from './src/navigation/AppNavigator';
+import './src/utils/i18n';
 import { socketService } from './src/services/socket';
 import { OtpNotification } from './src/components/OtpNotification';
 import { useAuthStore } from './src/store/useAuthStore';
