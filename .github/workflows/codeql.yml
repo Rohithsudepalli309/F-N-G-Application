@@ -1,0 +1,82 @@
+name: CodeQL
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+  schedule:
+    - cron: '0 3 * * 1'
+
+permissions:
+  contents: read
+  security-events: write
+
+jobs:
+  analyze:
+    name: CodeQL Analyze
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Initialize CodeQL
+        uses: github/codeql-action/init@v3
+        with:
+          languages: javascript
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+          cache-dependency-path: backend/package-lock.json
+
+      - name: Build backend
+        run: |
+          cd backend
+          npm ci
+          npm run build
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 9
+          run_install: false
+
+      - name: Cache pnpm store
+        id: pnpm-cache
+        run: echo "STORE=$(pnpm store path --silent)" >> $GITHUB_OUTPUT
+
+      - name: Cache pnpm modules
+        uses: actions/cache@v4
+        with:
+          path: ${{ steps.pnpm-cache.outputs.STORE }}
+          key: pnpm-codeql-${{ hashFiles('apps/admin-dashboard/pnpm-lock.yaml', 'apps/customer-app/pnpm-lock.yaml') }}
+          restore-keys: pnpm-codeql-
+
+      - name: Build admin dashboard
+        run: |
+          cd apps/admin-dashboard
+          pnpm install --frozen-lockfile
+          pnpm build
+        env:
+          VITE_API_URL: http://localhost:3002/api/v1
+
+      - name: Build merchant dashboard
+        run: |
+          cd apps/merchant-dashboard
+          pnpm install --frozen-lockfile
+          pnpm build
+        env:
+          VITE_API_URL: http://localhost:3002/api/v1
+          VITE_SOCKET_URL: http://localhost:3002
+
+      - name: Build customer app (type-check only)
+        run: |
+          cd apps/customer-app
+          pnpm install --frozen-lockfile
+          pnpm exec tsc --noEmit
+
+      - name: Perform CodeQL Analysis
+        uses: github/codeql-action/analyze@v3

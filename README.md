@@ -51,8 +51,14 @@ docker compose up -d
 #    Backend:  http://localhost:3002/health
 ```
 
-On **first boot** PostgreSQL auto-runs `backend/src/migrations/001_schema.sql`
+On **first boot** PostgreSQL auto-runs all SQL files in `backend/src/migrations/`
 via the Docker entrypoint — no manual migration step needed.
+
+If you pull new changes with additional migrations, run:
+
+```bash
+docker compose exec backend node migrate.js
+```
 
 To seed demo data (optional):
 
@@ -97,6 +103,13 @@ Seed default admin + demo data:
 
 ```bash
 npm run seed
+```
+
+Run integration tests (requires PostgreSQL + Redis running):
+
+```bash
+cd backend
+npm test
 ```
 
 Default admin credentials after seeding:
