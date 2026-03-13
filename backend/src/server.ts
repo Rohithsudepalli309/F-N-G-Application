@@ -39,6 +39,8 @@ import referralsRouter     from './routes/referrals';
 import productsRouter      from './routes/products';
 import paymentMethodsRouter from './routes/paymentMethods';
 import walletRouter         from './routes/wallet';
+import webhooksRouter       from './routes/webhooks';
+import waitlistRouter       from './routes/waitlist';
 import { errorHandler }     from './middleware/errorHandler';
 
 const app = express();
@@ -131,6 +133,8 @@ app.use('/api/v1/products',       productsRouter);
 app.use('/api/v1/grocery',        productsRouter);  // alias for categories endpoint
 app.use('/api/v1/payment-methods', paymentMethodsRouter);
 app.use('/api/v1/wallet',          walletRouter);
+app.use('/api/v1/webhooks',        webhooksRouter);
+app.use('/api/v1/waitlist',        waitlistRouter);
 
 // ── Health check ─────────────────────────────────────────────────────────
 app.get('/health', (_req, res) => {
