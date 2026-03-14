@@ -22,7 +22,9 @@ const DRIVER = {
 };
 
 describe('FleetManagement', () => {
-  beforeEach(() => vi.clearAllMocks());
+  beforeEach(() => {
+    vi.clearAllMocks();
+  });
 
   it('renders "Fleet Management" heading', async () => {
     mockApiGet.mockResolvedValueOnce({ data: [] });

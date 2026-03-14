@@ -26,7 +26,9 @@ const COUPON = {
 };
 
 describe('CouponsPage', () => {
-  beforeEach(() => vi.clearAllMocks());
+  beforeEach(() => {
+    vi.clearAllMocks();
+  });
 
   it('renders "Coupons & Offers" heading', async () => {
     mockApiGet.mockResolvedValueOnce({ data: { coupons: [] } });

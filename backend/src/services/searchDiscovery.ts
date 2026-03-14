@@ -4,7 +4,7 @@
  * Instant, typo-tolerant search across millions of menu items and stores.
  * Handles semantic relevance and popularity-based ranking.
  */
-import { PostgresClient } from '../db'; // Assuming standard DB export
+import pool from '../db';
 
 interface SearchResult {
   id: string;
@@ -12,7 +12,7 @@ interface SearchResult {
   type: 'store' | 'product';
   category: string;
   score: number;
-  metadata: Record<string, any>;
+  metadata: Record<string, unknown>;
 }
 
 export class SearchDiscoveryEngine {
@@ -23,7 +23,6 @@ export class SearchDiscoveryEngine {
   async search(query: string, location?: { lat: number, lng: number }): Promise<SearchResult[]> {
     if (!query || query.length < 2) return [];
 
-    const db = PostgresClient;
     const cleanQuery = query.trim().replace(/'/g, "''");
 
     const sql = `
@@ -53,8 +52,8 @@ export class SearchDiscoveryEngine {
     `;
 
     try {
-      const results = await db.query(sql, [cleanQuery]);
-      return results.rows;
+      const results = await pool.query<SearchResult>(sql, [cleanQuery]);
+      return results.rows as SearchResult[];
     } catch (err) {
       console.error('[Search] Error executing search:', err);
       // Fallback for missing tables in local dev
@@ -66,7 +65,6 @@ export class SearchDiscoveryEngine {
    * Typo-tolerant Suggester (Did you mean?)
    */
   async getSuggestions(partial: string): Promise<string[]> {
-    const db = PostgresClient;
     const sql = `
       SELECT DISTINCT name 
       FROM (
@@ -77,8 +75,8 @@ export class SearchDiscoveryEngine {
       LIMIT 5;
     `;
     try {
-      const { rows } = await db.query(sql, [partial]);
-      return rows.map(r => r.name);
+      const { rows } = await pool.query<{ name: string }>(sql, [partial]);
+      return rows.map((r) => r.name);
     } catch {
       return [];
     }
