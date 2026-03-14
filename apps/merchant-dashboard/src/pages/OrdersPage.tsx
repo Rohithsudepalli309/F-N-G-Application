@@ -253,18 +253,3 @@ export default function OrdersPage() {
     </div>
   );
 }
-
-
-              {order.status === 'ready' && (
-                <div className="mt-4 flex items-center gap-2 text-xs text-emerald-400 bg-emerald-500/10 rounded-lg px-3 py-2 border border-emerald-500/20">
-                  <Clock size={14} className="animate-pulse-dot" />
-                  Waiting for driver pickup
-                </div>
-              )}
-            </div>
-          ))}
-        </div>
-      )}
-    </div>
-  );
-}
