@@ -1,0 +1,13 @@
+{
+  "name": "fng-e2e-tests",
+  "private": true,
+  "version": "1.0.0",
+  "scripts": {
+    "test": "playwright test -c playwright.config.ts",
+    "test:headed": "playwright test -c playwright.config.ts --headed",
+    "test:ui": "playwright test -c playwright.config.ts --ui"
+  },
+  "devDependencies": {
+    "@playwright/test": "^1.53.2"
+  }
+}

@@ -1,6 +1,8 @@
 param location string
 param resourceToken string
 param tags object
+@secure()
+param databaseUrl string
 
 // ── Shared Infrastructure ────────────────────────────────────────────────
 resource logAnalyticsWorkspace 'Microsoft.OperationalInsights/workspaces@2021-06-01' = {
@@ -55,7 +57,7 @@ resource backendApp 'Microsoft.App/containerApps@2022-03-01' = {
       secrets: [
         {
           name: 'db-url'
-          value: 'postgres://fng:password@db-host:5432/fng'
+          value: databaseUrl
         }
         {
           name: 'app-insights-connection-string'

@@ -38,31 +38,3 @@ jobs:
           DATABASE_URL: postgres://user:pass@localhost:5432/fng_test
           REDIS_URL: redis://localhost:6379
           JWT_SECRET: "workflow_test_secret_32_chars_long"
-
-  deploy-to-azure:
-    needs: build-and-test
-    if: github.ref == 'refs/heads/main'
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-      
-      - name: Install azd
-        run: |
-          curl -fsSL https://aka.ms/install-azd.sh | bash
-
-      - name: Log in with Azure (Service Principal)
-        run: |
-          azd auth login \
-            --client-id ${{ secrets.AZURE_CLIENT_ID }} \
-            --client-secret ${{ secrets.AZURE_CLIENT_SECRET }} \
-            --tenant-id ${{ secrets.AZURE_TENANT_ID }}
-
-      - name: Provision Infrastructure
-        run: azd provision --no-prompt
-        env:
-          AZURE_ENV_NAME: ${{ vars.AZURE_ENV_NAME }}
-          AZURE_LOCATION: ${{ vars.AZURE_LOCATION }}
-          AZURE_SUBSCRIPTION_ID: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
-
-      - name: Deploy Services
-        run: azd deploy --no-prompt

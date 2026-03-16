@@ -155,3 +155,62 @@ jobs:
 
       - name: TypeScript check
         run: pnpm exec tsc --noEmit
+
+  # ── E2E (Dashboards) ───────────────────────────────────────────────────────
+  e2e:
+    name: E2E — Playwright smoke
+    runs-on: ubuntu-latest
+    needs: [admin-dashboard, merchant-dashboard]
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Node.js 20
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 9
+          run_install: false
+
+      - name: Install dashboard dependencies
+        run: |
+          pnpm --dir apps/admin-dashboard install --frozen-lockfile
+          pnpm --dir apps/merchant-dashboard install --frozen-lockfile
+
+      - name: Install e2e dependencies
+        run: |
+          cd tests
+          npm install
+
+      - name: Install Playwright browsers
+        run: |
+          cd tests
+          npx playwright install --with-deps chromium
+
+      - name: Run E2E tests
+        env:
+          E2E_ADMIN_URL: http://127.0.0.1:5173
+          E2E_MERCHANT_URL: http://127.0.0.1:5174
+        run: |
+          cd tests
+          npm test
+
+      - name: Upload Playwright report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: playwright-report
+          path: tests/playwright-report
+          if-no-files-found: ignore
+
+      - name: Upload Playwright artifacts
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: playwright-test-results
+          path: tests/test-results
+          if-no-files-found: ignore

@@ -9,6 +9,10 @@ param name string
 @description('Location for resources')
 param location string
 
+@secure()
+@description('Database connection string for the backend container app.')
+param databaseUrl string
+
 var resourceToken = toLower(uniqueString(subscription().id, name, location))
 var tags = { 'azd-env-name': name }
 
@@ -25,6 +29,7 @@ module resources 'resources.bicep' = {
     location: location
     resourceToken: resourceToken
     tags: tags
+    databaseUrl: databaseUrl
   }
 }
 
