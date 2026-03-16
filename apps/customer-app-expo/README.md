@@ -12,6 +12,14 @@ cd apps/customer-app-expo
 npm run start
 ```
 
+If you hit port conflicts, use the stable launcher:
+
+```bash
+npm run start:stable
+```
+
+This command frees common Metro/Expo ports (8081-8084) and starts Expo tunnel on fixed port 8081.
+
 3. Scan the QR code shown in the terminal or Expo DevTools.
 4. Keep VS Code open and edit App.tsx.
 5. Save and watch the app reload on your phone instantly.
@@ -20,6 +28,8 @@ npm run start
 
 ```bash
 npm run start
+npm run start:tunnel
+npm run start:stable
 npm run android
 npm run ios
 npm run web
