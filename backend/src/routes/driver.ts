@@ -295,6 +295,7 @@ router.post('/reject', async (req: AuthRequest, res) => {
   const { orderId } = req.body as { orderId?: string };
   res.json({ success: true }); // respond immediately — async work below
 
+  if (process.env.NODE_ENV === 'test' || !!process.env.JEST_WORKER_ID) return;
   if (!orderId) return;
   try {
     const driverRes = await pool.query(

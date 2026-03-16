@@ -22,7 +22,8 @@ export async function getUserPoints(userId: string): Promise<number> {
     `SELECT COALESCE(SUM(points), 0) as balance FROM loyalty_points WHERE user_id = $1`,
     [userId]
   );
-  return parseInt(result.rows[0].balance);
+  const balance = result.rows[0]?.balance;
+  return Number.parseInt(String(balance ?? '0'), 10) || 0;
 }
 
 /**

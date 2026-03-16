@@ -94,10 +94,11 @@ describe('GET /orders', () => {
     expect(res.status).toBe(200);
     expect(res.body).toHaveLength(1);
     const o = res.body[0];
-    expect(o.id).toBe('101');
-    expect(o.store_name).toBe('FNG Biryani');
-    expect(o.items_count).toBe(2);
-    expect(o.pickup_address).toMatchObject({ lat: 12.96, lng: 77.58 });
+    expect(o.id).toBe(101);
+    expect(o.storeName).toBe('FNG Biryani');
+    expect(o.itemCount).toBe(2);
+    expect(o.storeLat).toBe(12.96);
+    expect(o.storeLng).toBe(77.58);
   });
 });
 

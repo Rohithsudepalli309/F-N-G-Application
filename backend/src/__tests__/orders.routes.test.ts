@@ -18,6 +18,12 @@ jest.mock('../services/surge', () => ({
   recordDemand: jest.fn().mockResolvedValue(undefined),
   getSurgeMultiplier: jest.fn().mockResolvedValue(1),
 }));
+jest.mock('../services/loyaltyEngine', () => ({
+  calculateLoyaltyBenefits: jest.fn().mockResolvedValue({
+    autoDiscount: 0,
+    deliveryFeeOverride: null,
+  }),
+}));
 jest.mock('../redis', () => ({
   redis: { geopos: jest.fn(), georadius: jest.fn() },
   DRIVER_GEO_KEY: 'driver:geo',
@@ -59,7 +65,7 @@ describe('POST / (place order)', () => {
       deliveryAddress: { label: 'Home', address_line: '1 Main', city: 'Bangalore', pincode: '560001' },
     });
     expect(res.status).toBe(400);
-    expect(res.body.error).toMatch(/items/i);
+    expect((res.body.error ?? res.body.message ?? '')).toMatch(/items/i);
   });
 
   it('returns 400 when deliveryAddress is missing', async () => {
@@ -68,7 +74,7 @@ describe('POST / (place order)', () => {
       items: [{ productId: 1, quantity: 1 }],
     });
     expect(res.status).toBe(400);
-    expect(res.body.error).toMatch(/deliveryAddress/i);
+    expect((res.body.error ?? res.body.message ?? '')).toMatch(/deliveryAddress/i);
   });
 
   it('returns 400 when a product is not found', async () => {

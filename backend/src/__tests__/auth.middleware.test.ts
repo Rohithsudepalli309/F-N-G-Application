@@ -24,8 +24,8 @@ describe('requireAuth', () => {
     const res  = mockRes();
     const next = jest.fn() as NextFunction;
     requireAuth(req, res, next);
-    expect(res.status).toHaveBeenCalledWith(401);
-    expect(next).not.toHaveBeenCalled();
+    expect(res.status).not.toHaveBeenCalled();
+    expect(next).toHaveBeenCalledWith(expect.objectContaining({ statusCode: 401 }));
   });
 
   it('401 when header does not start with Bearer', () => {
@@ -33,8 +33,8 @@ describe('requireAuth', () => {
     const res  = mockRes();
     const next = jest.fn() as NextFunction;
     requireAuth(req, res, next);
-    expect(res.status).toHaveBeenCalledWith(401);
-    expect(next).not.toHaveBeenCalled();
+    expect(res.status).not.toHaveBeenCalled();
+    expect(next).toHaveBeenCalledWith(expect.objectContaining({ statusCode: 401 }));
   });
 
   it('401 when jwt.verify throws', () => {
@@ -43,8 +43,8 @@ describe('requireAuth', () => {
     const next = jest.fn() as NextFunction;
     mockJwt.verify.mockImplementation(() => { throw new Error('invalid signature'); });
     requireAuth(req, res, next);
-    expect(res.status).toHaveBeenCalledWith(401);
-    expect(next).not.toHaveBeenCalled();
+    expect(res.status).not.toHaveBeenCalled();
+    expect(next).toHaveBeenCalledWith(expect.objectContaining({ statusCode: 401 }));
   });
 
   it('sets req.user and calls next for a valid token', () => {
@@ -65,8 +65,8 @@ describe('requireRole', () => {
     const res  = mockRes();
     const next = jest.fn() as NextFunction;
     requireRole('admin')(req, res, next);
-    expect(res.status).toHaveBeenCalledWith(403);
-    expect(next).not.toHaveBeenCalled();
+    expect(res.status).not.toHaveBeenCalled();
+    expect(next).toHaveBeenCalledWith(expect.objectContaining({ statusCode: 403 }));
   });
 
   it('403 when req.user is missing', () => {
@@ -74,7 +74,8 @@ describe('requireRole', () => {
     const res  = mockRes();
     const next = jest.fn() as NextFunction;
     requireRole('driver')(req, res, next);
-    expect(res.status).toHaveBeenCalledWith(403);
+    expect(res.status).not.toHaveBeenCalled();
+    expect(next).toHaveBeenCalledWith(expect.objectContaining({ statusCode: 403 }));
   });
 
   it('calls next when single matching role', () => {

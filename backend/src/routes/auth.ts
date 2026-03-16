@@ -297,7 +297,11 @@ router.get('/me', requireAuth, async (req: AuthRequest, res) => {
   );
   const user = result.rows[0];
   if (user) {
-    user.loyaltyPoints = await getUserPoints(String(user.id));
+    try {
+      user.loyaltyPoints = await getUserPoints(String(user.id));
+    } catch {
+      user.loyaltyPoints = 0;
+    }
   }
   res.json({ user: user ?? null });
 });
