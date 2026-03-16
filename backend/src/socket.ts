@@ -54,7 +54,7 @@ export function initSocket(httpServer: HttpServer): SocketServer {
   // adapter and rely on Socket.IO's built-in single-process memory adapter.
   if (process.env.NODE_ENV === 'production') {
     const subClient = redis.duplicate();
-    subClient.on('error', (err) => console.error('[Redis/Sub]', err.message));
+    subClient.on('error', (err: Error) => console.error('[Redis/Sub]', err.message));
     io.adapter(createAdapter(redis, subClient));
   }
 

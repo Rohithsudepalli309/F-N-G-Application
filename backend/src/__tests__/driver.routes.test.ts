@@ -87,7 +87,7 @@ describe('GET /orders', () => {
           total_amount: 35000,
           delivery_address: { lat: 12.97, lng: 77.59, text: '123 Main St' },
           created_at: '2026-03-10T00:00:00Z', items_count: '2',
-          pickup_lat: 12.96, pickup_lng: 77.58, pickup_address_text: 'Store Addr',
+          store_lat: 12.96, store_lng: 77.58, store_address: 'Store Addr',
         }],
       });
     const res = await request(app).get('/orders');

@@ -31,6 +31,7 @@ jest.mock('../redis', () => ({
 
 import pool from '../db';
 import ordersRouter from '../routes/orders';
+import { errorHandler } from '../middleware/errorHandler';
 
 const mockQuery   = pool.query   as jest.Mock;
 const mockConnect = pool.connect as jest.Mock;
@@ -46,6 +47,7 @@ app.use((req: any, _res: any, next: any) => {
   next();
 });
 app.use('/', ordersRouter);
+app.use(errorHandler);
 
 function resetMocks() {
   mockQuery.mockReset().mockResolvedValue({ rows: [] });
@@ -126,6 +128,7 @@ describe('POST / (place order)', () => {
       .mockResolvedValueOnce({            // products
         rows: [{ id: 1, store_id: 1, name: 'Burger', price: 10000, is_available: true, stock: 5 }],
       })
+      .mockResolvedValueOnce({ rows: [] }) // pro subscription check
       .mockResolvedValueOnce({ rows: [] }); // coupon not found
     const res = await request(app).post('/').send({
       storeId: 1,
@@ -143,11 +146,12 @@ describe('POST / (place order)', () => {
       .mockResolvedValueOnce({            // products
         rows: [{ id: 1, store_id: 1, name: 'Burger', price: 10000, image_url: null, is_available: true, stock: 5 }],
       })
+      .mockResolvedValueOnce({ rows: [] }) // pro subscription check
       .mockResolvedValueOnce({ rows: [{ name: 'FNG Eats' }] }) // store name
-      .mockResolvedValueOnce({ rows: [{ id: 50, order_number: 'FNG-TEST-123', total_amount: 13000, status: 'placed', payment_method: 'cod' }] }) // INSERT order
+      .mockResolvedValueOnce({ rows: [{ id: 50, order_number: 'FNG-TEST-123', total_amount: 13625, status: 'placed', payment_method: 'cod' }] }) // INSERT order
       .mockResolvedValueOnce(undefined)   // INSERT order_item
       .mockResolvedValueOnce(undefined);  // COMMIT
-    mockQuery.mockResolvedValueOnce({ rows: [{ id: 50, order_number: 'FNG-TEST-123', total_amount: 13000, store_id: 1 }] }); // post-commit select
+    mockQuery.mockResolvedValueOnce({ rows: [{ id: 50, order_number: 'FNG-TEST-123', total_amount: 13625, store_id: 1 }] }); // post-commit select
 
     const res = await request(app).post('/').send({
       storeId: 1,

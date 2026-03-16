@@ -3,19 +3,52 @@ import Redis from 'ioredis';
 const url = process.env.REDIS_URL ?? 'redis://localhost:6379';
 const isTest = process.env.NODE_ENV === 'test' || !!process.env.JEST_WORKER_ID;
 
-export const redis = new Redis(url, {
-  lazyConnect: true,
-  maxRetriesPerRequest: 3,
-  retryStrategy: (times) => Math.min(times * 100, 3000),
-  enableOfflineQueue: true,
-});
+function createTestRedisMock() {
+  const base: any = {
+    on: () => base,
+    duplicate: () => base,
+    quit: async () => 'OK',
+    disconnect: () => undefined,
+    get: async () => null,
+    set: async () => 'OK',
+    del: async () => 0,
+    expire: async () => 1,
+    xadd: async () => '0-0',
+    xack: async () => 0,
+    xgroup: async () => 'OK',
+    xreadgroup: async () => [],
+    geoadd: async () => 1,
+    georadius: async () => [],
+    geopos: async () => [],
+    zadd: async () => 0,
+    zrem: async () => 0,
+    zrange: async () => [],
+    zremrangebyscore: async () => 0,
+  };
 
-redis.on('connect', () => console.log('[Redis] Connected'));
-redis.on('error', (err) => {
-  if (!isTest) {
+  return new Proxy(base, {
+    get(target, prop) {
+      if (prop in target) return target[prop as keyof typeof target];
+      return async () => null;
+    },
+  });
+}
+
+export const redis: any = isTest
+  ? createTestRedisMock()
+  : new Redis(url, {
+      lazyConnect: true,
+      maxRetriesPerRequest: 3,
+      retryStrategy: (times) => Math.min(times * 100, 3000),
+      enableOfflineQueue: true,
+    });
+
+if (!isTest) {
+  redis.on('connect', () => console.log('[Redis] Connected'));
+  redis.on('error', (err: Error) => {
     console.error('[Redis] Error:', err.message);
-  }
-});
+  });
+}
 
 // ── Key constants ──────────────────────────────────────────────────────────
 /** Sorted set of lat/lng for currently available drivers */
