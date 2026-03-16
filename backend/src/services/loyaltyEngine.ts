@@ -33,7 +33,7 @@ export async function calculateLoyaltyBenefits(userId: string, subtotal: number)
     `SELECT COUNT(*) FROM orders WHERE customer_id = $1 AND status = 'delivered'`,
     [userId]
   );
-  const completedCount = parseInt(orderCountRes.rows[0].count);
+  const completedCount = Number.parseInt(String(orderCountRes.rows[0]?.count ?? '0'), 10) || 0;
   if (completedCount > 0 && (completedCount + 1) % 5 === 0) {
     autoDiscount = Math.round(subtotal * 0.10);
     reason.push('Loyalty Streak: 10% Off on your 5th order!');

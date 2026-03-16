@@ -40,6 +40,7 @@ export const errorHandler = (err: any, req: Request, res: Response, next: NextFu
   if (err.isOperational) {
     return res.status(err.statusCode).json({
       status: err.status,
+      error: err.message,
       message: err.message
     });
   }
@@ -47,6 +48,7 @@ export const errorHandler = (err: any, req: Request, res: Response, next: NextFu
   // Programming or other unknown errors: don't leak details
   return res.status(500).json({
     status: 'error',
+    error: 'Something went very wrong!',
     message: 'Something went very wrong!'
   });
 };

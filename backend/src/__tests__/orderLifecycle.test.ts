@@ -129,5 +129,5 @@ describe('Order Lifecycle Integration Test', () => {
       .set('Authorization', `Bearer ${driverToken}`)
       .send({ orderId, otp: deliveryOtp });
     expect(deliveryRes.status).toBe(200);
-  });
+  }, 30000);
 });

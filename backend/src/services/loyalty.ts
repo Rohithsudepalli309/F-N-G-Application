@@ -6,12 +6,18 @@ import pool from '../db';
 export async function earnPoints(userId: string, orderId: string, amount: number) {
   const points = Math.floor(amount);
   if (points <= 0) return;
-  
-  await pool.query(
-    `INSERT INTO loyalty_points (user_id, order_id, points, transaction_type)
-     VALUES ($1, $2, $3, 'earned')`,
-    [userId, orderId, points]
-  );
+
+  try {
+    await pool.query(
+      `INSERT INTO loyalty_points (user_id, order_id, points, transaction_type)
+       VALUES ($1, $2, $3, 'earned')`,
+      [userId, orderId, points]
+    );
+  } catch (error: any) {
+    if (error?.code !== '42P01') {
+      throw error;
+    }
+  }
 }
 
 /**

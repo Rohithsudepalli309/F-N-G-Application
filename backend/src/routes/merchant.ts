@@ -247,15 +247,16 @@ router.patch('/orders/:id/status', async (req: AuthRequest, res) => {
     return;
   }
 
+  const safeStatus = newStatus;
   const result = await pool.query(
-    `UPDATE orders SET status=$1,
-       confirmed_at  = CASE WHEN $1='preparing' THEN NOW() ELSE confirmed_at END,
-       preparing_at  = CASE WHEN $1='preparing' THEN NOW() ELSE preparing_at END,
-       ready_at      = CASE WHEN $1='ready'     THEN NOW() ELSE ready_at     END,
-       cancelled_at  = CASE WHEN $1='cancelled' THEN NOW() ELSE cancelled_at END
-     WHERE id=$2 AND store_id=$3
+    `UPDATE orders SET status='${safeStatus}',
+       confirmed_at  = CASE WHEN '${safeStatus}'='preparing' THEN NOW() ELSE confirmed_at END,
+       preparing_at  = CASE WHEN '${safeStatus}'='preparing' THEN NOW() ELSE preparing_at END,
+       ready_at      = CASE WHEN '${safeStatus}'='ready'     THEN NOW() ELSE ready_at     END,
+       cancelled_at  = CASE WHEN '${safeStatus}'='cancelled' THEN NOW() ELSE cancelled_at END
+     WHERE id=$1 AND store_id=$2
      RETURNING *`,
-    [newStatus, id, storeId]
+    [Number(id), storeId]
   );
 
   if (result.rows.length === 0) {

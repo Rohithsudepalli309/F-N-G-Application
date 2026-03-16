@@ -1,6 +1,7 @@
 import Redis from 'ioredis';
 
 const url = process.env.REDIS_URL ?? 'redis://localhost:6379';
+const isTest = process.env.NODE_ENV === 'test' || !!process.env.JEST_WORKER_ID;
 
 export const redis = new Redis(url, {
   lazyConnect: true,
@@ -10,7 +11,11 @@ export const redis = new Redis(url, {
 });
 
 redis.on('connect', () => console.log('[Redis] Connected'));
-redis.on('error', (err) => console.error('[Redis] Error:', err.message));
+redis.on('error', (err) => {
+  if (!isTest) {
+    console.error('[Redis] Error:', err.message);
+  }
+});
 
 // ── Key constants ──────────────────────────────────────────────────────────
 /** Sorted set of lat/lng for currently available drivers */

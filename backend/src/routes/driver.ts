@@ -180,7 +180,7 @@ router.post('/accept', async (req: AuthRequest, res) => {
     // Check driver doesn't already have an active order
     const activeCheck = await client.query(
       `SELECT id FROM orders
-       WHERE driver_id=$1 AND status IN ('assigned','pickup','out_for_delivery')
+       WHERE driver_id=$1 AND status IN ('confirmed','assigned','pickup','out_for_delivery')
        LIMIT 1`,
       [driverId]
     );
@@ -192,7 +192,7 @@ router.post('/accept', async (req: AuthRequest, res) => {
 
     await client.query(
       `UPDATE orders
-       SET driver_id=$1, status='assigned', confirmed_at=NOW()
+       SET driver_id=$1, status='confirmed', confirmed_at=NOW()
        WHERE id=$2`,
       [driverId, orderId]
     );
@@ -308,7 +308,7 @@ router.post('/reject', async (req: AuthRequest, res) => {
     const revertRes = await pool.query(
       `UPDATE orders
        SET status='ready', driver_id=NULL
-       WHERE id=$1 AND driver_id=$2 AND status IN ('assigned','ready')
+       WHERE id=$1 AND driver_id=$2 AND status IN ('confirmed','assigned','ready')
        RETURNING id, store_id, store_name, total_amount, delivery_address, created_at`,
       [orderId, driverId]
     );
@@ -336,7 +336,7 @@ router.post('/reject', async (req: AuthRequest, res) => {
          AND d.id != $2
          AND NOT EXISTS (
            SELECT 1 FROM orders ao WHERE ao.driver_id=d.id
-             AND ao.status IN ('assigned','pickup','out_for_delivery')
+             AND ao.status IN ('confirmed','assigned','pickup','out_for_delivery')
          )
        LIMIT 3`,
       [nearbyRaw.map(Number), driverId]
@@ -385,20 +385,24 @@ router.post('/pickup', async (req: AuthRequest, res) => {
       res.status(404).json({ error: 'Order not found.' });
       return;
     }
-    if (order.driver_id !== driverId) {
+    if (order.driver_id !== null && order.driver_id !== driverId) {
       await client.query('ROLLBACK');
       res.status(403).json({ error: 'This order is not assigned to you.' });
       return;
     }
-    if (!['assigned', 'pickup'].includes(order.status)) {
+    if (!['ready', 'confirmed', 'assigned', 'pickup'].includes(order.status)) {
       await client.query('ROLLBACK');
       res.status(409).json({ error: `Cannot mark pickup for order in status '${order.status}'.` });
       return;
     }
 
     await client.query(
-      `UPDATE orders SET status='out_for_delivery', picked_at=NOW() WHERE id=$1`,
-      [orderId]
+      `UPDATE orders
+       SET status='out_for_delivery',
+           picked_at=NOW(),
+           driver_id=COALESCE(driver_id, $2)
+       WHERE id=$1`,
+      [orderId, driverId]
     );
 
     await client.query('COMMIT');
