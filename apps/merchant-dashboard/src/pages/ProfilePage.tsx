@@ -177,14 +177,16 @@ export default function ProfilePage() {
 
           <div>
             <div className="flex items-center justify-between mb-2">
-              <label className="text-xs font-medium text-slate-400">Merchant Prep Time (Estimated)</label>
+              <label htmlFor="prep-time-slider" className="text-xs font-medium text-slate-400">Merchant Prep Time (Estimated)</label>
               <span className="text-sm font-bold text-emerald-400">{form.estPrepTimeMin} mins</span>
             </div>
             <input
+              id="prep-time-slider"
               type="range"
               min="5"
               max="120"
               step="5"
+              title="Merchant preparation time slider"
               className="w-full accent-emerald-500 bg-slate-700 h-1.5 rounded-lg appearance-none cursor-pointer"
               value={form.estPrepTimeMin}
               onChange={(e) => setForm(f => ({ ...f, estPrepTimeMin: parseInt(e.target.value) }))}

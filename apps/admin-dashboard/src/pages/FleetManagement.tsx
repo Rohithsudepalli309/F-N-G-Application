@@ -91,7 +91,7 @@ export const FleetManagement = () => {
           <div className="bg-white rounded-xl shadow-xl w-full max-w-md p-6">
             <div className="flex items-center justify-between mb-5">
               <h3 className="text-lg font-bold text-slate-800">Register New Driver</h3>
-              <button onClick={() => setShowForm(false)} aria-label="Close" className="text-slate-400 hover:text-slate-600">
+              <button onClick={() => setShowForm(false)} aria-label="Close registration modal" title="Close registration modal" className="text-slate-400 hover:text-slate-600">
                 <X size={20} />
               </button>
             </div>
@@ -159,7 +159,7 @@ export const FleetManagement = () => {
           <div className="bg-white rounded-xl shadow-xl w-full max-w-2xl overflow-hidden">
             <div className="flex items-center justify-between p-6 border-b border-slate-100">
               <h3 className="text-xl font-bold text-slate-800">Review Driver KYC: {selectedDriver.name}</h3>
-              <button onClick={() => setSelectedDriver(null)} className="text-slate-400 hover:text-slate-600">
+              <button onClick={() => setSelectedDriver(null)} aria-label="Close KYC review" title="Close KYC review" className="text-slate-400 hover:text-slate-600">
                 <X size={24} />
               </button>
             </div>
