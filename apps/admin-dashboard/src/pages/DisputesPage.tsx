@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { AlertCircle, CheckCircle2, Search, Filter, MessageSquare, History, CreditCard, ExternalLink, RefreshCcw } from 'lucide-react';
 import api from '../services/api';
-import { useToast } from 'components/Toast';
+import { useToast } from '../components/Toast';
 
 interface Dispute {
   id: string;
