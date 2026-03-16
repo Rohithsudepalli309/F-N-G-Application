@@ -1,4 +1,5 @@
 import Redis from 'ioredis';
+import { logger } from './logger';
 
 const url = process.env.REDIS_URL ?? 'redis://localhost:6379';
 const isTest = process.env.NODE_ENV === 'test' || !!process.env.JEST_WORKER_ID;
@@ -44,9 +45,9 @@ export const redis: any = isTest
     });
 
 if (!isTest) {
-  redis.on('connect', () => console.log('[Redis] Connected'));
+  redis.on('connect', () => logger.info('[Redis] Connected'));
   redis.on('error', (err: Error) => {
-    console.error('[Redis] Error:', err.message);
+    logger.error('[Redis] Error', { message: err.message });
   });
 }
 

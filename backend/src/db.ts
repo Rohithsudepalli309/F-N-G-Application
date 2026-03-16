@@ -1,5 +1,6 @@
 import { Pool, QueryResultRow } from 'pg';
 import dotenv from 'dotenv';
+import { logger } from './logger';
 
 dotenv.config();
 
@@ -22,7 +23,7 @@ const pool = new Pool({
 });
 
 pool.on('error', (err) => {
-  console.error('[DB] Unexpected pool error:', err.message);
+  logger.error('[DB] Unexpected pool error', { message: err.message });
 });
 
 export default pool;

@@ -4,6 +4,12 @@ import pool from '../db';
 import { redis } from '../redis';
 
 describe('Order Lifecycle Integration Test', () => {
+  jest.setTimeout(30000);
+  const runId = `${Date.now()}`.slice(-5);
+  const customerPhone = `90001${runId}`;
+  const merchantPhone = `90002${runId}`;
+  const driverPhone = `90003${runId}`;
+
   let app: import('express').Express;
   let customerToken: string;
   let merchantToken: string;
@@ -25,13 +31,13 @@ describe('Order Lifecycle Integration Test', () => {
 
     const cust = await pool.query(
       `INSERT INTO users (phone, name, role) VALUES ($1,$2,'customer') RETURNING id`,
-      ['9000000001', 'Test Customer']
+      [customerPhone, 'Test Customer']
     );
     customerId = cust.rows[0].id;
 
     const merch = await pool.query(
       `INSERT INTO users (phone, name, role) VALUES ($1,$2,'merchant') RETURNING id`,
-      ['9000000002', 'Test Merchant']
+      [merchantPhone, 'Test Merchant']
     );
     merchantId = merch.rows[0].id;
 
@@ -51,14 +57,14 @@ describe('Order Lifecycle Integration Test', () => {
 
     const driverUser = await pool.query(
       `INSERT INTO users (phone, name, role) VALUES ($1,$2,'driver') RETURNING id`,
-      ['9000000003', 'Test Driver']
+      [driverPhone, 'Test Driver']
     );
     driverUserId = driverUser.rows[0].id;
 
     await pool.query(
       `INSERT INTO drivers (user_id, name, phone, is_available, is_active, current_lat, current_lng)
        VALUES ($1,$2,$3,TRUE,TRUE,$4,$5)`,
-      [driverUserId, 'Test Driver', '9000000003', 17.386, 78.487]
+      [driverUserId, 'Test Driver', driverPhone, 17.386, 78.487]
     );
 
     customerToken = jwt.sign({ id: customerId, role: 'customer' }, process.env.JWT_SECRET!);

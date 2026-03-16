@@ -12,6 +12,7 @@
 import { createLogger, format, transports, Logger } from 'winston';
 
 const isDev = process.env.NODE_ENV !== 'production';
+const isTest = process.env.NODE_ENV === 'test' || !!process.env.JEST_WORKER_ID;
 
 const devFormat = format.combine(
   format.colorize({ all: true }),
@@ -29,7 +30,7 @@ const prodFormat = format.combine(
 );
 
 export const logger: Logger = createLogger({
-  level: process.env.LOG_LEVEL ?? (isDev ? 'debug' : 'info'),
+  level: process.env.LOG_LEVEL ?? (isTest ? 'error' : isDev ? 'debug' : 'info'),
   defaultMeta: { service: 'fng-backend', version: process.env.npm_package_version ?? '1.0.0' },
   transports: [
     new transports.Console({

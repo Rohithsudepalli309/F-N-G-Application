@@ -1,4 +1,5 @@
 import pool from '../db';
+import { logger } from '../logger';
 
 export interface SearchResult {
   id: string;
@@ -86,7 +87,7 @@ export class SearchDiscoveryEngine {
       const { rows } = await pool.query<SearchResult>(sql, [term]);
       return rows;
     } catch (err) {
-      console.error('[Search] Query failed:', err);
+      logger.error('[Search] Query failed', { error: err instanceof Error ? err.message : String(err) });
       return [];
     }
   }

@@ -1,4 +1,5 @@
 import { Request, Response, NextFunction } from 'express';
+import { logger } from '../logger';
 
 export class AppError extends Error {
   public statusCode: number;
@@ -18,14 +19,18 @@ export class AppError extends Error {
 export const errorHandler = (err: any, req: Request, res: Response, next: NextFunction) => {
   err.statusCode = err.statusCode || 500;
   err.status = err.status || 'error';
+  const isTest = process.env.NODE_ENV === 'test' || !!process.env.JEST_WORKER_ID;
+  const shouldLog = !isTest || err.statusCode >= 500 || process.env.LOG_TEST_ERRORS === 'true';
 
-  // Log error for internal tracking (Console for now, Application Insights later)
-  console.error('ERROR 💥', {
-    message: err.message,
-    stack: err.stack,
-    path: req.path,
-    method: req.method
-  });
+  if (shouldLog) {
+    logger.error('Request failed', {
+      message: err.message,
+      stack: err.stack,
+      path: req.path,
+      method: req.method,
+      statusCode: err.statusCode,
+    });
+  }
 
   if (process.env.NODE_ENV === 'development') {
     return res.status(err.statusCode).json({

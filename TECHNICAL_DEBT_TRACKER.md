@@ -123,13 +123,20 @@ This file tracks prioritized technical debt items with clear ownership, acceptan
   - Added branch protection and flaky-test policy guidance to `README.md`.
 
 ### TD-008 Optional noise reduction in test logs
-- Status: `open`
+- Status: `done`
 - Scope:
   - Reduce non-actionable warning output while preserving actionable errors.
 - Suggested files:
   - backend logging/observability config
 - Acceptance:
   - CI logs remain concise and debugging-focused.
+- Progress:
+  - Added test-aware log level defaults in `backend/src/logger.ts`.
+  - Replaced direct `console.*` calls with structured logger usage in DB, Redis, search, and global error handler.
+  - Suppressed non-actionable Application Insights missing-connection warnings during tests.
+- Validation:
+  - `npx jest src/__tests__/auth.middleware.test.ts --runInBand --no-cache`: `8 passed`.
+  - `npx jest src/__tests__/orderLifecycle.test.ts --runInBand --no-cache --silent`: `1 passed`.
 
 ## Operational Rule
 After each phase, publish a clear completion message with:

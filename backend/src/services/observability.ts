@@ -10,8 +10,10 @@
 
 import * as appInsights from 'applicationinsights';
 import winston from 'winston';
+import { logger } from '../logger';
 
 const instrumentationKey = process.env.APPLICATIONINSIGHTS_CONNECTION_STRING || '';
+const isTest = process.env.NODE_ENV === 'test' || !!process.env.JEST_WORKER_ID;
 
 if (instrumentationKey) {
   appInsights.setup(instrumentationKey)
@@ -25,17 +27,18 @@ if (instrumentationKey) {
     .setSendLiveMetrics(true)
     .setDistributedTracingMode(appInsights.DistributedTracingModes.AI_AND_W3C)
     .start();
-  
-  console.log('✅ Azure Application Insights initialized.');
+  logger.info('Azure Application Insights initialized');
 } else {
-  console.warn('⚠️ APPLICATIONINSIGHTS_CONNECTION_STRING not found. Monitoring disabled.');
+  if (!isTest) {
+    logger.warn('APPLICATIONINSIGHTS_CONNECTION_STRING not found. Monitoring disabled.');
+  }
 }
 
 export const telemetryClient = appInsights.defaultClient;
 
 // Custom Winston Transport for App Insights integration
 export const monitorLogger = winston.createLogger({
-  level: 'info',
+  level: isTest ? 'warn' : 'info',
   format: winston.format.json(),
   transports: [
     new winston.transports.Console({
