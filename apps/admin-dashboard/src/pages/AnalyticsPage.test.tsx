@@ -36,9 +36,7 @@ const STATS_DATA = {
 };
 
 describe('AnalyticsPage', () => {
-  beforeEach(() => {
-    vi.clearAllMocks();
-  });
+  beforeEach(() => vi.clearAllMocks());
 
   it('shows a loading spinner while fetching', () => {
     let resolve: (v: unknown) => void;

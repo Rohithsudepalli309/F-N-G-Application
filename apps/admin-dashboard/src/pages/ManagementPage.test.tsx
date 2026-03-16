@@ -14,9 +14,7 @@ const DEMO_USER = { id: '1', name: 'Demo user 1', email: 'demo1@test.com', is_ac
 const DEMO_USER_INACTIVE = { id: '2', name: 'Demo user 2', email: 'demo2@test.com', is_active: false };
 
 describe('ManagementPage – type=users', () => {
-  beforeEach(() => {
-    vi.clearAllMocks();
-  });
+  beforeEach(() => vi.clearAllMocks());
 
   it('renders "users Management" heading', async () => {
     mockApiGet.mockResolvedValueOnce({ data: { users: [DEMO_USER] } });
@@ -83,9 +81,7 @@ describe('ManagementPage – type=users', () => {
 });
 
 describe('ManagementPage – type=stores', () => {
-  beforeEach(() => {
-    vi.clearAllMocks();
-  });
+  beforeEach(() => vi.clearAllMocks());
 
   it('renders "stores Management" heading', async () => {
     mockApiGet.mockResolvedValueOnce({ data: { stores: [] } });

@@ -129,7 +129,7 @@ router.post('/', validate(schemas.orders.create), async (req: AuthRequest, res) 
     if (proCheck.rows.length > 0) deliveryFee = 0;
 
     // Phase 3 Intelligence: Apply Loyalty Benefits
-    const loyalty = await calculateLoyaltyBenefits(String(req.user!.id), subtotal);
+    const loyalty = await calculateLoyaltyBenefits(req.user!.id, subtotal);
     if (loyalty.deliveryFeeOverride !== null) {
       deliveryFee = loyalty.deliveryFeeOverride;
     }
@@ -268,7 +268,7 @@ router.post('/', validate(schemas.orders.create), async (req: AuthRequest, res) 
     });
 
     // Phase 3: Earn Loyalty Points (₹100 = 1 point)
-    earnPoints(String(req.user!.id), String(order.id), Math.floor(finalTotal / 100))
+    earnPoints(req.user!.id, order.id, Math.floor(finalTotal / 100))
       .catch(err => console.error('[loyalty/earn]', err));
 
     res.status(201).json({
