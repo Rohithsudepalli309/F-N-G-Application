@@ -260,6 +260,40 @@ Full route listing: `backend/src/routes/`
 
 ---
 
+## Release Gate Policy (Main Branch)
+
+Pull requests to `main` must pass CI and release-gate checks before merge.
+
+### Required status checks
+
+Configure GitHub branch protection for `main` to require these checks:
+
+- `Backend - type-check, test & build`
+- `Admin Dashboard - type-check, test & build`
+- `Merchant Dashboard - type-check, test & build`
+- `Customer App - type-check`
+- `Release Gate - required checks`
+
+The `E2E - Playwright smoke` job is conditionally executed when dashboard or `tests/` paths change.
+Its result is validated by `Release Gate - required checks`, which allows `e2e=skipped` for unrelated changes and fails on `failure` or `cancelled`.
+
+### Flaky-test and rerun policy
+
+- If E2E fails once, rerun the failed job once.
+- If it fails again, treat it as a real blocker and fix before merge.
+- Do not bypass required checks for convenience.
+
+### Branch protection checklist
+
+1. Open repository `Settings -> Branches -> Add rule`.
+2. Branch name pattern: `main`.
+3. Enable `Require a pull request before merging`.
+4. Enable `Require status checks to pass before merging`.
+5. Select all required checks listed above.
+6. Enable `Require branches to be up to date before merging`.
+
+---
+
 ## Ports Reference
 
 | Service | Local | Docker |

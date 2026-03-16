@@ -234,3 +234,39 @@ jobs:
           name: playwright-test-results
           path: tests/test-results
           if-no-files-found: ignore
+
+  # ── Release Gate ───────────────────────────────────────────────────────────
+  release-gate:
+    name: Release Gate — required checks
+    runs-on: ubuntu-latest
+    if: always()
+    needs: [backend, admin-dashboard, merchant-dashboard, customer-app, e2e]
+    env:
+      BACKEND_RESULT: ${{ needs.backend.result }}
+      ADMIN_RESULT: ${{ needs.admin-dashboard.result }}
+      MERCHANT_RESULT: ${{ needs.merchant-dashboard.result }}
+      CUSTOMER_RESULT: ${{ needs.customer-app.result }}
+      E2E_RESULT: ${{ needs.e2e.result }}
+
+    steps:
+      - name: Validate required check results
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          echo "backend=${BACKEND_RESULT}"
+          echo "admin-dashboard=${ADMIN_RESULT}"
+          echo "merchant-dashboard=${MERCHANT_RESULT}"
+          echo "customer-app=${CUSTOMER_RESULT}"
+          echo "e2e=${E2E_RESULT}"
+
+          [[ "${BACKEND_RESULT}" == "success" ]]
+          [[ "${ADMIN_RESULT}" == "success" ]]
+          [[ "${MERCHANT_RESULT}" == "success" ]]
+          [[ "${CUSTOMER_RESULT}" == "success" ]]
+
+          # E2E may be skipped on unrelated changes; any non-success/non-skipped result blocks merges.
+          if [[ "${E2E_RESULT}" != "success" && "${E2E_RESULT}" != "skipped" ]]; then
+            echo "E2E gate failed with result: ${E2E_RESULT}"
+            exit 1
+          fi

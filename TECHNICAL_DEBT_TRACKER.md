@@ -92,7 +92,7 @@ This file tracks prioritized technical debt items with clear ownership, acceptan
 ## P2 - Next Backlog
 
 ### TD-007 Playwright flow realism
-- Status: `in-progress`
+- Status: `done`
 - Scope:
   - Replace placeholder/mock selectors with deterministic test IDs and real authenticated flow fixtures.
   - Add CI path gating so Playwright runs only when dashboard or test surfaces change.
@@ -104,9 +104,11 @@ This file tracks prioritized technical debt items with clear ownership, acceptan
   - Stable pass in CI over repeated runs.
   - E2E selectors use `data-testid` hooks for login and order interactions.
   - E2E job skips cleanly on unrelated backend-only changes.
+- Validation:
+  - `npx playwright test -c playwright.config.ts --workers=1 --reporter=list` (local): `2 passed`.
 
 ### TD-009 Release gate for deterministic E2E
-- Status: `open`
+- Status: `in-progress`
 - Scope:
   - Require Playwright smoke pass as PR gate for dashboard-affecting changes.
   - Document rerun threshold and flaky-test policy.
@@ -116,6 +118,9 @@ This file tracks prioritized technical debt items with clear ownership, acceptan
 - Acceptance:
   - Protected branch rule references CI workflow including E2E status.
   - Team playbook includes retry/flaky handling guidance.
+- Progress:
+  - Added `Release Gate — required checks` job to CI to validate required job results and handle conditional E2E execution.
+  - Added branch protection and flaky-test policy guidance to `README.md`.
 
 ### TD-008 Optional noise reduction in test logs
 - Status: `open`
