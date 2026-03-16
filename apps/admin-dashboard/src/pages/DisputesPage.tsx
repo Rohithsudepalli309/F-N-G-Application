@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { AlertCircle, CheckCircle2, Search, Filter, MessageSquare, History, CreditCard, ExternalLink, RefreshCcw } from 'lucide-react';
 import api from '../services/api';
-import { useToast } from '../components/Toast';
+import { useToast } from 'components/Toast';
 
 interface Dispute {
   id: string;
@@ -123,6 +123,7 @@ export default function DisputesPage() {
               />
             </div>
             <select 
+              aria-label="Filter disputes by status"
               value={filter}
               onChange={e => setFilter(e.target.value as any)}
               className="bg-slate-950 border-none rounded-xl px-4 py-2.5 text-sm outline-none cursor-pointer border border-slate-700"

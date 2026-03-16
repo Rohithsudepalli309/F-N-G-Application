@@ -171,8 +171,6 @@ export function initSocket(httpServer: HttpServer): SocketServer {
     socket.on('heartbeat', () => {
       socket.emit('heartbeat:ack', { serverTime: Date.now() });
     });
-      } catch {/* non-critical */}
-    });
 
     socket.on('driver:offline', async () => {
       if (role !== 'driver') return;

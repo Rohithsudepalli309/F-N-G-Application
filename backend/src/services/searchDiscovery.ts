@@ -1,97 +1,117 @@
-/**
- * searchDiscovery.ts
- * Phase 4: Universal Search (Elasticsearch/Algolia Simulation)
- * Instant, typo-tolerant search across millions of menu items and stores.
- * Handles semantic relevance and popularity-based ranking.
- */
-import { PostgresClient } from '../db'; // Assuming standard DB export
+import pool from '../db';
 
-interface SearchResult {
+export interface SearchResult {
   id: string;
   name: string;
   type: 'store' | 'product';
   category: string;
   score: number;
-  metadata: Record<string, any>;
+  metadata: Record<string, unknown>;
+}
+
+interface SuggestionRow {
+  name: string;
 }
 
 export class SearchDiscoveryEngine {
-  /**
-   * Universal search across products and stores.
-   * Uses ILIKE for basic, but leverages tsvector for weighted matching.
-   */
-  async search(query: string, location?: { lat: number, lng: number }): Promise<SearchResult[]> {
-    if (!query || query.length < 2) return [];
-
-    const db = PostgresClient;
-    const cleanQuery = query.trim().replace(/'/g, "''");
+  async search(query: string): Promise<SearchResult[]> {
+    if (!query || query.trim().length < 2) return [];
+    const term = query.trim();
 
     const sql = `
       WITH product_matches AS (
-        SELECT 
-          id, name, 'product' as type, category,
-          ts_rank_cd(to_tsvector('english', name || ' ' || COALESCE(description, '')), plainto_tsquery('english', $1)) as score,
-          json_build_object('price', price, 'image_url', image_url, 'is_veg', is_veg) as metadata
-        FROM products
-        WHERE to_tsvector('english', name || ' ' || COALESCE(description, '')) @@ plainto_tsquery('english', $1)
-          OR name ILIKE '%' || $1 || '%'
+        SELECT
+          p.id::text AS id,
+          p.name,
+          'product'::text AS type,
+          COALESCE(p.category, 'general') AS category,
+          GREATEST(
+            ts_rank_cd(
+              to_tsvector('simple', p.name || ' ' || COALESCE(p.description, '')),
+              plainto_tsquery('simple', $1)
+            ),
+            CASE WHEN p.name ILIKE '%' || $1 || '%' THEN 0.15 ELSE 0 END
+          ) AS score,
+          json_build_object(
+            'price', p.price,
+            'original_price', p.original_price,
+            'image_url', p.image_url,
+            'unit', p.unit,
+            'store_id', p.store_id,
+            'is_veg', p.is_veg
+          ) AS metadata
+        FROM products p
+        WHERE p.is_available = TRUE
+          AND (
+            to_tsvector('simple', p.name || ' ' || COALESCE(p.description, '')) @@ plainto_tsquery('simple', $1)
+            OR p.name ILIKE '%' || $1 || '%'
+            OR COALESCE(p.category, '') ILIKE '%' || $1 || '%'
+          )
       ),
       store_matches AS (
-        SELECT 
-          id, name, 'store' as type, 'restaurant' as category,
-          ts_rank_cd(to_tsvector('english', name || ' ' || COALESCE(cuisine, '')), plainto_tsquery('english', $1)) * 1.5 as score,
-          json_build_object('rating', rating, 'address', address, 'is_open', is_open) as metadata
-        FROM stores
-        WHERE to_tsvector('english', name || ' ' || COALESCE(cuisine, '')) @@ plainto_tsquery('english', $1)
-          OR name ILIKE '%' || $1 || '%'
+        SELECT
+          s.id::text AS id,
+          s.name,
+          'store'::text AS type,
+          COALESCE(s.store_type, 'store') AS category,
+          GREATEST(
+            ts_rank_cd(
+              to_tsvector('simple', s.name || ' ' || COALESCE(s.description, '')),
+              plainto_tsquery('simple', $1)
+            ) * 1.2,
+            CASE WHEN s.name ILIKE '%' || $1 || '%' THEN 0.2 ELSE 0 END
+          ) AS score,
+          json_build_object(
+            'rating', s.rating,
+            'address', s.address,
+            'delivery_time_min', s.delivery_time_min,
+            'image_url', s.image_url
+          ) AS metadata
+        FROM stores s
+        WHERE s.is_active = TRUE
+          AND (
+            to_tsvector('simple', s.name || ' ' || COALESCE(s.description, '')) @@ plainto_tsquery('simple', $1)
+            OR s.name ILIKE '%' || $1 || '%'
+            OR array_to_string(COALESCE(s.cuisine_tags, '{}'), ' ') ILIKE '%' || $1 || '%'
+          )
       )
       SELECT * FROM product_matches
       UNION ALL
       SELECT * FROM store_matches
-      ORDER BY score DESC
+      ORDER BY score DESC, name ASC
       LIMIT 20;
     `;
 
     try {
-      const results = await db.query(sql, [cleanQuery]);
-      return results.rows;
+      const { rows } = await pool.query<SearchResult>(sql, [term]);
+      return rows;
     } catch (err) {
-      console.error('[Search] Error executing search:', err);
-      // Fallback for missing tables in local dev
-      return this.mockStaticResults(query);
-    }
-  }
-
-  /**
-   * Typo-tolerant Suggester (Did you mean?)
-   */
-  async getSuggestions(partial: string): Promise<string[]> {
-    const db = PostgresClient;
-    const sql = `
-      SELECT DISTINCT name 
-      FROM (
-        SELECT name FROM products WHERE name % $1
-        UNION
-        SELECT name FROM stores WHERE name % $1
-      ) combined
-      LIMIT 5;
-    `;
-    try {
-      const { rows } = await db.query(sql, [partial]);
-      return rows.map(r => r.name);
-    } catch {
+      console.error('[Search] Query failed:', err);
       return [];
     }
   }
 
-  private mockStaticResults(q: string): SearchResult[] {
-    const qLower = q.toLowerCase();
-    const mocks: SearchResult[] = [
-      { id: '1', name: 'Burger King', type: 'store', category: 'Fast Food', score: 0.9, metadata: { rating: 4.5, is_open: true } },
-      { id: '2', name: 'Veg Whopper', type: 'product', category: 'Burgers', score: 0.85, metadata: { price: 159, is_veg: true } },
-      { id: '3', name: 'French Fries', type: 'product', category: 'Sides', score: 0.7, metadata: { price: 99, is_veg: true } }
-    ];
-    return mocks.filter(m => m.name.toLowerCase().includes(qLower));
+  async getSuggestions(partial: string): Promise<string[]> {
+    if (!partial || partial.trim().length < 2) return [];
+    const term = partial.trim();
+
+    const sql = `
+      SELECT DISTINCT name
+      FROM (
+        SELECT name FROM products WHERE name ILIKE $1
+        UNION
+        SELECT name FROM stores WHERE name ILIKE $1
+      ) q
+      ORDER BY name ASC
+      LIMIT 8;
+    `;
+
+    try {
+      const { rows } = await pool.query<SuggestionRow>(sql, [`%${term}%`]);
+      return rows.map((row) => row.name);
+    } catch {
+      return [];
+    }
   }
 }
 

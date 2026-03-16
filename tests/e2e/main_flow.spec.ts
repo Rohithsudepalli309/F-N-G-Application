@@ -2,7 +2,8 @@ import { test, expect } from '@playwright/test';
 
 test.describe('F&G Delivery Pipeline E2E', () => {
   
-  test('Customer Flow: Login -> Place Order -> Track Status', async ({ page }) => {
+  test('Customer Flow: Login -> Place Order -> Track Status', async (ctx: any) => {
+    const { page } = ctx;
     // 1. Mock Customer App Login (Using internal simulation for CI)
     await page.goto('http://localhost:5173/login');
     await page.fill('input[name="phone"]', '9123456789');
@@ -23,7 +24,8 @@ test.describe('F&G Delivery Pipeline E2E', () => {
     console.log(`Order created: ${orderNumber}`);
   });
 
-  test('Merchant Flow: Accept Order -> Mark for Pickup', async ({ page }) => {
+  test('Merchant Flow: Accept Order -> Mark for Pickup', async (ctx: any) => {
+    const { page } = ctx;
     await page.goto('http://localhost:5174/login');
     // Login as merchant...
     await expect(page.locator('text=New Orders')).toBeVisible();
@@ -31,7 +33,8 @@ test.describe('F&G Delivery Pipeline E2E', () => {
     await page.click('button:has-text("Ready for Pickup")');
   });
 
-  test('Admin Flow: Monitoring Dashboard verification', async ({ page }) => {
+  test('Admin Flow: Monitoring Dashboard verification', async (ctx: any) => {
+    const { page } = ctx;
     await page.goto('http://localhost:5175/login');
     // Admin checks live order monitor...
   });
