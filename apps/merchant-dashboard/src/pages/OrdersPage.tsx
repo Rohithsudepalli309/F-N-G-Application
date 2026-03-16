@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback } from 'react';
 import { clsx } from 'clsx';
-import { CheckCircle2, XCircle, PackageCheck, Clock, RefreshCw, ChefHat, ShoppingBag } from 'lucide-react';
+import { CheckCircle2, XCircle, PackageCheck, Clock, RefreshCw, ShoppingBag } from 'lucide-react';
 import { useAuthStore } from '../store/useAuthStore';
 import api from '../services/api';
 import { getSocket } from '../services/socket';
@@ -121,7 +121,7 @@ export default function OrdersPage() {
           <h1 className="text-2xl font-bold text-slate-800 dark:text-slate-100">Orders</h1>
           <p className="text-sm text-slate-500 dark:text-slate-400">Live order feed for your store</p>
         </div>
-        <button onClick={fetchOrders} className="btn-secondary flex items-center gap-2 text-sm">
+        <button data-testid="merchant-orders-refresh" onClick={fetchOrders} className="btn-secondary flex items-center gap-2 text-sm">
           <RefreshCw size={15} className={loading ? 'animate-spin' : ''} />
           Refresh
         </button>
@@ -159,6 +159,7 @@ export default function OrdersPage() {
           {orders.map((order) => (
             <div
               key={order.id}
+              data-testid={`merchant-order-card-${order.id}`}
               className="card hover:border-slate-300 dark:hover:border-slate-600/80 transition-all animate-fade-in"
             >
               {/* Order header */}
@@ -218,6 +219,7 @@ export default function OrdersPage() {
               {order.status === 'placed' && (
                 <div className="flex gap-2 mt-4">
                   <button
+                    data-testid={`merchant-order-accept-${order.id}`}
                     onClick={() => doAction(order.id, 'accept')}
                     disabled={actionLoading === order.id}
                     className="flex-1 btn-primary text-xs py-2 flex items-center justify-center gap-1.5"
@@ -226,6 +228,7 @@ export default function OrdersPage() {
                     {actionLoading === order.id ? 'Accepting…' : 'Accept'}
                   </button>
                   <button
+                    data-testid={`merchant-order-reject-${order.id}`}
                     onClick={() => doAction(order.id, 'reject')}
                     disabled={actionLoading === order.id}
                     className="flex-1 btn-danger text-xs py-2 flex items-center justify-center gap-1.5"
@@ -238,6 +241,7 @@ export default function OrdersPage() {
 
               {order.status === 'preparing' && (
                 <button
+                  data-testid={`merchant-order-ready-${order.id}`}
                   onClick={() => doAction(order.id, 'ready')}
                   disabled={actionLoading === order.id}
                   className="w-full mt-4 btn-primary text-xs py-2 flex items-center justify-center gap-1.5"
@@ -246,14 +250,6 @@ export default function OrdersPage() {
                   {actionLoading === order.id ? 'Marking ready…' : 'Mark as Ready'}
                 </button>
               )}
-            </div>
-          ))}
-        </div>
-      )}
-    </div>
-  );
-}
-
 
               {order.status === 'ready' && (
                 <div className="mt-4 flex items-center gap-2 text-xs text-emerald-400 bg-emerald-500/10 rounded-lg px-3 py-2 border border-emerald-500/20">

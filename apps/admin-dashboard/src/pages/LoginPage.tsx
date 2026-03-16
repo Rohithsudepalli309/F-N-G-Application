@@ -36,6 +36,7 @@ export const LoginPage = () => {
           <div>
             <label className="block text-sm font-medium text-gray-700">Email Address</label>
             <input
+              data-testid="admin-login-email"
               type="email"
               required
               value={email}
@@ -48,6 +49,7 @@ export const LoginPage = () => {
           <div>
             <label className="block text-sm font-medium text-gray-700">Password</label>
             <input
+              data-testid="admin-login-password"
               type="password"
               required
               value={password}
@@ -60,6 +62,7 @@ export const LoginPage = () => {
           {error && <p className="text-red-500 text-sm">{error}</p>}
 
           <button
+            data-testid="admin-login-submit"
             type="submit"
             disabled={loading}
             className="w-full flex justify-center py-3 px-4 border border-transparent rounded-lg shadow-sm text-white bg-slate-800 hover:bg-slate-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-slate-500 disabled:opacity-50"

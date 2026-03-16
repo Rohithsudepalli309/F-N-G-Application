@@ -99,6 +99,7 @@ export const OrdersMonitor = () => {
         </div>
         <div className="flex items-center gap-3">
           <button
+            data-testid="admin-orders-refresh"
             onClick={() => fetchOrders(false)}
             disabled={refreshing}
             className="text-xs font-medium px-3 py-1.5 rounded-lg border border-gray-200 hover:bg-gray-50 transition-colors disabled:opacity-50"
@@ -130,7 +131,7 @@ export const OrdersMonitor = () => {
               </tr>
             ) : (
               orders.map((order) => (
-                <tr key={order.id} className="hover:bg-gray-50 transition-colors">
+                <tr key={order.id} data-testid={`admin-order-row-${order.id}`} className="hover:bg-gray-50 transition-colors">
                   <td className="px-6 py-4 font-mono text-sm text-gray-600">#{order.id.slice(0, 8)}</td>
                   <td className="px-6 py-4 font-medium text-gray-800">{order.customer_name}</td>
                   <td className="px-6 py-4 text-gray-600">{order.store_name}</td>

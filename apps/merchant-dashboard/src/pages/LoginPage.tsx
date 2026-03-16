@@ -88,6 +88,7 @@ export default function LoginPage() {
                   className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-500"
                 />
                 <input
+                  data-testid="merchant-login-email"
                   type="email"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
@@ -109,6 +110,7 @@ export default function LoginPage() {
                   className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-500"
                 />
                 <input
+                  data-testid="merchant-login-password"
                   type={showPw ? 'text' : 'password'}
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
@@ -126,7 +128,7 @@ export default function LoginPage() {
               </div>
             </div>
 
-            <button type="submit" disabled={loading} className="btn-primary w-full py-2.5 mt-2">
+            <button data-testid="merchant-login-submit" type="submit" disabled={loading} className="btn-primary w-full py-2.5 mt-2">
               {loading ? 'Signing in…' : 'Sign In'}
             </button>
           </form>
