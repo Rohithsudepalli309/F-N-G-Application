@@ -92,14 +92,30 @@ This file tracks prioritized technical debt items with clear ownership, acceptan
 ## P2 - Next Backlog
 
 ### TD-007 Playwright flow realism
-- Status: `open`
+- Status: `in-progress`
 - Scope:
   - Replace placeholder/mock selectors with deterministic test IDs and real authenticated flow fixtures.
+  - Add CI path gating so Playwright runs only when dashboard or test surfaces change.
 - Suggested files:
   - `tests/e2e/main_flow.spec.ts`
   - dashboard login/order pages
+  - `.github/workflows/ci.yml`
 - Acceptance:
   - Stable pass in CI over repeated runs.
+  - E2E selectors use `data-testid` hooks for login and order interactions.
+  - E2E job skips cleanly on unrelated backend-only changes.
+
+### TD-009 Release gate for deterministic E2E
+- Status: `open`
+- Scope:
+  - Require Playwright smoke pass as PR gate for dashboard-affecting changes.
+  - Document rerun threshold and flaky-test policy.
+- Suggested files:
+  - `.github/workflows/ci.yml`
+  - `tests/README.md` or root `README.md`
+- Acceptance:
+  - Protected branch rule references CI workflow including E2E status.
+  - Team playbook includes retry/flaky handling guidance.
 
 ### TD-008 Optional noise reduction in test logs
 - Status: `open`

@@ -165,33 +165,49 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
+      - name: Detect E2E-relevant changes
+        id: changes
+        uses: dorny/paths-filter@v3
+        with:
+          filters: |
+            e2e:
+              - 'apps/admin-dashboard/**'
+              - 'apps/merchant-dashboard/**'
+              - 'tests/**'
+
       - name: Setup Node.js 20
+        if: steps.changes.outputs.e2e == 'true'
         uses: actions/setup-node@v4
         with:
           node-version: '20'
 
       - name: Setup pnpm
+        if: steps.changes.outputs.e2e == 'true'
         uses: pnpm/action-setup@v4
         with:
           version: 9
           run_install: false
 
       - name: Install dashboard dependencies
+        if: steps.changes.outputs.e2e == 'true'
         run: |
           pnpm --dir apps/admin-dashboard install --frozen-lockfile
           pnpm --dir apps/merchant-dashboard install --frozen-lockfile
 
       - name: Install e2e dependencies
+        if: steps.changes.outputs.e2e == 'true'
         run: |
           cd tests
           npm install
 
       - name: Install Playwright browsers
+        if: steps.changes.outputs.e2e == 'true'
         run: |
           cd tests
           npx playwright install --with-deps chromium
 
       - name: Run E2E tests
+        if: steps.changes.outputs.e2e == 'true'
         env:
           E2E_ADMIN_URL: http://127.0.0.1:5173
           E2E_MERCHANT_URL: http://127.0.0.1:5174
@@ -199,8 +215,12 @@ jobs:
           cd tests
           npm test
 
+      - name: Skip E2E on unrelated changes
+        if: steps.changes.outputs.e2e != 'true'
+        run: echo "No dashboard or tests changes detected. Skipping E2E job."
+
       - name: Upload Playwright report
-        if: always()
+        if: always() && steps.changes.outputs.e2e == 'true'
         uses: actions/upload-artifact@v4
         with:
           name: playwright-report
@@ -208,7 +228,7 @@ jobs:
           if-no-files-found: ignore
 
       - name: Upload Playwright artifacts
-        if: always()
+        if: always() && steps.changes.outputs.e2e == 'true'
         uses: actions/upload-artifact@v4
         with:
           name: playwright-test-results

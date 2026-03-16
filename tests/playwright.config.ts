@@ -21,13 +21,13 @@ export default defineConfig({
   },
   webServer: [
     {
-      command: 'pnpm --dir apps/admin-dashboard dev --host 127.0.0.1 --port 5173',
+      command: 'npx pnpm --dir ../apps/admin-dashboard dev --host 127.0.0.1 --port 5173',
       url: adminUrl,
       reuseExistingServer: !process.env.CI,
       timeout: 120_000,
     },
     {
-      command: 'pnpm --dir apps/merchant-dashboard dev --host 127.0.0.1 --port 5174',
+      command: 'npx pnpm --dir ../apps/merchant-dashboard dev --host 127.0.0.1 --port 5174',
       url: merchantUrl,
       reuseExistingServer: !process.env.CI,
       timeout: 120_000,
