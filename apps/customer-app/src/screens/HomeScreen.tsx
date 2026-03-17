@@ -335,6 +335,11 @@ export const HomeScreen = () => {
           </View>
         </View>
 
+        <View style={s.refreshPill}>
+          <MaterialCommunityIcons name="sparkles" size={12} color="#0B6E4F" />
+          <Text style={s.refreshPillText}>UI Refresh Live</Text>
+        </View>
+
         {/* Row 2: Search bar */}
         <TouchableOpacity style={s.searchBar} onPress={() => goTo('SearchTab')} activeOpacity={0.8}>
           <Image source={{ uri: 'https://img.icons8.com/color/96/search--v1.png' }} style={s.searchIconImg} resizeMode="contain" />
@@ -596,6 +601,8 @@ const s = StyleSheet.create({
   profileMeta:   { flex: 1 },
   profileLabel:  { fontSize: 8, color: '#8A94A6', fontWeight: '700', textTransform: 'uppercase', letterSpacing: 0.35 },
   profileName:   { fontSize: 11, color: '#0D1B14', fontWeight: '800' },
+  refreshPill:   { alignSelf: 'flex-start', marginHorizontal: 16, marginBottom: 8, flexDirection: 'row', alignItems: 'center', gap: 5, backgroundColor: '#EAF8F1', borderWidth: 1, borderColor: '#CDEEDD', borderRadius: 999, paddingHorizontal: 10, paddingVertical: 5 },
+  refreshPillText: { fontSize: 11, color: '#0B6E4F', fontWeight: '800' },
 
   searchBar:         { flexDirection: 'row', alignItems: 'center', backgroundColor: '#F7F7F7', marginHorizontal: 16, marginBottom: 10, height: 44, borderRadius: 10, paddingHorizontal: 14, borderWidth: 1, borderColor: '#EBEBEB' },
   searchIconImg:     { width: 18, height: 18, marginRight: 8 },
