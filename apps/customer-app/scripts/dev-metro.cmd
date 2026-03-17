@@ -3,7 +3,11 @@ setlocal
 cd /d "%~dp0.."
 
 echo [FNG] Releasing port 8081 if occupied...
-for /f %%p in ('powershell -NoProfile -ExecutionPolicy Bypass -Command "Get-NetTCPConnection -State Listen -ErrorAction SilentlyContinue ^| Where-Object { $_.LocalPort -eq 8081 } ^| Select-Object -ExpandProperty OwningProcess -Unique"') do (
+for /f "tokens=5" %%p in ('netstat -ano ^| findstr /R /C:":8081 .*LISTENING"') do (
+	taskkill /PID %%p /F >nul 2>&1
+)
+
+for /f %%p in ('powershell -NoProfile -ExecutionPolicy Bypass -Command "Get-NetTCPConnection -LocalPort 8081 -ErrorAction SilentlyContinue ^| Select-Object -ExpandProperty OwningProcess -Unique"') do (
 	taskkill /PID %%p /F >nul 2>&1
 )
 

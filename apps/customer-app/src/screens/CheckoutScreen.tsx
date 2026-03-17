@@ -14,6 +14,7 @@ import {
   TextInput,
 } from 'react-native';
 import RazorpayCheckout from 'react-native-razorpay';
+import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
 import { useNavigation, useRoute } from '@react-navigation/native';
 import { useCartStore } from '../store/useCartStore';
 import { api } from '../services/api';
@@ -35,12 +36,37 @@ const DELIVERY_SLOTS = [
   { id: '60min', label: 'In ~60 min' },
 ];
 
-const PAYMENT_METHODS = [
-  { id: 'paytm', name: 'Paytm', icon: 'https://cdn-icons-png.flaticon.com/512/825/825454.png' },
-  { id: 'phonepe', name: 'PhonePe', icon: 'https://img.icons8.com/color/452/phone-pe.png' },
-  { id: 'gpay', name: 'Google Pay', icon: 'https://cdn-icons-png.flaticon.com/512/6124/6124998.png' },
-  { id: 'upi', name: 'Other BHIM UPI', icon: 'https://cdn-icons-png.flaticon.com/512/3034/3034601.png' },
+const UPI_METHODS = [
+  { id: 'gpay', name: 'Google Pay', icon: 'https://img.icons8.com/color/96/google-pay.png', tag: 'Popular' },
+  { id: 'phonepe', name: 'PhonePe', icon: 'https://img.icons8.com/color/96/phone-pe.png' },
+  { id: 'paytm', name: 'Paytm UPI', icon: 'https://img.icons8.com/color/96/paytm.png' },
+  { id: 'bhim', name: 'BHIM UPI', icon: 'https://img.icons8.com/color/96/bhim.png' },
 ];
+
+const CARD_METHODS = [
+  { id: 'visa', name: 'Visa Card', icon: 'https://img.icons8.com/color/96/visa.png' },
+  { id: 'mastercard', name: 'Mastercard', icon: 'https://img.icons8.com/color/96/mastercard-logo.png' },
+  { id: 'rupay', name: 'RuPay', icon: 'https://img.icons8.com/color/96/bank-card-back-side.png' },
+  { id: 'amex', name: 'AmEx', icon: 'https://img.icons8.com/color/96/bank-card-front-side.png' },
+];
+
+const THIRD_PARTY_METHODS = [
+  { id: 'amazonpay', name: 'Amazon Pay', icon: 'https://img.icons8.com/color/96/amazon.png' },
+  { id: 'mobikwik', name: 'MobiKwik', icon: 'https://img.icons8.com/color/96/wallet--v1.png' },
+  { id: 'freecharge', name: 'Freecharge', icon: 'https://img.icons8.com/color/96/online-payment-with-a-credit-card.png' },
+  { id: 'postpaid', name: 'Pay Later', icon: 'https://img.icons8.com/color/96/calendar-plus.png' },
+];
+
+const NET_BANKING_METHODS = [
+  { id: 'hdfc', name: 'HDFC Bank' },
+  { id: 'sbi', name: 'SBI' },
+  { id: 'icici', name: 'ICICI' },
+  { id: 'axis', name: 'Axis' },
+  { id: 'kotak', name: 'Kotak' },
+  { id: 'otherbank', name: 'Other Banks' },
+];
+
+const ALL_ONLINE_METHODS = [...UPI_METHODS, ...CARD_METHODS, ...THIRD_PARTY_METHODS, ...NET_BANKING_METHODS];
 
 export const CheckoutScreen = () => {
   const [loading, setLoading] = useState(false);
@@ -79,11 +105,13 @@ export const CheckoutScreen = () => {
   const deliveryFee = billTotal > 500 ? 0 : 25;
   const handlingFee = 5;
   const grandTotal = billTotal + deliveryFee + handlingFee - couponDiscount;
+  const isUpiSelected = !isWallet && !isCOD;
+  const selectedOnline = ALL_ONLINE_METHODS.find(m => m.id === selectedMethod);
   const selectedMethodLabel = isWallet
     ? 'F&G Wallet'
     : isCOD
     ? 'Cash on Delivery'
-    : (PAYMENT_METHODS.find(m => m.id === selectedMethod)?.name ?? 'UPI');
+    : (selectedOnline?.name ?? 'Online Payment');
 
   const handleApplyCoupon = async () => {
     const code = couponCode.trim().toUpperCase();
@@ -219,6 +247,10 @@ export const CheckoutScreen = () => {
         <View style={styles.amountCard}>
           <Text style={styles.amountLabel}>Total to pay</Text>
           <Text style={styles.amountValue}>₹{grandTotal.toLocaleString('en-IN')}</Text>
+          <View style={styles.securePill}>
+            <MaterialCommunityIcons name="shield-check" size={12} color="#0B6E4F" />
+            <Text style={styles.securePillText}>100% secure payments</Text>
+          </View>
         </View>
 
         {/* Payment methods */}
@@ -254,27 +286,111 @@ export const CheckoutScreen = () => {
         {/* UPI Options */}
         <Text style={styles.sectionTitle}>Pay by UPI</Text>
         <View style={styles.upiGrid}>
-          {PAYMENT_METHODS.map((method) => (
-            <TouchableOpacity 
-              key={method.id} 
-              style={[styles.upiCard, selectedMethod === method.id && !isCOD && !isWallet && styles.upiCardActive]}
-              onPress={() => {
-                setSelectedMethod(method.id);
-                setIsCOD(false);
-                setIsWallet(false);
-              }}
-              activeOpacity={0.85}
-            >
-              <View style={styles.upiTopRow}>
-                <Image source={{ uri: method.icon }} style={styles.payIcon} />
-                <View style={[styles.radio, selectedMethod === method.id && !isCOD && !isWallet && styles.radioActive]}>
-                  {selectedMethod === method.id && !isCOD && !isWallet && <View style={styles.radioInner} />}
+          {UPI_METHODS.map((method) => {
+            const active = selectedMethod === method.id && !isCOD && !isWallet;
+            return (
+              <TouchableOpacity
+                key={method.id}
+                style={[styles.upiCard, active && styles.upiCardActive]}
+                onPress={() => {
+                  setSelectedMethod(method.id);
+                  setIsCOD(false);
+                  setIsWallet(false);
+                }}
+                activeOpacity={0.85}
+              >
+                <View style={styles.upiTopRow}>
+                  <Image source={{ uri: method.icon }} style={styles.payIcon} />
+                  <View style={[styles.radio, active && styles.radioActive]}>
+                    {active && <View style={styles.radioInner} />}
+                  </View>
                 </View>
-              </View>
-              <Text style={styles.upiName}>{method.name}</Text>
-              {method.id === 'gpay' && <Text style={styles.upiTag}>Popular</Text>}
-            </TouchableOpacity>
-          ))}
+                <Text style={styles.upiName}>{method.name}</Text>
+                {!!method.tag && <Text style={styles.upiTag}>{method.tag}</Text>}
+                {active && isUpiSelected && <Text style={styles.upiSelectedTag}>Selected</Text>}
+              </TouchableOpacity>
+            );
+          })}
+        </View>
+
+        {/* Cards */}
+        <Text style={styles.paymentSubTitle}>Credit & Debit Cards</Text>
+        <View style={styles.upiGrid}>
+          {CARD_METHODS.map((method) => {
+            const active = selectedMethod === method.id && !isCOD && !isWallet;
+            return (
+              <TouchableOpacity
+                key={method.id}
+                style={[styles.upiCard, active && styles.upiCardActive]}
+                onPress={() => {
+                  setSelectedMethod(method.id);
+                  setIsCOD(false);
+                  setIsWallet(false);
+                }}
+                activeOpacity={0.85}
+              >
+                <View style={styles.upiTopRow}>
+                  <Image source={{ uri: method.icon }} style={styles.payIcon} />
+                  <View style={[styles.radio, active && styles.radioActive]}>
+                    {active && <View style={styles.radioInner} />}
+                  </View>
+                </View>
+                <Text style={styles.upiName}>{method.name}</Text>
+                {active && <Text style={styles.upiSelectedTag}>Selected</Text>}
+              </TouchableOpacity>
+            );
+          })}
+        </View>
+
+        {/* Third-party wallets */}
+        <Text style={styles.paymentSubTitle}>Third-party Wallets & Pay Later</Text>
+        <View style={styles.upiGrid}>
+          {THIRD_PARTY_METHODS.map((method) => {
+            const active = selectedMethod === method.id && !isCOD && !isWallet;
+            return (
+              <TouchableOpacity
+                key={method.id}
+                style={[styles.upiCard, active && styles.upiCardActive]}
+                onPress={() => {
+                  setSelectedMethod(method.id);
+                  setIsCOD(false);
+                  setIsWallet(false);
+                }}
+                activeOpacity={0.85}
+              >
+                <View style={styles.upiTopRow}>
+                  <Image source={{ uri: method.icon }} style={styles.payIcon} />
+                  <View style={[styles.radio, active && styles.radioActive]}>
+                    {active && <View style={styles.radioInner} />}
+                  </View>
+                </View>
+                <Text style={styles.upiName}>{method.name}</Text>
+                {active && <Text style={styles.upiSelectedTag}>Selected</Text>}
+              </TouchableOpacity>
+            );
+          })}
+        </View>
+
+        {/* Net banking */}
+        <Text style={styles.paymentSubTitle}>Net Banking</Text>
+        <View style={styles.bankWrap}>
+          {NET_BANKING_METHODS.map((method) => {
+            const active = selectedMethod === method.id && !isCOD && !isWallet;
+            return (
+              <TouchableOpacity
+                key={method.id}
+                style={[styles.bankChip, active && styles.bankChipActive]}
+                onPress={() => {
+                  setSelectedMethod(method.id);
+                  setIsCOD(false);
+                  setIsWallet(false);
+                }}
+                activeOpacity={0.85}
+              >
+                <Text style={[styles.bankChipText, active && styles.bankChipTextActive]}>{method.name}</Text>
+              </TouchableOpacity>
+            );
+          })}
         </View>
 
         {/* Cash on Delivery */}
@@ -389,6 +505,10 @@ export const CheckoutScreen = () => {
 
       {/* Place Order Button */}
       <View style={styles.footer}>
+        <View style={styles.footerMeta}>
+          <Text style={styles.footerMetaLabel}>Paying with</Text>
+          <Text style={styles.footerMetaMethod}>{selectedMethodLabel}</Text>
+        </View>
         <TouchableOpacity 
           style={styles.payBtn} 
           onPress={handlePlaceOrder}
@@ -399,7 +519,7 @@ export const CheckoutScreen = () => {
           ) : (
             <View style={styles.payBtnContent}>
                 <Text style={styles.payBtnText}>
-                   {isCOD ? 'Place Order (COD)' : `Pay with ${selectedMethodLabel}`}
+                   {isCOD ? 'Place Order (COD)' : `Pay ₹${grandTotal.toLocaleString('en-IN')}`}
                 </Text>
                 <Text style={styles.payBtnArrow}>→</Text>
             </View>
@@ -413,7 +533,7 @@ export const CheckoutScreen = () => {
 const styles = StyleSheet.create({
   root: {
     flex: 1,
-    backgroundColor: '#F5F7FA',
+    backgroundColor: '#F3F6FB',
   },
   header: {
     flexDirection: 'row',
@@ -448,29 +568,43 @@ const styles = StyleSheet.create({
     paddingBottom: 196,
   },
   amountCard: {
-    backgroundColor: '#FFF',
+    backgroundColor: '#0F2B1D',
     padding: 20,
     borderRadius: 16,
     alignItems: 'center',
     marginBottom: 24,
-    borderWidth: 1,
-    borderColor: '#F0F0F0',
+    borderWidth: 0,
   },
   amountLabel: {
     fontSize: 13,
-    color: '#666',
+    color: 'rgba(255,255,255,0.8)',
     fontFamily: theme.typography.fontFamily.medium,
     marginBottom: 4,
   },
   amountValue: {
     fontSize: 28,
     fontFamily: theme.typography.fontFamily.bold,
-    color: '#000',
+    color: '#FFF',
+  },
+  securePill: {
+    marginTop: 10,
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 5,
+    backgroundColor: '#DDF7EA',
+    borderRadius: 12,
+    paddingHorizontal: 8,
+    paddingVertical: 4,
+  },
+  securePillText: {
+    color: '#0B6E4F',
+    fontSize: 10,
+    fontFamily: theme.typography.fontFamily.bold,
   },
   sectionTitle: {
     fontSize: 14,
     fontFamily: theme.typography.fontFamily.bold,
-    color: '#333',
+    color: '#1F2937',
     marginBottom: 12,
   },
   sectionHeadRow: {
@@ -483,6 +617,12 @@ const styles = StyleSheet.create({
     color: '#7A869A',
     fontFamily: theme.typography.fontFamily.medium,
   },
+  paymentSubTitle: {
+    fontSize: 12,
+    color: '#5B6473',
+    fontFamily: theme.typography.fontFamily.bold,
+    marginBottom: 10,
+  },
   methodCard: {
     backgroundColor: '#FFF',
     borderRadius: 16,
@@ -491,6 +631,11 @@ const styles = StyleSheet.create({
     borderColor: '#F0F0F0',
     paddingHorizontal: 14,
     paddingVertical: 12,
+    shadowColor: '#0B1220',
+    shadowOpacity: 0.05,
+    shadowRadius: 6,
+    shadowOffset: { width: 0, height: 2 },
+    elevation: 1,
   },
   methodCardActive: {
     borderColor: '#A7D7A7',
@@ -526,6 +671,7 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: '#ECEFF3',
     padding: 12,
+    minHeight: 96,
   },
   upiCardActive: {
     borderColor: '#86C186',
@@ -552,6 +698,40 @@ const styles = StyleSheet.create({
     paddingVertical: 3,
     borderRadius: 10,
     overflow: 'hidden',
+    fontFamily: theme.typography.fontFamily.bold,
+  },
+  upiSelectedTag: {
+    marginTop: 4,
+    alignSelf: 'flex-start',
+    fontSize: 10,
+    color: '#0B6E4F',
+    fontFamily: theme.typography.fontFamily.bold,
+  },
+  bankWrap: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 8,
+    marginBottom: 18,
+  },
+  bankChip: {
+    paddingHorizontal: 12,
+    paddingVertical: 8,
+    borderRadius: 20,
+    borderWidth: 1,
+    borderColor: '#D9E0EA',
+    backgroundColor: '#FFF',
+  },
+  bankChipActive: {
+    borderColor: '#86C186',
+    backgroundColor: '#F4FBF4',
+  },
+  bankChipText: {
+    fontSize: 12,
+    color: '#4B5563',
+    fontFamily: theme.typography.fontFamily.medium,
+  },
+  bankChipTextActive: {
+    color: '#176B39',
     fontFamily: theme.typography.fontFamily.bold,
   },
   payIcon: {
@@ -753,15 +933,35 @@ const styles = StyleSheet.create({
     right: 0,
     backgroundColor: '#FFF',
     padding: 16,
-    paddingBottom: Platform.OS === 'ios' ? 32 : 16,
+    paddingBottom: Platform.OS === 'ios' ? 32 : 14,
     borderTopWidth: 1,
     borderTopColor: '#F0F0F0',
   },
+  footerMeta: {
+    marginBottom: 10,
+    paddingHorizontal: 2,
+  },
+  footerMetaLabel: {
+    fontSize: 11,
+    color: '#6B7280',
+    fontFamily: theme.typography.fontFamily.medium,
+  },
+  footerMetaMethod: {
+    fontSize: 13,
+    color: '#111827',
+    fontFamily: theme.typography.fontFamily.bold,
+    marginTop: 2,
+  },
   payBtn: {
-    backgroundColor: '#339233',
+    backgroundColor: '#119B4A',
     paddingVertical: 14,
     borderRadius: 12,
     alignItems: 'center',
+    shadowColor: '#119B4A',
+    shadowOpacity: 0.28,
+    shadowRadius: 10,
+    shadowOffset: { width: 0, height: 4 },
+    elevation: 3,
   },
   payBtnContent: {
       flexDirection: 'row',
