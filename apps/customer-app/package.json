@@ -21,7 +21,6 @@
     "@react-navigation/native-stack": "^6.11.0",
     "@tanstack/react-query": "^5.90.21",
     "axios": "^1.6.8",
-    "expo-localization": "^16.1.6",
     "i18next": "^23.16.8",
     "react": "18.2.0",
     "react-i18next": "^15.7.4",
