@@ -4,7 +4,10 @@
   "scripts": {
     "start": "react-native start",
     "android": "react-native run-android",
-    "ios": "react-native run-ios"
+    "ios": "react-native run-ios",
+    "dev:metro": "powershell -NoProfile -ExecutionPolicy Bypass -Command \"Get-NetTCPConnection -State Listen -ErrorAction SilentlyContinue | Where-Object { $_.LocalPort -eq 8081 } | Select-Object -ExpandProperty OwningProcess -Unique | ForEach-Object { Stop-Process -Id $_ -Force }; npx react-native start --port 8081 --reset-cache\"",
+    "dev:android": "npx react-native run-android --active-arch-only --port 8081",
+    "dev:logs": "adb logcat *:S ReactNative:V ReactNativeJS:V"
   },
   "main": "index.js",
   "dependencies": {
