@@ -79,6 +79,11 @@ export const CheckoutScreen = () => {
   const deliveryFee = billTotal > 500 ? 0 : 25;
   const handlingFee = 5;
   const grandTotal = billTotal + deliveryFee + handlingFee - couponDiscount;
+  const selectedMethodLabel = isWallet
+    ? 'F&G Wallet'
+    : isCOD
+    ? 'Cash on Delivery'
+    : (PAYMENT_METHODS.find(m => m.id === selectedMethod)?.name ?? 'UPI');
 
   const handleApplyCoupon = async () => {
     const code = couponCode.trim().toUpperCase();
@@ -216,20 +221,26 @@ export const CheckoutScreen = () => {
           <Text style={styles.amountValue}>₹{grandTotal.toLocaleString('en-IN')}</Text>
         </View>
 
+        {/* Payment methods */}
+        <View style={styles.sectionHeadRow}>
+          <Text style={styles.sectionTitle}>Payment Methods</Text>
+          <Text style={styles.sectionHint}>Secure and encrypted</Text>
+        </View>
+
         {/* F&G Wallet */}
-        <Text style={styles.sectionTitle}>F&G Wallet</Text>
         <TouchableOpacity
-          style={[styles.paymentBox, isWallet && styles.payRowActive]}
+          style={[styles.methodCard, isWallet && styles.methodCardActive]}
           onPress={() => { setIsWallet(true); setIsCOD(false); }}
+          activeOpacity={0.85}
         >
-          <View style={styles.payRow}>
+          <View style={styles.methodRow}>
             <View style={styles.payLeft}>
-              <View style={[styles.codIconBox, { backgroundColor: '#E8F5E9' }]}>
+              <View style={[styles.methodIconBox, { backgroundColor: '#E8F5E9' }]}>
                 <Image source={{ uri: 'https://img.icons8.com/color/96/coins--v1.png' }} style={{ width: 18, height: 18 }} resizeMode="contain" />
               </View>
               <View>
                 <Text style={styles.payName}>F&G Wallet</Text>
-                <Text style={{ fontSize: 11, color: '#666' }}>
+                <Text style={styles.paySub}>
                   {walletLoading ? 'Loading…' : `Balance: ₹${(walletBalance / 100).toLocaleString('en-IN')}`}
                 </Text>
               </View>
@@ -241,41 +252,47 @@ export const CheckoutScreen = () => {
         </TouchableOpacity>
 
         {/* UPI Options */}
-        <Text style={styles.sectionTitle}>UPI Options</Text>
-        <View style={styles.paymentBox}>
+        <Text style={styles.sectionTitle}>Pay by UPI</Text>
+        <View style={styles.upiGrid}>
           {PAYMENT_METHODS.map((method) => (
             <TouchableOpacity 
               key={method.id} 
-              style={[styles.payRow, selectedMethod === method.id && !isCOD && styles.payRowActive]}
+              style={[styles.upiCard, selectedMethod === method.id && !isCOD && !isWallet && styles.upiCardActive]}
               onPress={() => {
                 setSelectedMethod(method.id);
                 setIsCOD(false);
                 setIsWallet(false);
               }}
+              activeOpacity={0.85}
             >
-              <View style={styles.payLeft}>
-                 <Image source={{ uri: method.icon }} style={styles.payIcon} />
-                 <Text style={styles.payName}>{method.name}</Text>
+              <View style={styles.upiTopRow}>
+                <Image source={{ uri: method.icon }} style={styles.payIcon} />
+                <View style={[styles.radio, selectedMethod === method.id && !isCOD && !isWallet && styles.radioActive]}>
+                  {selectedMethod === method.id && !isCOD && !isWallet && <View style={styles.radioInner} />}
+                </View>
               </View>
-              <View style={[styles.radio, selectedMethod === method.id && !isCOD && styles.radioActive]}>
-                 {selectedMethod === method.id && !isCOD && <View style={styles.radioInner} />}
-              </View>
+              <Text style={styles.upiName}>{method.name}</Text>
+              {method.id === 'gpay' && <Text style={styles.upiTag}>Popular</Text>}
             </TouchableOpacity>
           ))}
         </View>
 
         {/* Cash on Delivery */}
-        <Text style={styles.sectionTitle}>More Payment Options</Text>
+        <Text style={styles.sectionTitle}>More Options</Text>
         <TouchableOpacity
-          style={[styles.paymentBox, isCOD && styles.payRowActive]}
+          style={[styles.methodCard, isCOD && styles.methodCardActive]}
           onPress={() => { setIsCOD(true); setIsWallet(false); }}
+          activeOpacity={0.85}
         >
-          <View style={styles.payRow}>
+          <View style={styles.methodRow}>
             <View style={styles.payLeft}>
-               <View style={styles.codIconBox}>
+               <View style={styles.methodIconBox}>
                   <Image source={{ uri: 'https://img.icons8.com/color/96/banknotes--v1.png' }} style={{ width: 18, height: 18 }} resizeMode="contain" />
                </View>
-               <Text style={styles.payName}>Cash on Delivery</Text>
+               <View>
+                 <Text style={styles.payName}>Cash on Delivery</Text>
+                 <Text style={styles.paySub}>Pay when order arrives</Text>
+               </View>
             </View>
             <View style={[styles.radio, isCOD && styles.radioActive]}>
                {isCOD && <View style={styles.radioInner} />}
@@ -285,22 +302,15 @@ export const CheckoutScreen = () => {
 
         {/* Delivery Time Slot (C-4) */}
                 <Text style={styles.sectionTitle}>Delivery Time</Text>
-                <View style={[styles.paymentBox, { flexDirection: 'row', gap: 8 }]}>
+                <View style={styles.slotRow}>
                   {DELIVERY_SLOTS.map(slot => (
                     <TouchableOpacity
                       key={slot.id}
-                      style={[
-                        { flex: 1, paddingVertical: 10, borderRadius: 10, borderWidth: 1.5,
-                          borderColor: deliverySlot === slot.id ? theme.colors.primary : '#E0E0E0',
-                          backgroundColor: deliverySlot === slot.id ? '#FFF8F0' : '#FFF',
-                          alignItems: 'center' },
-                      ]}
+                      style={[styles.slotChip, deliverySlot === slot.id && styles.slotChipActive]}
                       onPress={() => setDeliverySlot(slot.id)}
+                      activeOpacity={0.85}
                     >
-                      <Text style={{ fontSize: 12, fontWeight: '700',
-                        color: deliverySlot === slot.id ? theme.colors.primary : '#555' }}>
-                        {slot.label}
-                      </Text>
+                      <Text style={[styles.slotText, deliverySlot === slot.id && styles.slotTextActive]}>{slot.label}</Text>
                     </TouchableOpacity>
                   ))}
                 </View>
@@ -389,7 +399,7 @@ export const CheckoutScreen = () => {
           ) : (
             <View style={styles.payBtnContent}>
                 <Text style={styles.payBtnText}>
-                   {isCOD ? 'Place Order (COD)' : `Pay via ${PAYMENT_METHODS.find(m => m.id === selectedMethod)?.name}`}
+                   {isCOD ? 'Place Order (COD)' : `Pay with ${selectedMethodLabel}`}
                 </Text>
                 <Text style={styles.payBtnArrow}>→</Text>
             </View>
@@ -463,33 +473,91 @@ const styles = StyleSheet.create({
     color: '#333',
     marginBottom: 12,
   },
-  paymentBox: {
-    backgroundColor: '#FFF',
-    borderRadius: 16,
-    overflow: 'hidden',
-    marginBottom: 24,
-    borderWidth: 1,
-    borderColor: '#F0F0F0',
-  },
-  payRow: {
+  sectionHeadRow: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    padding: 16,
-    borderBottomWidth: 1,
-    borderBottomColor: '#F8F9FB',
   },
-  payRowActive: {
-    backgroundColor: '#F0F9F0',
+  sectionHint: {
+    fontSize: 11,
+    color: '#7A869A',
+    fontFamily: theme.typography.fontFamily.medium,
+  },
+  methodCard: {
+    backgroundColor: '#FFF',
+    borderRadius: 16,
+    marginBottom: 14,
+    borderWidth: 1,
+    borderColor: '#F0F0F0',
+    paddingHorizontal: 14,
+    paddingVertical: 12,
+  },
+  methodCardActive: {
+    borderColor: '#A7D7A7',
+    backgroundColor: '#F4FBF4',
+  },
+  methodRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingVertical: 2,
   },
   payLeft: {
     flexDirection: 'row',
     alignItems: 'center',
   },
+  paySub: {
+    fontSize: 11,
+    color: '#6E7787',
+    marginTop: 2,
+    fontFamily: theme.typography.fontFamily.medium,
+  },
+  upiGrid: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    justifyContent: 'space-between',
+    marginBottom: 14,
+    rowGap: 10,
+  },
+  upiCard: {
+    width: '48.5%',
+    backgroundColor: '#FFF',
+    borderRadius: 14,
+    borderWidth: 1,
+    borderColor: '#ECEFF3',
+    padding: 12,
+  },
+  upiCardActive: {
+    borderColor: '#86C186',
+    backgroundColor: '#F4FBF4',
+  },
+  upiTopRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 8,
+  },
+  upiName: {
+    fontSize: 13,
+    color: '#1F2937',
+    fontFamily: theme.typography.fontFamily.bold,
+  },
+  upiTag: {
+    marginTop: 5,
+    alignSelf: 'flex-start',
+    fontSize: 10,
+    color: '#0B6E4F',
+    backgroundColor: '#E8F8F1',
+    paddingHorizontal: 7,
+    paddingVertical: 3,
+    borderRadius: 10,
+    overflow: 'hidden',
+    fontFamily: theme.typography.fontFamily.bold,
+  },
   payIcon: {
     width: 24,
     height: 24,
-    marginRight: 12,
+    marginRight: 10,
     resizeMode: 'contain',
   },
   payName: {
@@ -497,7 +565,7 @@ const styles = StyleSheet.create({
     fontFamily: theme.typography.fontFamily.medium,
     color: '#333',
   },
-  codIconBox: {
+  methodIconBox: {
     width: 24,
     height: 24,
     backgroundColor: '#F0F4F7',
@@ -523,6 +591,37 @@ const styles = StyleSheet.create({
     height: 10,
     borderRadius: 5,
     backgroundColor: '#339233',
+  },
+  slotRow: {
+    backgroundColor: '#FFF',
+    borderRadius: 16,
+    borderWidth: 1,
+    borderColor: '#F0F0F0',
+    padding: 8,
+    marginBottom: 24,
+    flexDirection: 'row',
+    gap: 8,
+  },
+  slotChip: {
+    flex: 1,
+    borderRadius: 10,
+    borderWidth: 1.5,
+    borderColor: '#E4E7ED',
+    backgroundColor: '#FFF',
+    alignItems: 'center',
+    paddingVertical: 10,
+  },
+  slotChipActive: {
+    borderColor: theme.colors.primary,
+    backgroundColor: '#FFF8F0',
+  },
+  slotText: {
+    fontSize: 12,
+    color: '#555',
+    fontFamily: theme.typography.fontFamily.bold,
+  },
+  slotTextActive: {
+    color: theme.colors.primary,
   },
   addressSection: { marginTop: 8 },
   addressHeader: {
