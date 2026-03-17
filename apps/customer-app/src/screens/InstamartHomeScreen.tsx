@@ -276,20 +276,25 @@ export const InstamartHomeScreen = () => {
           )}
         </View>
 
-        {/* Promise row */}
-        <View style={s.promises}>
-          {[
-            { img:'https://img.icons8.com/color/96/express-delivery--v1.png', t:'Super Fast', s:'Under 40 min' },
-            { img:'https://img.icons8.com/color/96/leaf.png',                t:'100% Fresh', s:'Daily sourced' },
-            { img:'https://img.icons8.com/color/96/price-tag--v1.png',       t:'Best Price', s:'Lowest rates' },
-            { img:'https://img.icons8.com/color/96/return-purchase--v1.png', t:'Easy Return', s:'No questions' },
-          ].map(p => (
-            <View key={p.t} style={s.promise}>
-              <Image source={{ uri: p.img }} style={s.promiseImg} resizeMode="contain" />
-              <Text style={s.promiseTitle}>{p.t}</Text>
-              <Text style={s.promiseSub}>{p.s}</Text>
-            </View>
-          ))}
+        {/* Trust benefits */}
+        <View style={s.promisesSection}>
+          <Text style={s.promisesTitle}>Why shoppers love Instamart</Text>
+          <View style={s.promisesGrid}>
+            {[
+              { img: 'https://img.icons8.com/color/96/leaf.png', t: '100% Fresh', s: 'Daily sourced produce', bg: '#ECFDF3' },
+              { img: 'https://img.icons8.com/color/96/express-delivery--v1.png', t: '10 Min Delivery', s: 'Lightning fast dispatch', bg: '#EFF6FF' },
+              { img: 'https://img.icons8.com/color/96/price-tag--v1.png', t: 'Best Prices', s: 'Top savings every day', bg: '#FFF7ED' },
+              { img: 'https://img.icons8.com/color/96/return-purchase--v1.png', t: 'Easy Returns', s: 'Hassle-free refunds', bg: '#F5F3FF' },
+            ].map((p) => (
+              <View key={p.t} style={s.promiseCard}>
+                <View style={[s.promiseIconWrap, { backgroundColor: p.bg }]}>
+                  <Image source={{ uri: p.img }} style={s.promiseImg} resizeMode="contain" />
+                </View>
+                <Text style={s.promiseTitle}>{p.t}</Text>
+                <Text style={s.promiseSub}>{p.s}</Text>
+              </View>
+            ))}
+          </View>
         </View>
 
       </ScrollView>
@@ -384,11 +389,14 @@ const s = StyleSheet.create({
   catRow:      { justifyContent: 'space-between', marginBottom: 10 },
   emptyTxt:    { textAlign: 'center', color: '#9E9E9E', padding: 24, fontSize: 13 },
 
-  promises:      { flexDirection: 'row', justifyContent: 'space-around', backgroundColor: '#FFF', marginTop: 8, paddingVertical: 18, marginHorizontal: 16, borderRadius: 16 },
-  promise:       { alignItems: 'center' },
-  promiseImg:   { width: 26, height: 26, marginBottom: 5 },
-  promiseTitle:  { fontSize: 11, fontWeight: '800', color: '#0D1B14', textAlign: 'center' },
-  promiseSub:    { fontSize: 10, color: '#9E9E9E', textAlign: 'center', marginTop: 2 },
+  promisesSection: { backgroundColor: '#FFF', marginTop: 10, marginHorizontal: 16, borderRadius: 16, paddingHorizontal: 12, paddingVertical: 14, borderWidth: 1, borderColor: '#EAF0F6' },
+  promisesTitle: { fontSize: 13, fontWeight: '800', color: '#0D1B14', marginBottom: 10, paddingHorizontal: 4 },
+  promisesGrid: { flexDirection: 'row', flexWrap: 'wrap', justifyContent: 'space-between', rowGap: 8 },
+  promiseCard: { width: '48.5%', borderRadius: 12, paddingVertical: 10, paddingHorizontal: 8, borderWidth: 1, borderColor: '#EEF2F6', backgroundColor: '#FCFDFE', alignItems: 'center' },
+  promiseIconWrap: { width: 32, height: 32, borderRadius: 16, alignItems: 'center', justifyContent: 'center', marginBottom: 6 },
+  promiseImg: { width: 18, height: 18 },
+  promiseTitle: { fontSize: 11, fontWeight: '800', color: '#0D1B14', textAlign: 'center' },
+  promiseSub: { fontSize: 10, color: '#738093', textAlign: 'center', marginTop: 2, lineHeight: 13 },
 
   cartBar:       { position: 'absolute', bottom: Platform.OS === 'ios' ? 16 : 74, left: 16, right: 16, backgroundColor: theme.colors.primary, borderRadius: 16, padding: 16, flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', elevation: 8, shadowColor: '#000', shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.2, shadowRadius: 8 },
   cartBarLeft:   { flexDirection: 'row', alignItems: 'center', gap: 10 },

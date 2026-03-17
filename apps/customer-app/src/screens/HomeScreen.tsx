@@ -536,18 +536,24 @@ export const HomeScreen = () => {
         </View>
 
         {/* Trust footer */}
-        <View style={s.trustStrip}>
-          {[
-            { img: 'https://img.icons8.com/color/96/leaf.png',                     label: '100%\nFresh' },
-            { img: 'https://img.icons8.com/color/96/express-delivery--v1.png',     label: '10 Min\nDelivery' },
-            { img: 'https://img.icons8.com/color/96/price-tag--v1.png',            label: 'Best\nPrices' },
-            { img: 'https://img.icons8.com/color/96/return-purchase--v1.png',      label: 'Easy\nReturns' },
-          ].map(t => (
-            <View key={t.label} style={s.trustItem}>
-              <Image source={{ uri: t.img }} style={s.trustImg} resizeMode="contain" />
-              <Text style={s.trustLabel}>{t.label}</Text>
-            </View>
-          ))}
+        <View style={s.trustSection}>
+          <Text style={s.trustTitle}>Why customers trust us</Text>
+          <View style={s.trustGrid}>
+            {[
+              { img: 'https://img.icons8.com/color/96/leaf.png', label: '100% Fresh', sub: 'Daily sourced', bg: '#ECFDF3' },
+              { img: 'https://img.icons8.com/color/96/express-delivery--v1.png', label: '10 Min Delivery', sub: 'Quick dispatch', bg: '#EFF6FF' },
+              { img: 'https://img.icons8.com/color/96/price-tag--v1.png', label: 'Best Prices', sub: 'Great value deals', bg: '#FFF7ED' },
+              { img: 'https://img.icons8.com/color/96/return-purchase--v1.png', label: 'Easy Returns', sub: 'Simple refunds', bg: '#F5F3FF' },
+            ].map(t => (
+              <View key={t.label} style={s.trustCard}>
+                <View style={[s.trustIconWrap, { backgroundColor: t.bg }]}>
+                  <Image source={{ uri: t.img }} style={s.trustImg} resizeMode="contain" />
+                </View>
+                <Text style={s.trustLabel}>{t.label}</Text>
+                <Text style={s.trustSub}>{t.sub}</Text>
+              </View>
+            ))}
+          </View>
         </View>
 
         <View style={{ height: 20 }} />
@@ -642,8 +648,12 @@ const s = StyleSheet.create({
   promoSub:      { fontSize: 11, color: '#6B7280', marginTop: 3 },
   promoDiscount: { fontSize: 13, fontWeight: '900', color: theme.colors.primary, marginTop: 6 },
 
-  trustStrip: { flexDirection: 'row', justifyContent: 'space-around', paddingVertical: 20, marginTop: 16, backgroundColor: '#FFFFFF', marginHorizontal: 16, borderRadius: 16 },
-  trustItem:  { alignItems: 'center' },
-  trustImg:  { width: 28, height: 28, marginBottom: 6 },
-  trustLabel: { fontSize: 11, fontWeight: '700', color: '#0D1B14', textAlign: 'center', lineHeight: 15 },
+  trustSection: { backgroundColor: '#FFFFFF', marginTop: 16, marginHorizontal: 16, borderRadius: 16, paddingHorizontal: 12, paddingTop: 14, paddingBottom: 12, borderWidth: 1, borderColor: '#EAF0F6' },
+  trustTitle: { fontSize: 13, fontWeight: '800', color: '#0D1B14', marginBottom: 10, paddingHorizontal: 4 },
+  trustGrid: { flexDirection: 'row', flexWrap: 'wrap', justifyContent: 'space-between', rowGap: 8 },
+  trustCard: { width: '48.5%', borderRadius: 12, paddingVertical: 10, paddingHorizontal: 8, borderWidth: 1, borderColor: '#EEF2F6', backgroundColor: '#FCFDFE', alignItems: 'center' },
+  trustIconWrap: { width: 32, height: 32, borderRadius: 16, alignItems: 'center', justifyContent: 'center', marginBottom: 6 },
+  trustImg: { width: 18, height: 18 },
+  trustLabel: { fontSize: 11, fontWeight: '800', color: '#0D1B14', textAlign: 'center' },
+  trustSub: { fontSize: 10, color: '#738093', textAlign: 'center', marginTop: 2, lineHeight: 13 },
 });
