@@ -164,6 +164,23 @@ npx react-native run-ios
 Update the API base URL in `src/services/api.ts` to your machine's IP when
 testing on a physical device.
 
+#### Windows reliable preview workflow
+
+When UI changes do not appear on the emulator, use this command from `apps/customer-app`:
+
+```bash
+npm run dev:refresh
+```
+
+What it does automatically:
+
+- Kills stale process on Metro port `8081`
+- Starts Metro and waits until `packager-status:running`
+- Re-applies `adb reverse` for `8081` and `3002`
+- Reinstalls debug APK and relaunches `MainActivity`
+
+After this, future UI edits should appear with Dev Menu -> Reload (or press `r` in Metro terminal).
+
 ---
 
 ### 5 · Driver App (Swift)
