@@ -62,21 +62,21 @@ const SECTIONS: Section[] = [
     rows: [
       [
         { label: 'Cold Drinks\n& Juices',     image: 'https://images.unsplash.com/photo-1622483767028-3f66f32aef97?w=200&q=80', cat: 'Beverages',             subCat: 'Cold Drinks'    },
-        { label: 'Ice Creams\n& Frozen',       image: 'https://images.unsplash.com/photo-1497034825429-c343d7c6a68f?w=200&q=80', cat: 'Frozen & Instant Food', subCat: 'Ice Creams'     },
+        { label: 'Ice Creams\n& Frozen Dessert', image: 'https://images.unsplash.com/photo-1497034825429-c343d7c6a68f?w=200&q=80', cat: 'Frozen & Instant Food', subCat: 'Ice Creams'     },
         { label: 'Chips &\nNamkeens',          image: 'https://images.unsplash.com/photo-1599490659213-e2b9527bd087?w=200&q=80', cat: 'Munchies',               subCat: 'Chips & Crisps' },
         { label: 'Chocolates',                 image: 'https://images.unsplash.com/photo-1549007994-cb92caebd54b?w=200&q=80', cat: 'Munchies',               subCat: 'Chocolates'     },
       ],
       [
         { label: 'Biscuits\n& Cakes',          image: 'https://images.unsplash.com/photo-1509440159596-0249088772ff?w=200&q=80', cat: 'Munchies',            subCat: 'Biscuits & Cookies' },
-        { label: 'Tea, Coffee\n& Milk Drinks', image: 'https://images.unsplash.com/photo-1544787219-7f47ccb76574?w=200&q=80', cat: 'Beverages',           subCat: 'Health Drinks'      },
+        { label: 'Tea, Coffees\n& Milk Drinks', image: 'https://images.unsplash.com/photo-1544787219-7f47ccb76574?w=200&q=80', cat: 'Beverages',           subCat: 'Health Drinks'      },
         { label: 'Sauces &\nSpreads',          image: 'https://images.unsplash.com/photo-1596462502278-27bfdc403348?w=200&q=80', cat: 'Breakfast & Sauces', subCat: 'Sauces & Spreads'   },
         { label: 'Sweet\nCorner',              image: 'https://images.unsplash.com/photo-1583395838144-2b890f63e34a?w=200&q=80', cat: 'Munchies',            subCat: 'Chocolates'         },
       ],
       [
-        { label: 'Noodles,\nPasta',            image: 'https://images.unsplash.com/photo-1569718212165-3a8278d5f624?w=200&q=80', cat: 'Frozen & Instant Food', subCat: 'Noodles & Pasta' },
+        { label: 'Noodles, Pasta,\nVermicelli', image: 'https://images.unsplash.com/photo-1569718212165-3a8278d5f624?w=200&q=80', cat: 'Frozen & Instant Food', subCat: 'Noodles & Pasta' },
         { label: 'Frozen\nFood',               image: 'https://images.unsplash.com/photo-1626200419199-391ae4be7a41?w=200&q=80', cat: 'Frozen & Instant Food', subCat: 'Frozen Snacks'   },
         { label: 'Dry Fruits\n& Seeds',        image: 'https://images.unsplash.com/photo-1559181567-c3190ca9959b?w=200&q=80', cat: 'Atta, Rice, Oil & Dals', subCat: 'Dals & Pulses'  },
-        { label: 'Energy\nDrinks',             image: 'https://images.unsplash.com/photo-1622540796758-a14fd81bdc23?w=200&q=80', cat: 'Beverages',               subCat: 'Energy Drinks'  },
+        { label: 'Cold\nDrinks',               image: 'https://images.unsplash.com/photo-1622540796758-a14fd81bdc23?w=200&q=80', cat: 'Beverages',               subCat: 'Cold Drinks'    },
       ],
     ],
   },
@@ -110,7 +110,7 @@ const SECTIONS: Section[] = [
         { label: 'Home &\nKitchen',        image: 'https://images.unsplash.com/photo-1556909114-f6e7ad7d3136?w=200&q=80', cat: 'Cleaning Essentials' },
         { label: 'Puja\nStore',            image: 'https://images.unsplash.com/photo-1605289982774-9a6fef564df8?w=200&q=80', cat: 'Cleaning Essentials' },
         { label: 'Cleaners &\nRepellents', image: 'https://images.unsplash.com/photo-1585421514738-01798e348b17?w=200&q=80', cat: 'Cleaning Essentials' },
-        { label: 'Toys &\nStationery',     image: 'https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=200&q=80', cat: '' },
+        { label: 'Toys &\nStationary',     image: 'https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=200&q=80', cat: '' },
       ],
       [
         { label: 'Electronics\n& Appliances', image: 'https://images.unsplash.com/photo-1468495244123-6c6c332eeece?w=200&q=80', cat: '' },

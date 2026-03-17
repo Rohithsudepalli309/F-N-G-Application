@@ -79,18 +79,24 @@ export const LoginScreen = () => {
     Animated.spring(btnScale, { toValue: 1, useNativeDriver: true, speed: 30, bounciness: 8 }).start();
 
   const handleSendOtp = async () => {
-    if (phone.length < 10) {
+    const normalizedPhone = phone.replace(/\D/g, '').slice(0, 10);
+
+    if (!/^\d{10}$/.test(normalizedPhone)) {
       Alert.alert('Invalid Number', 'Please enter a valid 10-digit mobile number.');
       return;
     }
     setLoading(true);
     try {
-      const { data } = await api.post('/auth/otp', { phone, role: 'customer' });
+      const { data } = await api.post('/auth/otp', { phone: normalizedPhone, role: 'customer' });
       // In dev the backend returns the OTP in the response — auto-fill it
       if (data?.otp) setLastOtp(data.otp);
-      (navigation as any).navigate('Otp', { phone });
-    } catch {
-      Alert.alert('Error', 'Could not send OTP. Please try again.');
+      (navigation as any).navigate('Otp', { phone: normalizedPhone });
+    } catch (error: any) {
+      const message =
+        error?.response?.data?.error ||
+        error?.message ||
+        'Could not send OTP. Please try again.';
+      Alert.alert('Error', message);
     } finally {
       setLoading(false);
     }
@@ -134,7 +140,7 @@ export const LoginScreen = () => {
             placeholderTextColor={theme.colors.text.secondary + '80'}
             keyboardType="phone-pad"
             value={phone}
-            onChangeText={setPhone}
+            onChangeText={(text) => setPhone(text.replace(/\D/g, '').slice(0, 10))}
             maxLength={10}
             returnKeyType="done"
             onSubmitEditing={handleSendOtp}

@@ -24,6 +24,9 @@ call cd ..
 echo [FNG] Wiring reverse port to Metro (8081)...
 adb reverse tcp:8081 tcp:8081 >nul
 
+echo [FNG] Wiring reverse port to Backend (3002)...
+adb reverse tcp:3002 tcp:3002 >nul
+
 echo [FNG] Launching app...
 adb shell am start -n com.customerapp/com.customerapp.MainActivity -a android.intent.action.MAIN -c android.intent.category.LAUNCHER
 if errorlevel 1 (
