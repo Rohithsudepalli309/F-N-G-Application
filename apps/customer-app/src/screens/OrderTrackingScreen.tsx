@@ -12,6 +12,7 @@ import {
   Text,
   StyleSheet,
   ActivityIndicator,
+  Platform,
   AppState,
   AppStateStatus,
   Share,
@@ -218,7 +219,7 @@ const styles = StyleSheet.create({
   map:       { flex: 1 },
   card: {
     position: 'absolute',
-    bottom: 0,
+    bottom: Platform.OS === 'ios' ? 0 : 62,
     left: 0,
     right: 0,
     backgroundColor: theme.colors.background,

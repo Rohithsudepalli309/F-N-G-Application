@@ -2,7 +2,7 @@ import React, { useEffect, useState, useCallback } from 'react';
 import {
   View, Text, StyleSheet, SafeAreaView, StatusBar,
   TouchableOpacity, FlatList, ActivityIndicator,
-  TextInput, Image, Dimensions, ScrollView,
+  TextInput, Image, Dimensions, ScrollView, Platform,
 } from 'react-native';
 import { useNavigation, useRoute } from '@react-navigation/native';
 import { api } from '../services/api';
@@ -217,7 +217,7 @@ export const ProductListScreen = () => {
           contentContainerStyle={s.grid}
           columnWrapperStyle={s.row}
           showsVerticalScrollIndicator={false}
-          ListFooterComponent={<View style={{ height: cartItems.length > 0 ? 80 : 20 }} />}
+          ListFooterComponent={<View style={{ height: cartItems.length > 0 ? 166 : 20 }} />}
         />
       )}
 
@@ -247,7 +247,7 @@ const s = StyleSheet.create({
   root:       { flex: 1, backgroundColor: '#F5F7FA' },
 
   header:     { flexDirection: 'row', alignItems: 'center', paddingHorizontal: 16, paddingVertical: 12, backgroundColor: '#FFF', borderBottomWidth: 1, borderBottomColor: '#EBEBEB' },
-  backBtn:    { width: 36, height: 36, borderRadius: 18, backgroundColor: '#F5F7FA', alignItems: 'center', justifyContent: 'center', marginRight: 10 },
+  backBtn:    { width: 34, height: 34, borderRadius: 17, backgroundColor: '#F5F7FA', alignItems: 'center', justifyContent: 'center', marginRight: 10 },
   backArrow:  { fontSize: 26, color: '#0D1B14', marginTop: -2 },
   headerMid:  { flex: 1 },
   headerTitle:{ fontSize: 17, fontWeight: '800', color: '#0D1B14' },
@@ -275,10 +275,10 @@ const s = StyleSheet.create({
   clearSearchBtn:{ marginTop: 20, backgroundColor: theme.colors.primary, paddingHorizontal: 24, paddingVertical: 11, borderRadius: 25 },
   clearSearchText:{ color: '#FFF', fontSize: 13, fontWeight: '700' },
 
-  cartBar:          { position: 'absolute', bottom: 12, left: 12, right: 12, backgroundColor: theme.colors.primary, borderRadius: 14, padding: 14, flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', elevation: 8, shadowColor: '#000', shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.2, shadowRadius: 8 },
+  cartBar:          { position: 'absolute', bottom: Platform.OS === 'ios' ? 12 : 74, left: 12, right: 12, backgroundColor: theme.colors.primary, borderRadius: 14, padding: 14, flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', elevation: 8, shadowColor: '#000', shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.2, shadowRadius: 8 },
   cartBarLeft:      { flexDirection: 'row', alignItems: 'center', gap: 10 },
-  cartBarBadge:     { width: 26, height: 26, borderRadius: 13, backgroundColor: '#F5A826', alignItems: 'center', justifyContent: 'center' },
-  cartBarBadgeText: { fontSize: 12, fontWeight: '900', color: '#0D1B14' },
+  cartBarBadge:     { width: 22, height: 22, borderRadius: 11, backgroundColor: '#F5A826', alignItems: 'center', justifyContent: 'center' },
+  cartBarBadgeText: { fontSize: 11, fontWeight: '900', color: '#0D1B14' },
   cartBarLabel:     { color: '#FFF', fontSize: 13, fontWeight: '600' },
   cartBarCta:       { color: '#F5A826', fontSize: 13, fontWeight: '800' },
 });

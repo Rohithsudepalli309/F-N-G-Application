@@ -6,7 +6,7 @@
 import React, { useState } from 'react';
 import {
   View, Text, StyleSheet, SafeAreaView, StatusBar, ScrollView,
-  TouchableOpacity, Image,
+  TouchableOpacity, Image, Platform,
 } from 'react-native';
 import { useNavigation, useRoute } from '@react-navigation/native';
 import { useCartStore } from '../store/useCartStore';
@@ -120,7 +120,7 @@ export const MenuItemDetailScreen = () => {
 
       <ScrollView
         showsVerticalScrollIndicator={false}
-        contentContainerStyle={{ paddingBottom: 120 }}
+        contentContainerStyle={{ paddingBottom: 184 }}
       >
         <View style={styles.infoSection}>
           <View style={styles.titleRow}>
@@ -286,7 +286,7 @@ const styles = StyleSheet.create({
   addonPrice: { fontSize: 13, color: theme.colors.accent, fontWeight: '700' },
 
   bottomBar: {
-    position: 'absolute', bottom: 0, left: 0, right: 0,
+    position: 'absolute', bottom: Platform.OS === 'ios' ? 0 : 62, left: 0, right: 0,
     backgroundColor: theme.colors.background, padding: 16,
     borderTopWidth: 1, borderTopColor: theme.colors.border,
     shadowColor: '#000', shadowOffset: { width: 0, height: -4 },
@@ -304,9 +304,9 @@ const styles = StyleSheet.create({
     flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 24,
   },
   qtyBtn: {
-    width: 48, height: 48, borderRadius: 24, backgroundColor: '#163D26',
+    width: 42, height: 42, borderRadius: 21, backgroundColor: '#163D26',
     alignItems: 'center', justifyContent: 'center',
   },
-  qtyBtnText: { color: '#fff', fontSize: 24, fontWeight: '700', lineHeight: 28 },
-  qtyCount: { fontSize: 22, fontWeight: '800', color: theme.colors.text.primary, minWidth: 36, textAlign: 'center' },
+  qtyBtnText: { color: '#fff', fontSize: 20, fontWeight: '700', lineHeight: 24 },
+  qtyCount: { fontSize: 20, fontWeight: '800', color: theme.colors.text.primary, minWidth: 32, textAlign: 'center' },
 });

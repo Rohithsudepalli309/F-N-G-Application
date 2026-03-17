@@ -61,8 +61,8 @@ const MenuRow = ({ icon, label, sub, badge, onPress, danger, rightText }: MenuRo
 
 const mrow = StyleSheet.create({
   wrap:      { flexDirection: 'row', alignItems: 'center', paddingHorizontal: 16, paddingVertical: 14 },
-  iconBox:   { width: 44, height: 44, borderRadius: 12, backgroundColor: '#F5F7FA', alignItems: 'center', justifyContent: 'center', marginRight: 12, overflow: 'hidden' },
-  iconImg:   { width: 28, height: 28 },
+  iconBox:   { width: 40, height: 40, borderRadius: 11, backgroundColor: '#F5F7FA', alignItems: 'center', justifyContent: 'center', marginRight: 12, overflow: 'hidden' },
+  iconImg:   { width: 22, height: 22 },
   mid:       { flex: 1 },
   label:     { fontSize: 14, fontWeight: '700', color: '#0D1B14' },
   danger:    { color: '#C62828' },
@@ -203,8 +203,8 @@ const s = StyleSheet.create({
   root: { flex: 1, backgroundColor: '#F5F7FA' },
 
   hero:           { backgroundColor: theme.colors.primary, paddingTop: 28, paddingBottom: 28, alignItems: 'center', paddingHorizontal: 24 },
-  heroAvatar:     { width: 80, height: 80, borderRadius: 40, backgroundColor: 'rgba(255,255,255,0.2)', alignItems: 'center', justifyContent: 'center', marginBottom: 12, position: 'relative', borderWidth: 3, borderColor: 'rgba(255,255,255,0.4)' },
-  heroInitial:    { fontSize: 32, fontWeight: '900', color: '#FFF' },
+  heroAvatar:     { width: 72, height: 72, borderRadius: 36, backgroundColor: 'rgba(255,255,255,0.2)', alignItems: 'center', justifyContent: 'center', marginBottom: 12, position: 'relative', borderWidth: 3, borderColor: 'rgba(255,255,255,0.4)' },
+  heroInitial:    { fontSize: 28, fontWeight: '900', color: '#FFF' },
   cameraBtn:      { position: 'absolute', bottom: -2, right: -2, width: 24, height: 24, borderRadius: 12, backgroundColor: '#F5A826', alignItems: 'center', justifyContent: 'center' },
   heroName:       { fontSize: 22, fontWeight: '900', color: '#FFF', letterSpacing: -0.5, marginBottom: 4 },
   heroEmail:      { fontSize: 12, color: 'rgba(255,255,255,0.7)', marginBottom: 16 },
@@ -218,7 +218,7 @@ const s = StyleSheet.create({
 
   proCard:   { flexDirection: 'row', alignItems: 'center', backgroundColor: '#FFF8E1', marginHorizontal: 16, marginTop: 16, borderRadius: 16, padding: 16, borderWidth: 1.5, borderColor: '#F5A826' },
   proLeft:   { flex: 1, flexDirection: 'row', alignItems: 'center', gap: 10 },
-  proStarImg: { width: 28, height: 28, marginRight: 2 },
+  proStarImg: { width: 22, height: 22, marginRight: 2 },
   proTitle:  { fontSize: 14, fontWeight: '800', color: '#92400E' },
   proSub:    { fontSize: 11, color: '#B45309', marginTop: 2 },
   proBtn:    { backgroundColor: '#F5A826', paddingHorizontal: 14, paddingVertical: 8, borderRadius: 20 },

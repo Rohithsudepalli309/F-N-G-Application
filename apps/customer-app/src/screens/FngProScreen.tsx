@@ -7,7 +7,7 @@
 import React, { useState, useEffect } from 'react';
 import {
   View, Text, StyleSheet, SafeAreaView, StatusBar, ScrollView,
-  TouchableOpacity, ActivityIndicator, Alert, Image,
+  TouchableOpacity, ActivityIndicator, Alert, Image, Platform,
 } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import RazorpayCheckout from 'react-native-razorpay';
@@ -110,7 +110,7 @@ export const FngProScreen = () => {
         </View>
       </View>
 
-      <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingBottom: 120 }}>
+      <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingBottom: 184 }}>
         {/* Plan selector */}
         <View style={styles.section}>
           <Text style={styles.sectionTitle}>Choose Your Plan</Text>
@@ -242,7 +242,7 @@ const styles = StyleSheet.create({
     width: 42, height: 42, borderRadius: 21,
     backgroundColor: '#163D2610', alignItems: 'center', justifyContent: 'center',
   },
-  perkIconImg: { width: 26, height: 26 },
+  perkIconImg: { width: 22, height: 22 },
   perkInfo: { flex: 1 },
   perkTitle: { fontSize: 14, fontWeight: '700', color: theme.colors.text.primary },
   perkDesc: { fontSize: 12, color: theme.colors.text.secondary, marginTop: 2 },
@@ -256,7 +256,7 @@ const styles = StyleSheet.create({
   faqText: { fontSize: 13, color: '#78350F', lineHeight: 20 },
 
   bottomBar: {
-    position: 'absolute', bottom: 0, left: 0, right: 0,
+    position: 'absolute', bottom: Platform.OS === 'ios' ? 0 : 62, left: 0, right: 0,
     flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between',
     backgroundColor: theme.colors.background, padding: 16,
     borderTopWidth: 1, borderTopColor: theme.colors.border,
