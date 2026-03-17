@@ -5,6 +5,7 @@ import {
   ActivityIndicator,
 } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
+import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
 import { theme } from '../theme';
 import { ProductCard } from '../components/ProductCard';
 import { useAuthStore } from '../store/useAuthStore';
@@ -304,7 +305,7 @@ export const HomeScreen = () => {
         <View style={s.headerRow1}>
           <TouchableOpacity style={s.locationBtn} activeOpacity={0.8}>
             <View style={s.locationIcon}>
-              <Image source={{ uri: 'https://img.icons8.com/color/96/place-marker--v1.png' }} style={{ width: 18, height: 18 }} resizeMode="contain" />
+              <MaterialCommunityIcons name="map-marker" size={14} color={theme.colors.primary} />
             </View>
             <View style={s.locationTexts}>
               <Text style={s.locationLabel}>DELIVER TO</Text>
@@ -312,19 +313,23 @@ export const HomeScreen = () => {
                 <Text style={s.locationName} numberOfLines={1}>
                   {(user as any)?.address?.split(',')[0] || 'Select location'}
                 </Text>
-                <Text style={s.chevron}> ▾</Text>
+                <MaterialCommunityIcons name="chevron-down" size={14} color={theme.colors.primary} />
               </View>
             </View>
           </TouchableOpacity>
 
           <View style={s.headerRight}>
             <View style={s.deliveryBadge}>
-              <Image source={{ uri: 'https://img.icons8.com/color/96/express-delivery--v1.png' }} style={s.deliveryBoltImg} resizeMode="contain" />
+              <MaterialCommunityIcons name="clock-fast" size={12} color="#0D1B14" />
               <Text style={s.deliveryTime}>10 min</Text>
             </View>
             <TouchableOpacity style={s.avatarBtn} onPress={() => goTo('Settings')}>
               <View style={s.avatar}>
-                <Text style={s.avatarText}>{user?.name?.[0]?.toUpperCase() ?? 'U'}</Text>
+                <MaterialCommunityIcons name="account-circle" size={16} color={theme.colors.primary} />
+              </View>
+              <View style={s.profileMeta}>
+                <Text style={s.profileLabel}>Profile</Text>
+                <Text style={s.profileName} numberOfLines={1}>{user?.name?.split(' ')[0] ?? 'User'}</Text>
               </View>
             </TouchableOpacity>
           </View>
@@ -560,7 +565,7 @@ const s = StyleSheet.create({
     backgroundColor: '#FFFFFF',
     paddingTop: 8,
     borderBottomWidth: 1,
-    borderBottomColor: '#EBEBEB',
+    borderBottomColor: '#E8ECF3',
     elevation: 4,
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 2 },
@@ -568,20 +573,23 @@ const s = StyleSheet.create({
     shadowRadius: 4,
     zIndex: 10,
   },
-  headerRow1:    { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: 16, paddingBottom: 10 },
-  locationBtn:   { flexDirection: 'row', alignItems: 'center', flex: 1 },
-  locationIcon:  { width: 32, height: 32, borderRadius: 16, backgroundColor: '#F0F4EF', alignItems: 'center', justifyContent: 'center', marginRight: 8 },
+  headerRow1:    { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: 16, paddingBottom: 10, gap: 8 },
+  locationBtn:   { flexDirection: 'row', alignItems: 'center', flex: 1, backgroundColor: '#F7FAFC', borderWidth: 1, borderColor: '#E6ECF5', borderRadius: 12, paddingVertical: 7, paddingHorizontal: 9 },
+  locationIcon:  { width: 24, height: 24, borderRadius: 12, backgroundColor: '#EAF3FF', alignItems: 'center', justifyContent: 'center', marginRight: 7 },
   locationTexts: { flex: 1 },
-  locationLabel: { fontSize: 10, color: '#9E9E9E', fontWeight: '600', letterSpacing: 0.3 },
-  locationName:  { fontSize: 15, fontWeight: '800', color: '#0D1B14', maxWidth: width * 0.4 },
+  locationLabel: { fontSize: 10, color: '#8A94A6', fontWeight: '700', letterSpacing: 0.35 },
+  locationName:  { fontSize: 13, fontWeight: '800', color: '#0D1B14', maxWidth: width * 0.34 },
   chevron:       { fontSize: 11, color: theme.colors.primary, fontWeight: '900' },
-  headerRight:   { flexDirection: 'row', alignItems: 'center', gap: 10 },
-  deliveryBadge: { flexDirection: 'row', alignItems: 'center', backgroundColor: theme.colors.primary, paddingHorizontal: 10, paddingVertical: 5, borderRadius: 20 },
-  deliveryBoltImg: { width: 14, height: 14, marginRight: 3, tintColor: '#FFF' },
-  deliveryTime:  { color: '#FFF', fontSize: 12, fontWeight: '800' },
-  avatarBtn:     {},
-  avatar:        { width: 34, height: 34, borderRadius: 17, backgroundColor: theme.colors.primary, alignItems: 'center', justifyContent: 'center' },
-  avatarText:    { color: '#FFF', fontSize: 14, fontWeight: '900' },
+  headerRight:   { flexDirection: 'row', alignItems: 'center', gap: 6 },
+  deliveryBadge: { flexDirection: 'row', alignItems: 'center', backgroundColor: '#FFEFC2', paddingHorizontal: 8, paddingVertical: 6, borderRadius: 16, gap: 3, borderWidth: 1, borderColor: '#FAD76A' },
+  deliveryBoltImg: { width: 14, height: 14, marginRight: 3, tintColor: '#0D1B14' },
+  deliveryTime:  { color: '#0D1B14', fontSize: 11, fontWeight: '900' },
+  avatarBtn:     { flexDirection: 'row', alignItems: 'center', backgroundColor: '#F7FAFC', borderWidth: 1, borderColor: '#E6ECF5', borderRadius: 12, paddingVertical: 5, paddingHorizontal: 7, gap: 5, maxWidth: 118 },
+  avatar:        { width: 26, height: 26, borderRadius: 13, backgroundColor: '#EAF3FF', alignItems: 'center', justifyContent: 'center' },
+  avatarText:    { color: theme.colors.primary, fontSize: 13, fontWeight: '900' },
+  profileMeta:   { flex: 1 },
+  profileLabel:  { fontSize: 8, color: '#8A94A6', fontWeight: '700', textTransform: 'uppercase', letterSpacing: 0.35 },
+  profileName:   { fontSize: 11, color: '#0D1B14', fontWeight: '800' },
 
   searchBar:         { flexDirection: 'row', alignItems: 'center', backgroundColor: '#F7F7F7', marginHorizontal: 16, marginBottom: 10, height: 44, borderRadius: 10, paddingHorizontal: 14, borderWidth: 1, borderColor: '#EBEBEB' },
   searchIconImg:     { width: 18, height: 18, marginRight: 8 },

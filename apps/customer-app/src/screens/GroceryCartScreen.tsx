@@ -6,7 +6,7 @@
 import React, { useState, useEffect } from 'react';
 import {
   View, Text, StyleSheet, SafeAreaView, StatusBar, ScrollView,
-  TouchableOpacity, Image, ActivityIndicator, Alert, TextInput,
+  TouchableOpacity, Image, ActivityIndicator, Alert, TextInput, Platform,
 } from 'react-native';
 import { useNavigation, useRoute } from '@react-navigation/native';
 import RazorpayCheckout from 'react-native-razorpay';
@@ -205,7 +205,7 @@ export const GroceryCartScreen = () => {
         <Text style={styles.promiseText}>Delivery in <Text style={styles.promiseBold}>30 minutes</Text></Text>
       </View>
 
-      <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingBottom: 160 }}>
+      <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingBottom: 224 }}>
         {/* Items list */}
         <View style={styles.itemsSection}>
           {groceryItems.map(item => (
@@ -436,7 +436,7 @@ const styles = StyleSheet.create({
   savingsText: { color: '#163D26', fontWeight: '600', fontSize: 13, textAlign: 'center' },
 
   bottomBar: {
-    position: 'absolute', bottom: 0, left: 0, right: 0,
+    position: 'absolute', bottom: Platform.OS === 'ios' ? 0 : 62, left: 0, right: 0,
     backgroundColor: theme.colors.background, padding: 16,
     borderTopWidth: 1, borderTopColor: theme.colors.border,
     shadowColor: '#000', shadowOffset: { width: 0, height: -4 },

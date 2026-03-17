@@ -11,6 +11,7 @@ import { NavigationContainer } from '@react-navigation/native';
 import { navigationRef } from './navigationRef';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
+import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
 import { useAuthStore } from '../store/useAuthStore';
 import { useUIStore } from '../store/useUIStore';
 import { useCartStore } from '../store/useCartStore';
@@ -100,14 +101,33 @@ const Tab = createBottomTabNavigator();
 // ─── Tab Icon Component ────────────────────────────────────────────────────────
 const TabIcon = ({ name, focused, badge }: { name: string; focused: boolean; badge?: number }) => {
   const icons: Record<string, string> = {
-    Home: '\uD83C\uDFE0', Categories: '\uD83D\uDDC2', Search: '\uD83D\uDD0D', Grocery: '\uD83D\uDED2', Orders: '\uD83D\uDCE6', Profile: '\uD83D\uDC64',
+    Home: 'home-variant-outline',
+    Categories: 'view-grid-outline',
+    Search: 'magnify',
+    Grocery: 'cart-outline',
+    Orders: 'clipboard-list-outline',
+    Profile: 'account-circle-outline',
   };
+
+  const activeIcons: Record<string, string> = {
+    Home: 'home-variant',
+    Categories: 'view-grid',
+    Search: 'magnify',
+    Grocery: 'cart',
+    Orders: 'clipboard-list',
+    Profile: 'account-circle',
+  };
+
+  const iconName = focused ? activeIcons[name] ?? icons[name] : icons[name];
+
   return (
     <View style={tabStyles.iconWrap}>
-      <View>
-        <Text style={[tabStyles.icon, focused && tabStyles.iconActive]}>
-          {icons[name] || '\u25C9'}
-        </Text>
+      <View style={[tabStyles.iconBadge, focused && tabStyles.iconBadgeActive]}>
+        <MaterialCommunityIcons
+          name={iconName || 'circle-outline'}
+          size={20}
+          color={focused ? theme.colors.tabActive : '#8A94A6'}
+        />
         {!!badge && badge > 0 && (
           <View style={tabStyles.badge}>
             <Text style={tabStyles.badgeText}>{badge > 99 ? '99+' : badge}</Text>
@@ -120,9 +140,17 @@ const TabIcon = ({ name, focused, badge }: { name: string; focused: boolean; bad
 };
 
 const tabStyles = StyleSheet.create({
-  iconWrap: { alignItems: 'center', justifyContent: 'center', paddingTop: 4 },
-  icon: { fontSize: 20, opacity: 0.5 },
-  iconActive: { opacity: 1 },
+  iconWrap: { alignItems: 'center', justifyContent: 'center', paddingTop: 2 },
+  iconBadge: {
+    minWidth: 32,
+    height: 26,
+    borderRadius: 13,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  iconBadgeActive: {
+    backgroundColor: '#EEF4FF',
+  },
   label: { fontSize: 10, color: theme.colors.tabInactive, marginTop: 2, fontWeight: '500' },
   labelActive: { color: theme.colors.tabActive, fontWeight: '700' },
   badge: {

@@ -3,6 +3,7 @@ import {
   View, Text, StyleSheet, ScrollView, TouchableOpacity,
   Image, TextInput, SafeAreaView, StatusBar, ActivityIndicator,
   FlatList, Dimensions,
+  Platform,
 } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { api } from '../services/api';
@@ -199,7 +200,10 @@ export const InstamartHomeScreen = () => {
         })}
       </ScrollView>
 
-      <ScrollView showsVerticalScrollIndicator={false}>
+      <ScrollView
+        showsVerticalScrollIndicator={false}
+        contentContainerStyle={{ paddingBottom: cartItems.length > 0 ? 176 : 100 }}
+      >
 
         {/* Deal banner carousel */}
         <View style={s.dealWrap}>
@@ -288,7 +292,6 @@ export const InstamartHomeScreen = () => {
           ))}
         </View>
 
-        <View style={{ height: 100 }} />
       </ScrollView>
 
       {/* Sticky cart bar */}
@@ -387,7 +390,7 @@ const s = StyleSheet.create({
   promiseTitle:  { fontSize: 11, fontWeight: '800', color: '#0D1B14', textAlign: 'center' },
   promiseSub:    { fontSize: 10, color: '#9E9E9E', textAlign: 'center', marginTop: 2 },
 
-  cartBar:       { position: 'absolute', bottom: 12, left: 16, right: 16, backgroundColor: theme.colors.primary, borderRadius: 16, padding: 16, flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', elevation: 8, shadowColor: '#000', shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.2, shadowRadius: 8 },
+  cartBar:       { position: 'absolute', bottom: Platform.OS === 'ios' ? 16 : 74, left: 16, right: 16, backgroundColor: theme.colors.primary, borderRadius: 16, padding: 16, flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', elevation: 8, shadowColor: '#000', shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.2, shadowRadius: 8 },
   cartBarLeft:   { flexDirection: 'row', alignItems: 'center', gap: 10 },
   cartBarBadge:  { width: 28, height: 28, borderRadius: 14, backgroundColor: '#F5A826', alignItems: 'center', justifyContent: 'center' },
   cartBarBadgeText:{ fontSize: 13, fontWeight: '900', color: '#0D1B14' },

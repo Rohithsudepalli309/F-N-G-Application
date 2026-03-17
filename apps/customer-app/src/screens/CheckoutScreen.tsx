@@ -283,9 +283,7 @@ export const CheckoutScreen = () => {
           </View>
         </TouchableOpacity>
 
-        {/* Coupon Code */}
-        <Text style={styles.sectionTitle}>Have a Coupon?</Text>
-                {/* Delivery Time Slot (C-4) */}
+        {/* Delivery Time Slot (C-4) */}
                 <Text style={styles.sectionTitle}>Delivery Time</Text>
                 <View style={[styles.paymentBox, { flexDirection: 'row', gap: 8 }]}>
                   {DELIVERY_SLOTS.map(slot => (
@@ -377,7 +375,6 @@ export const CheckoutScreen = () => {
           )}
         </View>
 
-        <View style={{ height: 100 }} />
       </ScrollView>
 
       {/* Place Order Button */}
@@ -438,6 +435,7 @@ const styles = StyleSheet.create({
   },
   scrollContent: {
     padding: 16,
+    paddingBottom: 196,
   },
   amountCard: {
     backgroundColor: '#FFF',
@@ -651,7 +649,7 @@ const styles = StyleSheet.create({
   },
   footer: {
     position: 'absolute',
-    bottom: 0,
+    bottom: Platform.OS === 'ios' ? 0 : 62,
     left: 0,
     right: 0,
     backgroundColor: '#FFF',

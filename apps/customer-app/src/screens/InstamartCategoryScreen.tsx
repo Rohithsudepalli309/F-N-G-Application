@@ -7,7 +7,7 @@
 import React, { useEffect, useState, useCallback } from 'react';
 import {
   View, Text, StyleSheet, FlatList, TouchableOpacity,
-  Image, SafeAreaView, StatusBar, ActivityIndicator, TextInput,
+  Image, SafeAreaView, StatusBar, ActivityIndicator, TextInput, Platform,
 } from 'react-native';
 import { useRoute, useNavigation } from '@react-navigation/native';
 import { api } from '../services/api';
@@ -253,11 +253,11 @@ const styles = StyleSheet.create({
   sortChipActive: { backgroundColor: theme.colors.primary, borderColor: theme.colors.primary },
   sortText: { fontSize: 12, fontWeight: '600', color: theme.colors.text.secondary },
   sortTextActive: { color: '#FFF' },
-  grid: { paddingHorizontal: 10, paddingTop: 10, paddingBottom: 100 },
+  grid: { paddingHorizontal: 10, paddingTop: 10, paddingBottom: 176 },
   empty: { alignItems: 'center', marginTop: 60 },
   emptyImg: { width: 56, height: 56 },
   emptyText: { fontSize: 16, color: theme.colors.text.secondary, marginTop: 12 },
-  cartBar: { position: 'absolute', bottom: 16, left: 16, right: 16, backgroundColor: theme.colors.primary, borderRadius: theme.borderRadius.l, padding: 16, flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
+  cartBar: { position: 'absolute', bottom: Platform.OS === 'ios' ? 16 : 74, left: 16, right: 16, backgroundColor: theme.colors.primary, borderRadius: theme.borderRadius.l, padding: 16, flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
   cartBarLeft: { color: '#FFF', fontSize: 14, fontWeight: '600' },
   cartBarRight: { color: theme.colors.accent, fontSize: 14, fontWeight: '800' },
 });
