@@ -181,6 +181,23 @@ What it does automatically:
 
 After this, future UI edits should appear with Dev Menu -> Reload (or press `r` in Metro terminal).
 
+#### Realtime rendering across the app (Fast Refresh)
+
+Use this for day-to-day UI development from `apps/customer-app`:
+
+```bash
+npm run dev:live
+```
+
+What `dev:live` does:
+
+- Starts emulator if not running
+- Starts Metro on `8081` (without `--reset-cache`)
+- Re-applies `adb reverse` for `8081` and `3002`
+- Installs app only if missing, then launches app
+
+Use `npm run dev:refresh` only when updates appear stale, Metro is broken, or port `8081` is stuck.
+
 ---
 
 ### 5 · Driver App (Swift)

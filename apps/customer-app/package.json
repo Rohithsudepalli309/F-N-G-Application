@@ -8,6 +8,7 @@
     "postinstall": "patch-package",
     "dev:metro": "node scripts/dev-metro-runner.js",
     "dev:android": "node scripts/dev-android-runner.js",
+    "dev:live": "node scripts/dev-live-runner.js",
     "dev:refresh": "node scripts/dev-refresh-runner.js",
     "dev:logs": "adb logcat *:S ReactNative:V ReactNativeJS:V"
   },
