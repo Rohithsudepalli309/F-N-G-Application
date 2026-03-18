@@ -83,6 +83,13 @@ app.use('/api/v1/webhooks/razorpay', express.raw({ type: 'application/json' }));
 app.use(express.json({ limit: '2mb' }));
 app.use(express.urlencoded({ extended: true }));
 
+// Serve local uploads when STORAGE_DRIVER=local
+import { storageDriver } from './services/storage';
+if (storageDriver === 'local') {
+  const uploadsDir = process.env.LOCAL_UPLOAD_DIR ?? require('path').join(process.cwd(), 'uploads');
+  app.use('/uploads', express.static(uploadsDir));
+}
+
 // Build Redis-backed store only in production when Redis is configured.
 // Falls back to in-memory store for local development (Redis not required).
 function makeRedisStore() {

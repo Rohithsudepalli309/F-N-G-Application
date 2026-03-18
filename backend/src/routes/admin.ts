@@ -5,7 +5,7 @@ import { requireAuth, requireRole, AuthRequest } from '../middleware/auth';
 import multer from 'multer';
 import os from 'os';
 import path from 'path';
-import { saveLocalFile, storageDriver, localFileUrl, ensureUploadsDir } from '../services/storage';
+import { saveFile, storageDriver, ensureUploadsDir } from '../services/storage';
 
 const router = Router();
 router.use(requireAuth, requireRole('admin'));
@@ -151,18 +151,13 @@ router.post('/products/:id/image', upload.single('image'), async (req, res) => {
   const { id } = req.params;
   if (!req.file) return res.status(400).json({ error: 'image file is required' });
   try {
-    if (storageDriver === 'local') {
-      await ensureUploadsDir();
-      const ext = path.extname(req.file.originalname) || '.jpg';
-      const filename = `product-${id}-${Date.now()}${ext}`;
-      const url = await saveLocalFile(req.file.path, filename);
-      const result = await pool.query(`UPDATE products SET image_url=$1 WHERE id=$2 RETURNING id, image_url`, [url, id]);
-      if (result.rows.length === 0) return res.status(404).json({ error: 'Product not found.' });
-      res.json({ product: result.rows[0] });
-    } else {
-      // Placeholder for S3: not implemented yet
-      return res.status(501).json({ error: 'S3 uploads not configured. Set STORAGE_DRIVER=local for now.' });
-    }
+    await ensureUploadsDir();
+    const ext = path.extname(req.file.originalname) || '.jpg';
+    const filename = `product-${id}-${Date.now()}${ext}`;
+    const url = await saveFile(req.file.path, filename);
+    const result = await pool.query(`UPDATE products SET image_url=$1 WHERE id=$2 RETURNING id, image_url`, [url, id]);
+    if (result.rows.length === 0) return res.status(404).json({ error: 'Product not found.' });
+    res.json({ product: result.rows[0] });
   } catch (err) {
     console.error('[admin/products/image]', err);
     res.status(500).json({ error: 'Could not upload image.' });
