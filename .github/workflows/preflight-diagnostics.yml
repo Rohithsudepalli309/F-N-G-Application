@@ -23,6 +23,13 @@ jobs:
       - name: Run diagnostics
         working-directory: apps/customer-app
         # Diagnostics may check local services (Metro/backend/adb) which won't be present in CI.
-        # We run it for visibility but do not fail the job if checks fail.
-        run: node scripts/diagnostics.js
+        # Save output to a file and do not fail the job if checks fail.
+        run: |
+          node scripts/diagnostics.js > diagnostics-output.txt 2>&1 || true
         continue-on-error: true
+
+      - name: Upload diagnostics artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: diagnostics-output
+          path: apps/customer-app/diagnostics-output.txt

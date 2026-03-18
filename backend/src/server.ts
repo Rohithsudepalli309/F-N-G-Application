@@ -1,3 +1,4 @@
+import { app as expressApp } from 'express';
 import http from 'http';
 import './services/observability';
 import express from 'express';
@@ -163,8 +164,12 @@ if (process.env.NODE_ENV !== 'test') {
   const PORT = Number(process.env.PORT ?? 3002);
   server.listen(PORT, () => {
     logger.info(`[F&G Backend] Running on port ${PORT}`, { port: PORT, env: process.env.NODE_ENV ?? 'development' });
-    startOrderEventWorker().catch((err) =>
-      logger.error('Order event worker failed to start', { err })
-    );
+    if (redisEnabled) {
+      startOrderEventWorker().catch((err) =>
+        logger.error('Order event worker failed to start', { err })
+      );
+    } else {
+      logger.info('[orderEvents] Redis disabled — background order worker skipped in this environment');
+    }
   });
 }
