@@ -191,6 +191,7 @@ npm run dev:live
 
 What `dev:live` does:
 
+- Ensures backend is running on `3002`
 - Starts emulator if not running
 - Starts Metro on `8081` (without `--reset-cache`)
 - Re-applies `adb reverse` for `8081` and `3002`

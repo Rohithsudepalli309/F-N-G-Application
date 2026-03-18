@@ -58,6 +58,10 @@ app.use(httpLogger);
 
 // HIGH-5: never fall back to wildcard CORS — fail loud in production, localhost in dev
 const rawAllowedOrigins = process.env.ALLOWED_ORIGINS;
+// Startup banner: Redis mode
+const redisMode = (process.env.NODE_ENV === 'test' || !require('./redis').redisEnabled)
+  ? 'FALLBACK (in-memory mock)' : 'ENABLED';
+logger.info(`\n=== Backend Startup ===\nRedis mode: ${redisMode}\n`);
 let corsOrigin: string | string[];
 if (rawAllowedOrigins) {
   corsOrigin = rawAllowedOrigins.split(',').map((s) => s.trim());

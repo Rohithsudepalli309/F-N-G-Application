@@ -3,6 +3,16 @@ import { logger } from './logger';
 
 const url = process.env.REDIS_URL ?? 'redis://localhost:6379';
 const isTest = process.env.NODE_ENV === 'test' || !!process.env.JEST_WORKER_ID;
+const redisEnabledFromEnv = process.env.REDIS_ENABLED;
+
+function envFlag(value: string | undefined, fallback: boolean): boolean {
+  if (value === undefined) return fallback;
+  const normalized = value.trim().toLowerCase();
+  return ['1', 'true', 'yes', 'on'].includes(normalized);
+}
+
+const isProd = process.env.NODE_ENV === 'production';
+const redisEnabled = envFlag(redisEnabledFromEnv, isProd);
 
 function createTestRedisMock() {
   const base: any = {
@@ -21,6 +31,7 @@ function createTestRedisMock() {
     geoadd: async () => 1,
     georadius: async () => [],
     geopos: async () => [],
+    call: async () => null,
     zadd: async () => 0,
     zrem: async () => 0,
     zrange: async () => [],
@@ -35,7 +46,7 @@ function createTestRedisMock() {
   });
 }
 
-export const redis: any = isTest
+export const redis: any = isTest || !redisEnabled
   ? createTestRedisMock()
   : new Redis(url, {
       lazyConnect: true,
@@ -44,11 +55,13 @@ export const redis: any = isTest
       enableOfflineQueue: true,
     });
 
-if (!isTest) {
+if (!isTest && redisEnabled) {
   redis.on('connect', () => logger.info('[Redis] Connected'));
   redis.on('error', (err: Error) => {
     logger.error('[Redis] Error', { message: err.message });
   });
+} else if (!isTest && !redisEnabled) {
+  logger.info('[Redis] Disabled for current environment; using in-memory fallback');
 }
 
 // ── Key constants ──────────────────────────────────────────────────────────

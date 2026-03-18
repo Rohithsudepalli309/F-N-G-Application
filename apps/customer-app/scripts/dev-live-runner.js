@@ -4,6 +4,8 @@ const path = require('path');
 const { spawn, spawnSync } = require('child_process');
 
 const appRoot = path.resolve(__dirname, '..');
+const repoRoot = path.resolve(appRoot, '..', '..');
+const backendRoot = path.join(repoRoot, 'backend');
 
 function run(command, args, options = {}) {
   return spawnSync(command, args, {
@@ -26,6 +28,52 @@ function runPrint(command, args, options = {}) {
 
 function wait(ms) {
   return new Promise(resolve => setTimeout(resolve, ms));
+}
+
+function checkBackendHealth() {
+  return new Promise(resolve => {
+    const req = http.get('http://127.0.0.1:3002/health', { timeout: 1500 }, (res) => {
+      resolve(res.statusCode === 200);
+    });
+    req.on('error', () => resolve(false));
+    req.on('timeout', () => {
+      req.destroy();
+      resolve(false);
+    });
+  });
+}
+
+async function ensureBackendRunning() {
+  console.log('[FNG] Checking backend health on 3002...');
+  if (await checkBackendHealth()) {
+    console.log('[FNG] Backend already running.');
+    return true;
+  }
+
+  if (!fs.existsSync(backendRoot)) {
+    console.error('[FNG] Backend folder not found. Expected:', backendRoot);
+    return false;
+  }
+
+  console.log('[FNG] Starting backend in background...');
+  const backend = spawn('cmd.exe', ['/c', 'npx ts-node --transpile-only src/server.ts'], {
+    cwd: backendRoot,
+    detached: true,
+    stdio: 'ignore',
+    shell: false,
+  });
+  backend.unref();
+
+  for (let i = 0; i < 45; i += 1) {
+    if (await checkBackendHealth()) {
+      console.log('[FNG] Backend is healthy.');
+      return true;
+    }
+    await wait(1000);
+  }
+
+  console.error('[FNG] Backend did not become healthy on port 3002.');
+  return false;
 }
 
 function getAndroidSdkPath() {
@@ -194,6 +242,10 @@ function installIfMissing() {
 }
 
 async function main() {
+  if (!(await ensureBackendRunning())) {
+    process.exit(1);
+  }
+
   if (!(await ensureEmulator())) {
     process.exit(1);
   }
