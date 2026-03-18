@@ -12,7 +12,7 @@ function envFlag(value: string | undefined, fallback: boolean): boolean {
 }
 
 const isProd = process.env.NODE_ENV === 'production';
-const redisEnabled = envFlag(redisEnabledFromEnv, isProd);
+export const redisEnabled = envFlag(redisEnabledFromEnv, isProd);
 
 function createTestRedisMock() {
   const base: any = {

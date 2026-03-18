@@ -1,0 +1,28 @@
+name: Preflight Diagnostics
+
+on:
+  workflow_dispatch: {}
+  pull_request:
+
+jobs:
+  diagnostics:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Use Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+
+      - name: Install dependencies (customer-app)
+        working-directory: apps/customer-app
+        run: npm ci
+
+      - name: Run diagnostics
+        working-directory: apps/customer-app
+        # Diagnostics may check local services (Metro/backend/adb) which won't be present in CI.
+        # We run it for visibility but do not fail the job if checks fail.
+        run: node scripts/diagnostics.js
+        continue-on-error: true

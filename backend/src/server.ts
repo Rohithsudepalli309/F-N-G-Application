@@ -5,7 +5,7 @@ import cors from 'cors';
 import dotenv from 'dotenv';
 import rateLimit from 'express-rate-limit';
 import { RedisStore } from 'rate-limit-redis';
-import { redis } from './redis';
+import { redis, redisEnabled } from './redis';
 import { logger } from './logger';
 import { requestId } from './middleware/requestId';
 import { httpLogger } from './middleware/httpLogger';
@@ -59,7 +59,7 @@ app.use(httpLogger);
 // HIGH-5: never fall back to wildcard CORS — fail loud in production, localhost in dev
 const rawAllowedOrigins = process.env.ALLOWED_ORIGINS;
 // Startup banner: Redis mode
-const redisMode = (process.env.NODE_ENV === 'test' || !require('./redis').redisEnabled)
+const redisMode = (process.env.NODE_ENV === 'test' || !redisEnabled)
   ? 'FALLBACK (in-memory mock)' : 'ENABLED';
 logger.info(`\n=== Backend Startup ===\nRedis mode: ${redisMode}\n`);
 let corsOrigin: string | string[];
