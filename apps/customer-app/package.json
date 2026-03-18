@@ -5,6 +5,7 @@
     "start": "react-native start",
     "android": "react-native run-android",
     "ios": "react-native run-ios",
+    "postinstall": "patch-package",
     "dev:metro": "node scripts/dev-metro-runner.js",
     "dev:android": "node scripts/dev-android-runner.js",
     "dev:refresh": "node scripts/dev-refresh-runner.js",
@@ -49,6 +50,7 @@
     "@types/socket.io-client": "^3.0.0",
     "babel-plugin-dotenv-import": "^3.0.1",
     "jest": "^29.7.0",
+    "patch-package": "^8.0.1",
     "ts-jest": "^29.1.2",
     "typescript": "^5.3.3"
   }

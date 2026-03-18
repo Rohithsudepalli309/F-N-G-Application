@@ -21,7 +21,7 @@ if not defined DEVICE_OK (
 )
 
 echo [FNG] Starting Metro in a dedicated terminal...
-start "FNG Metro" cmd /c "cd /d %cd% && npx react-native start --port 8081 --reset-cache"
+start "FNG Metro" cmd /c "cd /d \"%cd%\" && npx react-native start --port 8081 --reset-cache"
 
 echo [FNG] Waiting for Metro readiness...
 set /a METRO_RETRIES=0
