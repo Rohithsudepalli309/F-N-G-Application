@@ -5,7 +5,7 @@ import { io } from '../server';
 import { publishOrderEvent } from '../services/eventBus';
 import { getSurgeMultiplier } from '../services/surge';
 import { isEnabled } from '../services/featureFlags';
-import { earnPoints, redeemPoints } from '../services/loyalty';
+import { earnPoints, redeemPoints, getUserPoints } from '../services/loyalty';
 import { calculateLoyaltyBenefits } from '../services/loyaltyEngine';
 import { redis, DRIVER_GEO_KEY } from '../redis';
 import { validate, schemas } from '../utils/validation';
@@ -36,6 +36,7 @@ router.post('/', validate(schemas.orders.create), async (req: AuthRequest, res) 
     couponCode,
     instructions,
     deliverySlot,    // FEAT-001: schedule slot (e.g. 'asap', '45min', '60min')
+    useLoyaltyPoints, // FEAT-002: redeem points for discount
   } = req.body as {
     storeId?: number;
     items: { productId: number; quantity: number }[];
@@ -44,6 +45,7 @@ router.post('/', validate(schemas.orders.create), async (req: AuthRequest, res) 
     couponCode?: string;
     instructions?: string;
     deliverySlot?: string;
+    useLoyaltyPoints?: boolean;
   };
 
   // ME-6: Idempotency — prevent duplicate orders from network retries
@@ -205,7 +207,26 @@ router.post('/', validate(schemas.orders.create), async (req: AuthRequest, res) 
       await client.query(`UPDATE coupons SET used_count=used_count+1 WHERE id=$1`, [cp.id]);
     }
 
-    const totalAmount = subtotal + deliveryFee + handlingFee - discountAmount;
+    // Calculate final total
+    let finalTotal = Math.max(subtotal + deliveryFee + handlingFee - discountAmount, 0);
+
+    // FEAT-002: Loyalty Point Redemption (100 pts = ₹1 = 100 paise)
+    let loyaltyDiscount = 0;
+    if (useLoyaltyPoints) {
+      const balance = await getUserPoints(String(req.user!.id));
+      if (balance > 0) {
+        // Use all points or just enough to cover the remaining total
+        const pointsToUse = Math.min(balance, finalTotal);
+        if (pointsToUse > 0) {
+          const redeemed = await redeemPoints(String(req.user!.id), pointsToUse);
+          if (redeemed) {
+            loyaltyDiscount = pointsToUse;
+            finalTotal -= loyaltyDiscount;
+            logger.info('[orders/place] Loyalty points redeemed', { userId: req.user!.id, points: pointsToUse });
+          }
+        }
+      }
+    }
 
     // Fetch store name
     const storeRes = await client.query(`SELECT name FROM stores WHERE id=$1`, [resolvedStoreId]);
@@ -215,9 +236,9 @@ router.post('/', validate(schemas.orders.create), async (req: AuthRequest, res) 
     const deliveryOtp = generateDeliveryOtp();
 
     // CRITICAL-3: Tax Calculation (Example: 5% GST for Food/Grocery)
-    const taxRate = 0.05; 
+    const taxRate = 0.05;
     const taxAmount = Math.round(subtotal * taxRate);
-    const finalTotal = totalAmount + taxAmount;
+    finalTotal = finalTotal + taxAmount; // Apply tax after all discounts
 
     // Insert order
     const orderRes = await client.query(
@@ -230,7 +251,7 @@ router.post('/', validate(schemas.orders.create), async (req: AuthRequest, res) 
        RETURNING *`,
       [
         orderNumber, req.user!.id, resolvedStoreId, storeName,
-        subtotal, deliveryFee, handlingFee, discountAmount, finalTotal,
+        subtotal, deliveryFee, handlingFee, discountAmount + loyaltyDiscount, finalTotal,
         couponId, couponCode?.toUpperCase() ?? null,
         JSON.stringify(deliveryAddress),
         paymentMethod,
@@ -315,7 +336,7 @@ router.post('/', validate(schemas.orders.create), async (req: AuthRequest, res) 
 
     // Phase 3: Earn Loyalty Points (₹100 = 1 point)
     earnPoints(String(req.user!.id), String(order.id), Math.floor(finalTotal / 100))
-      .catch(err => console.error('[loyalty/earn]', err));
+      .catch(err => logger.error('[loyalty/earn]', err));
 
     res.status(201).json({
       order: {
@@ -329,7 +350,7 @@ router.post('/', validate(schemas.orders.create), async (req: AuthRequest, res) 
     });
   } catch (err) {
     await client.query('ROLLBACK');
-    console.error('[orders] place error:', err);
+    logger.error('[orders] place error:', err);
     res.status(500).json({ error: 'Could not place order. Please try again.' });
   } finally {
     client.release();

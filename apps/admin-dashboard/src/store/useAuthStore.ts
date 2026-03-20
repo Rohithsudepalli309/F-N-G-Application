@@ -20,14 +20,13 @@ export const useAuthStore = create<AuthState>()(
   persist(
     (set) => ({
       user: null,
-      token: null,
+      token: null, // SEC-005: no longer stored in state/localStorage
       isAuthenticated: false,
-      login: (token, user) => {
-        set({ user, token, isAuthenticated: true });
+      login: (_token, user) => {
+        set({ user, token: null, isAuthenticated: true });
       },
       logout: () => {
         set({ user: null, token: null, isAuthenticated: false });
-        // Remove AFTER set() so persist's synchronous re-write doesn't win
         localStorage.removeItem('admin-auth-storage');
       },
     }),

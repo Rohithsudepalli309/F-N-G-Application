@@ -2,6 +2,7 @@ import { Router } from 'express';
 import Razorpay from 'razorpay';
 import pool from '../db';
 import { requireAuth, AuthRequest } from '../middleware/auth';
+import { logger } from '../logger';
 
 const router = Router();
 router.use(requireAuth);
@@ -35,7 +36,7 @@ router.get('/balance', async (req: AuthRequest, res) => {
       transactions: txRes.rows,
     });
   } catch (err) {
-    console.error('[wallet/balance] error:', err);
+    logger.error('[wallet/balance] error:', { err });
     res.status(500).json({ error: 'Could not fetch wallet balance.' });
   }
 });
@@ -96,11 +97,12 @@ router.post('/topup', async (req: AuthRequest, res) => {
     res.json({ balance: wallet.balance });
   } catch (err) {
     await client.query('ROLLBACK');
-    console.error('[wallet/topup] error:', err);
+    logger.error('[wallet/topup] error:', { err });
     res.status(500).json({ error: 'Could not process top-up.' });
   } finally {
     client.release();
   }
 });
+
 
 export default router;

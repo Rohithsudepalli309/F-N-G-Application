@@ -7,6 +7,7 @@ import { io } from '../server';
 import { createBreaker } from '../services/circuitBreaker';
 import { publishOrderEvent } from '../services/eventBus';
 import { validate, schemas } from '../utils/validation';
+import { logger } from '../logger';
 
 const router = Router();
 router.use(requireAuth);
@@ -254,7 +255,7 @@ router.post('/refund', validate(schemas.payments.refund), async (req: AuthReques
     );
     res.json({ ok: true, message: 'Refund initiated. Amount will credit in 5-7 business days.' });
   } catch (e) {
-    console.error('[payments/refund]', e);
+    logger.error('[payments/refund]', { err: e });
     res.status(502).json({ error: 'Could not process refund. Please contact support.' });
   }
 });

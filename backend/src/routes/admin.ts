@@ -6,6 +6,7 @@ import multer from 'multer';
 import os from 'os';
 import path from 'path';
 import { saveFile, storageDriver, ensureUploadsDir } from '../services/storage';
+import { logger } from '../logger';
 
 const router = Router();
 router.use(requireAuth, requireRole('admin'));
@@ -19,7 +20,7 @@ router.get('/users', async (_req, res) => {
     );
     res.json({ users: result.rows });
   } catch (err) {
-    console.error('[admin/users]', err);
+    logger.error('[admin/users]', { err });
     res.status(500).json({ error: 'Could not fetch users.' });
   }
 });
@@ -39,7 +40,7 @@ router.patch('/users/:id/status', async (req, res) => {
     }
     res.json({ user: result.rows[0] });
   } catch (err) {
-    console.error('[admin/users/status]', err);
+    logger.error('[admin/users/status]', { err });
     res.status(500).json({ error: 'Could not update user status.' });
   }
 });
@@ -55,7 +56,7 @@ router.get('/stores', async (_req, res) => {
     );
     res.json({ stores: result.rows });
   } catch (err) {
-    console.error('[admin/stores]', err);
+    logger.error('[admin/stores]', { err });
     res.status(500).json({ error: 'Could not fetch stores.' });
   }
 });
@@ -80,7 +81,7 @@ router.patch('/stores/:id', async (req, res) => {
     }
     res.json({ store: result.rows[0] });
   } catch (err) {
-    console.error('[admin/stores/update]', err);
+    logger.error('[admin/stores/update]', { err });
     res.status(500).json({ error: 'Could not update store.' });
   }
 });
@@ -97,7 +98,7 @@ router.get('/drivers', async (_req, res) => {
     );
     res.json({ drivers: result.rows });
   } catch (err) {
-    console.error('[admin/drivers]', err);
+    logger.error('[admin/drivers]', { err });
     res.status(500).json({ error: 'Could not fetch drivers.' });
   }
 });
@@ -138,7 +139,7 @@ router.post('/drivers', async (req, res) => {
       res.status(400).json({ error: 'A driver with this phone already exists.' });
       return;
     }
-    console.error('[admin/drivers] create error:', err);
+    logger.error('[admin/drivers] create error:', { err });
     res.status(500).json({ error: 'Could not register driver.' });
   } finally {
     client.release();
@@ -159,7 +160,7 @@ router.post('/products/:id/image', upload.single('image'), async (req, res) => {
     if (result.rows.length === 0) return res.status(404).json({ error: 'Product not found.' });
     res.json({ product: result.rows[0] });
   } catch (err) {
-    console.error('[admin/products/image]', err);
+    logger.error('[admin/products/image]', { err });
     res.status(500).json({ error: 'Could not upload image.' });
   }
 });
@@ -186,7 +187,7 @@ router.get('/orders', async (req, res) => {
   const { status, offset = '0' } = req.query as Record<string, string>;
   // MED-7: cap limit to prevent resource exhaustion
   const limit = Math.min(Math.max(Number(req.query.limit) || 50, 1), 200);
-  let query = `
+  let queryStr = `
     SELECT o.id, o.order_number, o.status, o.total_amount, o.payment_method,
            o.payment_status, o.created_at, o.store_name,
            u.name AS customer_name, u.phone AS customer_phone
@@ -196,16 +197,16 @@ router.get('/orders', async (req, res) => {
   const params: unknown[] = [];
   let idx = 1;
   if (status) {
-    query += ` AND o.status=$${idx++}`;
+    queryStr += ` AND o.status=$${idx++}`;
     params.push(status);
   }
-  query += ` ORDER BY o.created_at DESC LIMIT $${idx++} OFFSET $${idx++}`;
+  queryStr += ` ORDER BY o.created_at DESC LIMIT $${idx++} OFFSET $${idx++}`;
   params.push(Number(limit), Number(offset));
   try {
-    const result = await pool.query(query, params);
+    const result = await pool.query(queryStr, params);
     res.json({ orders: result.rows });
   } catch (err) {
-    console.error('[admin/orders]', err);
+    logger.error('[admin/orders]', { err });
     res.status(500).json({ error: 'Could not fetch orders.' });
   }
 });
@@ -219,7 +220,7 @@ router.get('/waitlist', async (_req, res) => {
     );
     res.json({ waitlist: result.rows });
   } catch (err) {
-    console.error('[admin/waitlist]', err);
+    logger.error('[admin/waitlist]', { err });
     res.status(500).json({ error: 'Could not fetch waitlist.' });
   }
 });
@@ -245,7 +246,7 @@ router.get('/waitlist/export', async (_req, res) => {
     res.setHeader('Content-Disposition', 'attachment; filename="waitlist.csv"');
     res.send([header, ...rows].join('\n'));
   } catch (err) {
-    console.error('[admin/waitlist/export]', err);
+    logger.error('[admin/waitlist/export]', { err });
     res.status(500).json({ error: 'Could not export waitlist.' });
   }
 });
@@ -258,7 +259,7 @@ router.get('/coupons', async (_req, res) => {
     );
     res.json({ coupons: result.rows });
   } catch (err) {
-    console.error('[admin/coupons]', err);
+    logger.error('[admin/coupons]', { err });
     res.status(500).json({ error: 'Could not fetch coupons.' });
   }
 });
@@ -301,7 +302,7 @@ router.post('/coupons', async (req, res) => {
       res.status(400).json({ error: 'A coupon with this code already exists.' });
       return;
     }
-    console.error('[admin/coupons/create]', err);
+    logger.error('[admin/coupons/create]', { err });
     res.status(500).json({ error: 'Could not create coupon.' });
   }
 });
@@ -315,7 +316,7 @@ router.delete('/coupons/:id', async (req, res) => {
     );
     res.json({ message: 'Coupon deactivated.' });
   } catch (err) {
-    console.error('[admin/coupons/delete]', err);
+    logger.error('[admin/coupons/delete]', { err });
     res.status(500).json({ error: 'Could not deactivate coupon.' });
   }
 });
@@ -333,7 +334,7 @@ router.get('/stats', async (_req, res) => {
     );
     res.json(result.rows[0]);
   } catch (err) {
-    console.error('[admin/stats]', err);
+    logger.error('[admin/stats]', { err });
     res.status(500).json({ error: 'Could not fetch stats.' });
   }
 });
@@ -357,7 +358,7 @@ router.get('/analytics', async (_req, res) => {
       ),
       pool.query(
         `SELECT s.name, COUNT(o.id)::int AS order_count,
-                COALESCE(SUM(o.total_amount), 0)::int AS revenue
+                 COALESCE(SUM(o.total_amount), 0)::int AS revenue
          FROM stores s LEFT JOIN orders o ON o.store_id = s.id
            AND o.status = 'delivered'
            AND o.created_at >= NOW() - INTERVAL '30 days'
@@ -366,7 +367,7 @@ router.get('/analytics', async (_req, res) => {
     ]);
     res.json({ daily: dailyRes.rows, topStores: topRes.rows });
   } catch (err) {
-    console.error('[admin/analytics]', err);
+    logger.error('[admin/analytics]', { err });
     res.status(500).json({ error: 'Could not fetch analytics.' });
   }
 });
@@ -432,7 +433,7 @@ router.get('/disputes', async (_req, res) => {
     );
     res.json(result.rows);
   } catch (err) {
-    console.error('[admin/disputes]', err);
+    logger.error('[admin/disputes]', { err });
     res.status(500).json({ error: 'Could not fetch disputes.' });
   }
 });
@@ -465,7 +466,7 @@ router.post('/disputes/:id/resolve', async (req, res) => {
 
     res.json({ message: 'Dispute resolved and refund marked.' });
   } catch (err) {
-    console.error('[admin/disputes/resolve]', err);
+    logger.error('[admin/disputes/resolve]', { err });
     res.status(500).json({ error: 'Could not resolve dispute.' });
   }
 });
@@ -496,7 +497,7 @@ router.post('/disputes/:id/reject', async (req, res) => {
 
     res.json({ message: 'Dispute rejected.' });
   } catch (err) {
-    console.error('[admin/disputes/reject]', err);
+    logger.error('[admin/disputes/reject]', { err });
     res.status(500).json({ error: 'Could not reject dispute.' });
   }
 });
@@ -513,7 +514,7 @@ router.get('/fraud/flags', async (_req, res) => {
     );
     res.json({ flags: result.rows });
   } catch (err) {
-    console.error('[admin/fraud/flags]', err);
+    logger.error('[admin/fraud/flags]', { err });
     res.status(500).json({ error: 'Could not fetch fraud flags.' });
   }
 });
@@ -530,7 +531,7 @@ router.post('/fraud/dismiss/:userId', async (req, res) => {
     );
     res.json({ success: true, message: 'Fraud flag dismissed.' });
   } catch (err) {
-    console.error('[admin/fraud/dismiss]', err);
+    logger.error('[admin/fraud/dismiss]', { err });
     res.status(500).json({ error: 'Could not dismiss fraud flag.' });
   }
 });

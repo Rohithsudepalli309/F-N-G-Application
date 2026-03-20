@@ -56,4 +56,21 @@ router.patch('/fcm-token', async (req: AuthRequest, res) => {
   res.json({ ok: true });
 });
 
+// ─── PATCH /users/notification-preferences ─── Toggle push notifications ─────────
+router.patch('/notification-preferences', async (req: AuthRequest, res) => {
+  const { enabled } = req.body as { enabled?: boolean };
+  if (typeof enabled !== 'boolean') {
+    res.status(400).json({ error: 'enabled (boolean) is required.' });
+    return;
+  }
+  await pool.query(
+    `UPDATE users
+     SET metadata = jsonb_set(COALESCE(metadata, '{}'), '{push_notifications_enabled}', $1),
+         updated_at = NOW()
+     WHERE id = $2`,
+    [JSON.stringify(enabled), req.user!.id]
+  );
+  res.json({ ok: true });
+});
+
 export default router;

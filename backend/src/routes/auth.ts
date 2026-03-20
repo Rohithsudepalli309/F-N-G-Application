@@ -226,6 +226,17 @@ router.post('/login', async (req, res) => {
     [user.id, hashedRefreshLogin]
   );
 
+  // SEC-005: Set httpOnly cookie for admin dashboard security
+  if (user.role === 'admin') {
+    res.cookie('accessToken', accessToken, {
+      httpOnly: true,
+      secure:   process.env.NODE_ENV === 'production',
+      sameSite: 'lax',
+      path:     '/',
+      maxAge:   15 * 60 * 1000, // 15 mins (matches ACCESS_TTL)
+    });
+  }
+
   res.json({
     accessToken,
     refreshToken: rawRefreshLogin,

@@ -10,10 +10,21 @@ export interface AuthRequest extends Request {
 
 export async function requireAuth(req: AuthRequest, res: Response, next: NextFunction): Promise<void> {
   const header = req.headers.authorization;
-  if (!header?.startsWith('Bearer ')) {
+  let token = header?.startsWith('Bearer ') ? header.slice(7) : null;
+
+  // SEC-005: Fallback to reading from httpOnly cookie (for admin dashboard)
+  if (!token && req.headers.cookie) {
+    const cookies = req.headers.cookie.split(';').reduce((acc, c) => {
+      const [k, v] = c.trim().split('=');
+      if (k && v) acc[k] = v;
+      return acc;
+    }, {} as Record<string, string>);
+    token = cookies['accessToken'] || null;
+  }
+
+  if (!token) {
     return next(new AppError('Unauthorized', 401));
   }
-  const token = header.slice(7);
   try {
     // SEC-002: Check Redis blacklist — reject tokens invalidated on logout
     if (redisEnabled) {

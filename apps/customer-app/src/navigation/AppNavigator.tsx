@@ -17,6 +17,17 @@ import { useUIStore } from '../store/useUIStore';
 import { useCartStore } from '../store/useCartStore';
 import { useGroceryCartStore } from '../store/useGroceryCartStore';
 import { theme } from '../theme';
+import {
+  RootStackParamList,
+  AuthStackParamList,
+  HomeStackParamList,
+  CategoriesStackParamList,
+  SearchStackParamList,
+  InstamartStackParamList,
+  OrdersStackParamList,
+  ProfileStackParamList,
+  MainTabParamList,
+} from './types';
 
 // Deep Linking Configuration
 const linking = {
@@ -88,15 +99,15 @@ import { TermsScreen } from '../screens/TermsScreen';
 import { PrivacyPolicyScreen } from '../screens/PrivacyPolicyScreen';
 import { OfflineBanner } from '../components/OfflineBanner';
 
-const RootStack = createNativeStackNavigator();
-const AuthStack = createNativeStackNavigator();
-const HomeStack = createNativeStackNavigator();
-const CategoriesStack = createNativeStackNavigator();
-const SearchStack = createNativeStackNavigator();
-const InstamartStack = createNativeStackNavigator();
-const OrdersStack = createNativeStackNavigator();
-const ProfileStack = createNativeStackNavigator();
-const Tab = createBottomTabNavigator();
+const RootStack = createNativeStackNavigator<RootStackParamList>();
+const AuthStack = createNativeStackNavigator<AuthStackParamList>();
+const HomeStack = createNativeStackNavigator<HomeStackParamList>();
+const CategoriesStack = createNativeStackNavigator<CategoriesStackParamList>();
+const SearchStack = createNativeStackNavigator<SearchStackParamList>();
+const InstamartStack = createNativeStackNavigator<InstamartStackParamList>();
+const OrdersStack = createNativeStackNavigator<OrdersStackParamList>();
+const ProfileStack = createNativeStackNavigator<ProfileStackParamList>();
+const Tab = createBottomTabNavigator<MainTabParamList>();
 
 // ─── Tab Icon Component ────────────────────────────────────────────────────────
 const TabIcon = ({ name, focused, badge }: { name: string; focused: boolean; badge?: number }) => {

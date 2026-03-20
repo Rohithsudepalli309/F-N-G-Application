@@ -7,6 +7,7 @@ import {
 import { useNavigation } from '@react-navigation/native';
 import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
 import { theme } from '../theme';
+import { AppNavigationProp } from '../navigation/types';
 import { ProductCard } from '../components/ProductCard';
 import { useAuthStore } from '../store/useAuthStore';
 import { api } from '../services/api';
@@ -245,7 +246,7 @@ const pr = StyleSheet.create({
 
 // --- Main HomeScreen -------------------------------------------------------
 export const HomeScreen = () => {
-  const navigation = useNavigation<any>();
+  const navigation = useNavigation<AppNavigationProp>();
   const user = useAuthStore(s => s.user);
   const scrollRef = useRef<ScrollView>(null);
   const [loading, setLoading] = useState(true);

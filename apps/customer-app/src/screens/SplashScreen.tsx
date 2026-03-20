@@ -16,12 +16,13 @@ import {
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useNavigation } from '@react-navigation/native';
 import { theme } from '../theme';
+import { AppNavigationProp } from '../navigation/types';
 
 const { width } = Dimensions.get('window');
 const RING_SIZE = width * 0.7;
 
 export const SplashScreen = () => {
-  const navigation = useNavigation<any>();
+  const navigation = useNavigation<AppNavigationProp>();
 
   // Animations
   const logoScale  = useRef(new Animated.Value(0.4)).current;
