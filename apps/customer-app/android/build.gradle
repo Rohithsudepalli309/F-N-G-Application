@@ -30,3 +30,26 @@ allprojects {
 }
 
 apply plugin: "com.facebook.react.rootproject"
+
+// Ensure all Android subprojects have a compileSdkVersion set. Some 3rd-party
+// modules (in node_modules) rely on this being present during configuration.
+subprojects { proj ->
+    def configureCompileSdk = {
+        try {
+            if (proj.extensions.findByName('android') != null) {
+                def androidExt = proj.extensions.getByName('android')
+                if (!androidExt.hasProperty('compileSdkVersion')) {
+                    androidExt.compileSdkVersion = rootProject.ext.compileSdkVersion
+                }
+            }
+        } catch (err) {
+            // non-fatal: continue
+        }
+    }
+
+    if (proj.state.executed) {
+        configureCompileSdk()
+    } else {
+        proj.afterEvaluate { configureCompileSdk() }
+    }
+}

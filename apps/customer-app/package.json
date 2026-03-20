@@ -12,6 +12,7 @@
     "dev:live": "npm run diag && node scripts/dev-live-runner.js",
     "dev:refresh": "node scripts/dev-refresh-runner.js",
     "dev:logs": "adb logcat *:S ReactNative:V ReactNativeJS:V"
+    ,"fix:android-modules": "node scripts/patch-android-modules.js"
   },
   "main": "index.js",
   "dependencies": {
