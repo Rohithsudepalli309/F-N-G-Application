@@ -73,7 +73,7 @@ router.get('/orders', async (req: AuthRequest, res) => {
          o.total_amount,
          o.delivery_address,
          o.created_at,
-         o.metadata->>'delivery_otp' AS delivery_otp,
+         -- BUG-008 FIX: delivery_otp removed from list — only exposed at completion step
          (o.delivery_address->>'lat')::numeric  AS delivery_lat,
          (o.delivery_address->>'lng')::numeric  AS delivery_lng,
          u.name  AS customer_name,
@@ -99,8 +99,8 @@ router.get('/orders', async (req: AuthRequest, res) => {
       const dLng = r.delivery_lng ? Number(r.delivery_lng) : 0;
 
       // Use Road Distance for accurate fulfillment
-      const route = (sLat && sLng && dLat && dLng) 
-        ? await getRoadDistance(sLat, sLng, dLat, dLng) 
+      const route = (sLat && sLng && dLat && dLng)
+        ? await getRoadDistance(sLat, sLng, dLat, dLng)
         : { distanceKm: 0, durationMin: 0 };
 
       return {
@@ -121,7 +121,7 @@ router.get('/orders', async (req: AuthRequest, res) => {
         status:          r.status,
         customerName:    r.customer_name ?? '',
         customerPhone:   r.customer_phone ?? '',
-        deliveryOtp:     r.delivery_otp ?? '',
+        // BUG-008: deliveryOtp intentionally omitted from list — only available at complete step
       };
     }));
 
@@ -559,6 +559,20 @@ router.patch('/status', async (req: AuthRequest, res) => {
     return;
   }
   try {
+    // SEC-004 FIX: Enforce KYC before allowing online via REST (was bypassed here)
+    if (isOnline) {
+      const kycRes = await pool.query(
+        `SELECT kyc_status FROM drivers WHERE user_id=$1`, [req.user!.id]
+      );
+      const kycStatus = kycRes.rows[0]?.kyc_status ?? 'not_started';
+      if (kycStatus !== 'verified') {
+        res.status(403).json({
+          error: 'KYC_REQUIRED',
+          message: 'Your documents must be verified before you can go online.',
+        });
+        return;
+      }
+    }
     const upd = await pool.query(
       `UPDATE drivers SET is_available=$1 WHERE user_id=$2 RETURNING id`,
       [isOnline, req.user!.id]
@@ -573,6 +587,7 @@ router.patch('/status', async (req: AuthRequest, res) => {
     res.status(500).json({ error: 'Could not update driver status.' });
   }
 });
+
 
 // ─── GET /driver/earnings ─── Earnings summary by period ────────────────────
 router.get('/earnings', async (req: AuthRequest, res) => {
@@ -600,6 +615,16 @@ router.get('/earnings', async (req: AuthRequest, res) => {
     }
     const driverId: number = driverRes.rows[0].id;
 
+    // BUG-002 FIX: Use parameterized interval instead of string-interpolated SQL clause
+    const intervalMap: Record<string, string> = {
+      today: '1 day',
+      week:  '7 days',
+      month: '30 days',
+    };
+    const interval = intervalMap[period] ?? null;
+    const dateClause = interval ? `AND o.delivered_at >= NOW() - $2::interval` : '';
+    const earningsParams: unknown[] = interval ? [driverId, interval] : [driverId];
+
     const result = await pool.query(
       `SELECT
          COUNT(*) AS deliveries,
@@ -607,8 +632,8 @@ router.get('/earnings', async (req: AuthRequest, res) => {
        FROM orders o
        WHERE o.driver_id = $1
          AND o.status = 'delivered'
-         ${dateFilter}`,
-      [driverId]
+         ${dateClause}`,
+      earningsParams
     );
 
     const row = result.rows[0];
@@ -622,9 +647,9 @@ router.get('/earnings', async (req: AuthRequest, res) => {
               ROUND(o.total_amount * 0.2) AS payout,
               o.delivered_at AS "deliveredAt"
        FROM orders o
-       WHERE o.driver_id = $1 AND o.status = 'delivered' ${dateFilter}
+       WHERE o.driver_id = $1 AND o.status = 'delivered' ${dateClause}
        ORDER BY o.delivered_at DESC LIMIT 20`,
-      [driverId]
+      earningsParams
     );
 
     res.json({

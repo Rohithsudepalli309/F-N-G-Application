@@ -131,12 +131,24 @@ export function initSocket(httpServer: HttpServer): SocketServer {
       } catch {/* non-critical */}
     });
 
-    // ── Merchant: join store room ─────────────────────────────────────────
+    // ── Merchant: join store room (ownership verified) ────────────────────
     socket.on('join:merchant', ({ storeId }: { storeId: number }) => {
-      if (role === 'merchant' || role === 'admin') {
+      if (role === 'admin') {
         socket.join(`merchant:${storeId}`);
+        return;
+      }
+      if (role === 'merchant') {
+        // SEC-003 FIX: Verify the merchant actually owns this store before joining
+        pool.query(
+          `SELECT 1 FROM stores WHERE id=$1 AND owner_id=$2 LIMIT 1`,
+          [storeId, userId]
+        ).then(r => {
+          if (r.rows.length > 0) socket.join(`merchant:${storeId}`);
+          // Silently deny if not owner — avoids room-name enumeration
+        }).catch(() => {/* non-critical */});
       }
     });
+
 
     // ── Driver: toggle availability ───────────────────────────────────────
     socket.on('driver:available', async (payload: { lat: number; lng: number }) => {

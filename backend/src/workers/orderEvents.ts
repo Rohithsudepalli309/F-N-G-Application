@@ -1,19 +1,9 @@
 /**
  * orderEvents.ts — Redis Streams consumer / background worker
  *
- * Consumes events from the ORDER_EVENTS stream using a Consumer Group
- * (XREADGROUP) for at-least-once delivery semantics:
- *  - Every event is processed by exactly one replica (consumer group deduplication).
- *  - Successfully processed messages are ACKed (XACK) and won't be redelivered.
- *  - Failed messages are NOT ACKed and will be retried on the next read cycle.
- *  - A crash mid-processing means the event will be picked up by another replica
- *    via the Pending Entries List (PEL) after a configurable idle timeout.
- *
- * Responsibilities handled here (previously scattered inline in routes):
- *   order.placed       → FCM to merchant, FCM to customer, surge pricing demand
- *   order.status_changed → FCM status update to customer
- *   payment.confirmed  → FCM payment confirmation to customer
- *   order.cancelled    → FCM cancellation notice to customer
+ * FEAT-007: Stream writes now use MAXLEN ~10000 to prevent unbounded growth.
+ * FEAT-008: Added XAUTOCLAIM dead-letter rescue to recover poison-pill messages
+ *           that have been idle in the PEL for > 2 minutes (max 2 attempts).
  */
 import pool from '../db';
 import { redis, DRIVER_GEO_KEY } from '../redis';
@@ -26,6 +16,8 @@ const GROUP    = 'order-workers';
 const CONSUMER = `worker-${process.pid}`;
 const BATCH    = 10;          // messages per read
 const BLOCK_MS = 5_000;       // block up to 5 s waiting for new messages
+const DEAD_LETTER_IDLE_MS = 120_000; // claim messages idle > 2 min (FEAT-008)
+const MAX_RETRY_COUNT = 2;    // discard after 2 failed attempts
 
 // ── Helpers ──────────────────────────────────────────────────────────────────
 function parseFields(fields: string[]): Record<string, string> {
@@ -72,7 +64,7 @@ async function processMessage(msgId: string, fields: string[]): Promise<void> {
       }
       // 2. Record demand for surge pricing
       await recordDemand(Number(storeId));
-      // 3. Confirm to customer
+      // 3. Confirm to customer (single source — avoids duplicate notification from route)
       await sendPushToUser(
         Number(customerId),
         'Order Confirmed',
@@ -133,8 +125,43 @@ async function processMessage(msgId: string, fields: string[]): Promise<void> {
   await redis.xack(STREAMS.ORDER_EVENTS, GROUP, msgId);
 }
 
+// ── FEAT-008: Dead-letter rescue — reclaim idle PEL messages ─────────────────
+async function reclaimIdleMessages(): Promise<void> {
+  try {
+    // xautoclaim returns [nextId, [[msgId, fields], ...], deletedIds]
+    const claimed = await (redis as any).xautoclaim(
+      STREAMS.ORDER_EVENTS,
+      GROUP,
+      CONSUMER,
+      DEAD_LETTER_IDLE_MS,
+      '0-0',
+      'COUNT', '10'
+    ) as [string, [string, string[]][], string[]];
+
+    const messages = claimed[1] ?? [];
+    for (const [msgId, fields] of messages) {
+      try {
+        await processMessage(msgId, fields);
+      } catch {
+        // Check delivery count — if this was already retried MAX_RETRY_COUNT times, discard
+        const pending = await (redis as any).xpending(
+          STREAMS.ORDER_EVENTS, GROUP, '-', '+', 1, CONSUMER
+        ) as [string, string, number, number][];
+        const deliveryCount = pending.find(p => p[0] === msgId)?.[3] ?? 0;
+        if (deliveryCount >= MAX_RETRY_COUNT) {
+          logger.error('[orderEvents] Discarding poison-pill message after max retries', { msgId });
+          await redis.xack(STREAMS.ORDER_EVENTS, GROUP, msgId);
+        }
+      }
+    }
+  } catch {
+    // xautoclaim not available on older Redis — non-fatal
+  }
+}
+
 // ── Worker lifecycle ─────────────────────────────────────────────────────────
 let _running = false;
+let _reclaimCycle = 0;
 
 export async function startOrderEventWorker(): Promise<void> {
   if (_running) return;
@@ -147,6 +174,11 @@ export async function startOrderEventWorker(): Promise<void> {
   (async () => {
     while (_running) {
       try {
+        // FEAT-008: Run dead-letter rescue every 12 cycles (~1 min at 5s block)
+        if (++_reclaimCycle % 12 === 0) {
+          await reclaimIdleMessages();
+        }
+
         // XREADGROUP '>' = deliver only messages not yet delivered to any consumer
         const results = (await redis.xreadgroup(
           'GROUP', GROUP, CONSUMER,

@@ -6,9 +6,9 @@ dotenv.config();
 
 const pool = new Pool({
   connectionString: process.env.DATABASE_URL,
-  max: 20,
-  idleTimeoutMillis: 30000,
-  connectionTimeoutMillis: 5000,
+  max: 25,                   // CLEAN-004: increased from 20 for higher concurrency
+  idleTimeoutMillis: 30_000,
+  connectionTimeoutMillis: 5_000,
   ssl: process.env.DATABASE_SSL === 'true'
     ? {
         // MED-5: always verify the server certificate to prevent MITM attacks.

@@ -101,10 +101,12 @@ export const CheckoutScreen = () => {
       .finally(() => setWalletLoading(false));
   }, []);
 
-  const billTotal = total() / 100;
-  const deliveryFee = billTotal > 500 ? 0 : 25;
+  const billTotal = total() / 100;             // subtotal in rupees
+  const deliveryFee = billTotal > 499 ? 0 : 25; // BUG-006 FIX: matches backend ₹499 threshold
   const handlingFee = 5;
-  const grandTotal = billTotal + deliveryFee + handlingFee - couponDiscount;
+  const preTaxTotal = billTotal + deliveryFee + handlingFee - couponDiscount;
+  const taxAmount = Math.round(preTaxTotal * 0.05 * 100) / 100; // BUG-005 FIX: 5% GST to match backend
+  const grandTotal = preTaxTotal + taxAmount;
   const isUpiSelected = !isWallet && !isCOD;
   const selectedOnline = ALL_ONLINE_METHODS.find(m => m.id === selectedMethod);
   const selectedMethodLabel = isWallet
@@ -162,7 +164,7 @@ export const CheckoutScreen = () => {
             }
           : { label: 'Home', address_line: 'Not provided', city: '', pincode: '' },
         paymentMethod,
-        deliverySlot,
+        deliverySlot,   // FEAT-001: persist chosen slot
         couponCode: couponDiscount > 0 ? couponCode.trim().toUpperCase() : undefined,
       };
 
@@ -171,6 +173,15 @@ export const CheckoutScreen = () => {
       
       // C-1: Wallet payment — server deducts balance, no Razorpay needed
       if (isWallet) {
+        // BUG-007 FIX (frontend guard): check balance before even calling API
+        if (walletBalance < Math.round(grandTotal * 100)) {
+          Alert.alert(
+            'Insufficient Wallet Balance',
+            `Your wallet has ₹${(walletBalance / 100).toLocaleString('en-IN')} but ₹${grandTotal.toLocaleString('en-IN')} is needed. Please top up first.`
+          );
+          setLoading(false);
+          return;
+        }
         Alert.alert('Order Placed!', 'Payment deducted from your F&G Wallet.');
         clearCart();
         navigation.navigate('OrderConfirmed', { orderId: internalOrder.id, totalAmount: grandTotal, eta: 30 });
@@ -243,10 +254,20 @@ export const CheckoutScreen = () => {
       </View>
 
       <ScrollView contentContainerStyle={styles.scrollContent}>
-        {/* Total Amount Card */}
+        {/* Total Amount Card — itemised bill breakdown */}
         <View style={styles.amountCard}>
           <Text style={styles.amountLabel}>Total to pay</Text>
-          <Text style={styles.amountValue}>₹{grandTotal.toLocaleString('en-IN')}</Text>
+          <Text style={styles.amountValue}>₹{grandTotal.toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ',')}</Text>
+          {/* Bill breakdown */}
+          <View style={styles.billBreakdown}>
+            <View style={styles.billRow}><Text style={styles.billKey}>Subtotal</Text><Text style={styles.billVal}>₹{billTotal.toFixed(2)}</Text></View>
+            <View style={styles.billRow}><Text style={styles.billKey}>Delivery fee</Text><Text style={styles.billVal}>{deliveryFee === 0 ? <Text style={{color:'#0B6E4F'}}>FREE</Text> : `₹${deliveryFee}`}</Text></View>
+            <View style={styles.billRow}><Text style={styles.billKey}>Handling fee</Text><Text style={styles.billVal}>₹{handlingFee}</Text></View>
+            <View style={styles.billRow}><Text style={styles.billKey}>GST (5%)</Text><Text style={styles.billVal}>₹{taxAmount.toFixed(2)}</Text></View>
+            {couponDiscount > 0 && (
+              <View style={styles.billRow}><Text style={[styles.billKey,{color:'#0B6E4F'}]}>Coupon discount</Text><Text style={[styles.billVal,{color:'#0B6E4F'}]}>- ₹{couponDiscount.toFixed(2)}</Text></View>
+            )}
+          </View>
           <View style={styles.securePill}>
             <MaterialCommunityIcons name="shield-check" size={12} color="#0B6E4F" />
             <Text style={styles.securePillText}>100% secure payments</Text>
@@ -585,6 +606,29 @@ const styles = StyleSheet.create({
     fontSize: 28,
     fontFamily: theme.typography.fontFamily.bold,
     color: '#FFF',
+    marginBottom: 10,
+  },
+  billBreakdown: {
+    width: '100%',
+    marginBottom: 10,
+    borderTopWidth: 1,
+    borderTopColor: 'rgba(255,255,255,0.15)',
+    paddingTop: 10,
+    gap: 4,
+  },
+  billRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+  },
+  billKey: {
+    fontSize: 11,
+    color: 'rgba(255,255,255,0.7)',
+    fontFamily: theme.typography.fontFamily.medium,
+  },
+  billVal: {
+    fontSize: 11,
+    color: 'rgba(255,255,255,0.9)',
+    fontFamily: theme.typography.fontFamily.bold,
   },
   securePill: {
     marginTop: 10,

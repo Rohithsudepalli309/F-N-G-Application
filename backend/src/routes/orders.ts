@@ -9,6 +9,7 @@ import { earnPoints, redeemPoints } from '../services/loyalty';
 import { calculateLoyaltyBenefits } from '../services/loyaltyEngine';
 import { redis, DRIVER_GEO_KEY } from '../redis';
 import { validate, schemas } from '../utils/validation';
+import { logger } from '../logger';
 
 const router = Router();
 router.use(requireAuth);
@@ -34,6 +35,7 @@ router.post('/', validate(schemas.orders.create), async (req: AuthRequest, res) 
     paymentMethod = 'cod',
     couponCode,
     instructions,
+    deliverySlot,    // FEAT-001: schedule slot (e.g. 'asap', '45min', '60min')
   } = req.body as {
     storeId?: number;
     items: { productId: number; quantity: number }[];
@@ -41,6 +43,7 @@ router.post('/', validate(schemas.orders.create), async (req: AuthRequest, res) 
     paymentMethod?: string;
     couponCode?: string;
     instructions?: string;
+    deliverySlot?: string;
   };
 
   // ME-6: Idempotency — prevent duplicate orders from network retries
@@ -114,6 +117,22 @@ router.post('/', validate(schemas.orders.create), async (req: AuthRequest, res) 
       const lineTotal = p.price * item.quantity;
       subtotal += lineTotal;
       lineItems.push({ product: p, quantity: item.quantity, total: lineTotal });
+    }
+
+    // BUG-004 FIX: Decrement stock inside the transaction — fail if out of stock
+    for (const item of items) {
+      const p = productMap.get(item.productId)!;
+      const stockRes = await client.query(
+        `UPDATE products SET stock = stock - $1
+         WHERE id = $2 AND stock >= $1
+         RETURNING id`,
+        [item.quantity, item.productId]
+      );
+      if (stockRes.rows.length === 0) {
+        await client.query('ROLLBACK');
+        res.status(400).json({ error: `"${p.name}" does not have enough stock.` });
+        return;
+      }
     }
 
     // Delivery fee: free for orders > ₹499 (49900 paise)
@@ -224,6 +243,7 @@ router.post('/', validate(schemas.orders.create), async (req: AuthRequest, res) 
           idempotency_key: idempotencyKey,
           platform_commission_rate: 0.15, // 15%
           driver_payout_rate: 0.20,      // 20%
+          delivery_slot: deliverySlot ?? 'asap', // FEAT-001
         }),
       ]
     );
@@ -236,6 +256,32 @@ router.post('/', validate(schemas.orders.create), async (req: AuthRequest, res) 
          VALUES ($1,$2,$3,$4,$5,$6,$7)`,
         [order.id, li.product.id, li.product.name, li.product.image_url,
          li.product.price, li.quantity, li.total]
+      );
+    }
+
+    // BUG-007 FIX: Wallet payment — verify balance and deduct atomically
+    if (paymentMethod === 'wallet') {
+      const walletRes = await client.query(
+        `UPDATE wallets
+         SET balance = balance - $1, updated_at = NOW()
+         WHERE user_id = $2 AND balance >= $1
+         RETURNING id, balance`,
+        [finalTotal, req.user!.id]
+      );
+      if (walletRes.rows.length === 0) {
+        await client.query('ROLLBACK');
+        res.status(400).json({ error: 'Insufficient wallet balance. Please top up and try again.' });
+        return;
+      }
+      const walletId = walletRes.rows[0].id;
+      await client.query(
+        `INSERT INTO wallet_transactions (wallet_id, amount, type, reference_id, note)
+         VALUES ($1, $2, 'debit', $3, 'Order payment')`,
+        [walletId, finalTotal, String(order.id)]
+      );
+      await client.query(
+        `UPDATE orders SET payment_status='paid' WHERE id=$1`,
+        [order.id]
       );
     }
 
@@ -399,6 +445,44 @@ router.post('/:id/cancel', async (req: AuthRequest, res) => {
   }
 
   const order = result.rows[0];
+
+  // FEAT-003: Auto-trigger Razorpay refund if order was paid online
+  if (order.payment_status === 'paid' && order.razorpay_payment_id) {
+    const Razorpay = (await import('razorpay')).default;
+    const rzp = new Razorpay({
+      key_id:     process.env.RAZORPAY_KEY_ID!,
+      key_secret: process.env.RAZORPAY_KEY_SECRET!,
+    });
+    rzp.payments.refund(order.razorpay_payment_id, {
+      amount: order.total_amount,
+      speed: 'optimum',
+      notes: { reason: 'Customer cancellation', fng_order_id: String(id) },
+    }).then(() => {
+      pool.query(
+        `UPDATE orders SET payment_status='refund_initiated' WHERE id=$1`, [id]
+      ).catch(() => {});
+    }).catch(err => logger.error('[orders/cancel] Razorpay refund failed', { err }));
+  }
+
+  // FEAT-003: Wallet payment — refund to wallet immediately
+  if (order.payment_status === 'paid' && order.payment_method === 'wallet') {
+    const walletRes = await pool.query(
+      `UPDATE wallets SET balance = balance + $1, updated_at=NOW()
+       WHERE user_id = $2 RETURNING id`,
+      [order.total_amount, req.user!.id]
+    );
+    if (walletRes.rows[0]) {
+      await pool.query(
+        `INSERT INTO wallet_transactions (wallet_id, amount, type, reference_id, note)
+         VALUES ($1, $2, 'credit', $3, 'Refund for cancelled order')`,
+        [walletRes.rows[0].id, order.total_amount, String(id)]
+      );
+      await pool.query(
+        `UPDATE orders SET payment_status='refunded' WHERE id=$1`, [id]
+      );
+    }
+  }
+
   io.to(`merchant:${order.store_id}`).emit('order_status_update', {
     orderId: order.id, status: 'cancelled',
   });
@@ -407,6 +491,46 @@ router.post('/:id/cancel', async (req: AuthRequest, res) => {
 
   res.json({ order: result.rows[0] });
 });
+
+// ─── POST /orders/:id/dispute ─── Customer files a dispute (FEAT-004) ──────
+router.post('/:id/dispute', async (req: AuthRequest, res) => {
+  const { id } = req.params;
+  const { reason, description } = req.body as { reason: string; description?: string };
+
+  if (!reason?.trim()) {
+    res.status(400).json({ error: 'reason is required.' });
+    return;
+  }
+
+  // Only allow dispute on delivered orders owned by the customer
+  const orderRes = await pool.query(
+    `SELECT id, store_id, total_amount FROM orders
+     WHERE id=$1 AND customer_id=$2 AND status='delivered'`,
+    [id, req.user!.id]
+  );
+  if (!orderRes.rows[0]) {
+    res.status(404).json({ error: 'Order not found or not eligible for dispute.' });
+    return;
+  }
+
+  const o = orderRes.rows[0];
+  try {
+    const ins = await pool.query(
+      `INSERT INTO disputes (order_id, user_id, store_id, reason, description, amount)
+       VALUES ($1,$2,$3,$4,$5,$6) RETURNING id`,
+      [o.id, req.user!.id, o.store_id, reason.trim(), description?.trim() ?? null, o.total_amount]
+    );
+    res.status(201).json({ disputeId: ins.rows[0].id, message: 'Dispute filed. Our team will review within 24h.' });
+  } catch (err: any) {
+    if (err.code === '23505') {
+      res.status(400).json({ error: 'A dispute for this order already exists.' });
+      return;
+    }
+    logger.error('[orders/dispute]', { err });
+    res.status(500).json({ error: 'Could not file dispute.' });
+  }
+});
+
 
 // ─── POST /orders/:id/rate ─── Rate order ────────────────────────────────
 router.post('/:id/rate', async (req: AuthRequest, res) => {

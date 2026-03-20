@@ -6,10 +6,12 @@ import pool from '../db';
 import { requireAuth, AuthRequest } from '../middleware/auth';
 import { sendOtp } from '../services/sms';
 import { getUserPoints } from '../services/loyalty';
+import { redis, redisEnabled } from '../redis';
+import { logger } from '../logger';
 
 const router = Router();
 
-const ACCESS_TTL  = '24h';
+const ACCESS_TTL  = '15m'; // SEC-001: Reduced from 24h — blacklist makes short TTL safe
 const REFRESH_TTL = 30 * 24 * 60 * 60; // 30 days in seconds
 const OTP_EXPIRY  = 10 * 60 * 1000;     // 10 minutes
 
@@ -290,8 +292,29 @@ router.post('/logout', requireAuth, async (req: AuthRequest, res) => {
       [logoutHash, req.user!.id]
     ).catch(() => {/* ignore */});
   }
+
+  // SEC-002: Blacklist the current access token in Redis so requireAuth rejects
+  // it immediately \u2014 even within the remaining 15-minute window
+  const authHeader = req.headers.authorization ?? '';
+  const rawAccessToken = authHeader.startsWith('Bearer ') ? authHeader.slice(7) : null;
+  if (rawAccessToken && redisEnabled) {
+    try {
+      const decoded = jwt.decode(rawAccessToken) as { exp?: number } | null;
+      const remainingTtl = decoded?.exp
+        ? Math.max(decoded.exp - Math.floor(Date.now() / 1000), 0)
+        : 900; // fallback: 15 min
+      if (remainingTtl > 0) {
+        const tokenHash = crypto.createHash('sha256').update(rawAccessToken).digest('hex');
+        await redis.set(`bl:${tokenHash}`, '1', 'EX', remainingTtl).catch(() => {});
+      }
+    } catch (err) {
+      logger.warn('[auth/logout] Could not blacklist access token', { err });
+    }
+  }
+
   res.json({ message: 'Logged out.' });
 });
+
 
 // ─── GET /auth/me ─────────────────────────────────────────────────────────
 router.get('/me', requireAuth, async (req: AuthRequest, res) => {
