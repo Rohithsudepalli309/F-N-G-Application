@@ -9,20 +9,21 @@ import { useTranslation } from 'react-i18next';
 import { api } from '../services/api';
 import { theme } from '../theme';
 import { useGroceryCartStore } from '../store/useGroceryCartStore';
+import { IMAGES } from '../assets/hq';
 
 const { width } = Dimensions.get('window');
 const CARD_W = (width - 34) / 2;
 
 const TRENDING = ['Amul Milk', 'Potato Chips', 'Whole Wheat Bread', 'Farm Eggs', 'Atta 5kg', 'Maggi Noodles', 'Colgate Toothpaste', 'Basmati Rice'];
 const POPULAR_CATS = [
-  { name: 'Fruits & Vegetables', img: 'https://images.unsplash.com/photo-1540420773420-3366772f4999?w=120&q=80', cat: 'Fruits & Vegetables'  },
-  { name: 'Dairy, Bread & Eggs', img: 'https://images.unsplash.com/photo-1628088062854-d1870b4553da?w=120&q=80', cat: 'Dairy, Bread & Eggs'   },
-  { name: 'Snacks & Munchies',   img: 'https://images.unsplash.com/photo-1599490659213-e2b9527bd087?w=120&q=80', cat: 'Munchies'              },
-  { name: 'Cleaning Essentials', img: 'https://images.unsplash.com/photo-1585421514738-01798e348b17?w=120&q=80', cat: 'Cleaning Essentials'  },
-  { name: 'Beverages',           img: 'https://images.unsplash.com/photo-1622483767028-3f66f32aef97?w=120&q=80', cat: 'Beverages'             },
-  { name: 'Masala & Spices',     img: 'https://images.unsplash.com/photo-1506802913710-b2985dcd0c20?w=120&q=80', cat: 'Masala & Spices'      },
-  { name: 'Personal Care',       img: 'https://images.unsplash.com/photo-1584308666744-24d5c474f2ae?w=120&q=80', cat: 'Personal Care'         },
-  { name: 'Atta, Rice & Dal',    img: 'https://images.unsplash.com/photo-1586201375761-83865001e31c?w=120&q=80', cat: 'Atta, Rice, Oil & Dals' },
+  { name: 'Fruits & Vegetables', img: IMAGES.fruits, cat: 'Fruits & Vegetables'  },
+  { name: 'Dairy, Bread & Eggs', img: IMAGES.dairy, cat: 'Dairy, Bread & Eggs'   },
+  { name: 'Snacks & Munchies',   img: IMAGES.snacks, cat: 'Munchies'              },
+  { name: 'Cleaning Essentials', img: IMAGES.cleaning, cat: 'Cleaning Essentials'  },
+  { name: 'Beverages',           img: IMAGES.beverages, cat: 'Beverages'             },
+  { name: 'Masala & Spices',     img: IMAGES.masala, cat: 'Masala & Spices'      },
+  { name: 'Personal Care',       img: IMAGES.personal_care, cat: 'Personal Care'         },
+  { name: 'Atta, Rice & Dal',    img: IMAGES.atta_rice, cat: 'Atta, Rice, Oil & Dals' },
 ];
 
 // ─── Inline mini product card ─────────────────────────────────────────────────
@@ -156,7 +157,7 @@ export const SearchScreen = () => {
           <Text style={s.backArrow}>‹</Text>
         </TouchableOpacity>
         <View style={s.inputWrap}>
-          <Image source={{ uri: 'https://img.icons8.com/color/96/search--v1.png' }} style={s.inputIconImg} resizeMode="contain" />
+          <Image source={IMAGES.icon_search} style={s.inputIconImg} resizeMode="contain" />
           <TextInput
             ref={inputRef}
             style={s.input}
@@ -195,7 +196,7 @@ export const SearchScreen = () => {
               onPress={() => navigation.navigate('ProductList', { categoryName: c.cat })}
             >
               <View style={s.catIcon}>
-                <Image source={{ uri: c.img }} style={s.catThumb} resizeMode="cover" />
+                <Image source={c.img} style={s.catThumb} resizeMode="cover" />
               </View>
               <Text style={s.catRowText}>{c.name}</Text>
               <Text style={s.catChev}>›</Text>
@@ -215,7 +216,7 @@ export const SearchScreen = () => {
       {/* Empty result */}
       {!loading && searched && results.length === 0 && (
         <View style={s.empty}>
-          <Image source={{ uri: 'https://img.icons8.com/color/96/no-results--v1.png' }} style={s.emptyImg} resizeMode="contain" />
+          <Image source={IMAGES.icon_box} style={s.emptyImg} resizeMode="contain" />
           <Text style={s.emptyTitle}>No results for "{query}"</Text>
           <Text style={s.emptySub}>Try different keywords or browse by category</Text>
           <View style={s.trendingWrap}>

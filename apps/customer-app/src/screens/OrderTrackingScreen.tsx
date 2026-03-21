@@ -25,6 +25,7 @@ import { api } from '../services/api';
 import { theme } from '../theme';
 import { useOfflineOrderStore } from '../store/useOfflineOrderStore';
 import { useOrderSocket, LocationPayload, StatusPayload, OrderStatus } from '../hooks/useOrderSocket';
+import { IMAGES } from '../assets/hq';
 
 const STATUS_LABELS: Record<OrderStatus, string> = {
   pending:          'Awaiting payment',
@@ -172,6 +173,7 @@ export const OrderTrackingScreen = () => {
             title="Driver"
             description="Your delivery partner"
             rotation={driverLocation.bearing}
+            image={IMAGES.icon_bike}
           />
         )}
         {destination && (

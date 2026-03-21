@@ -9,6 +9,7 @@ import { useNavigation } from '@react-navigation/native';
 import { api } from '../services/api';
 import { useGroceryCartStore } from '../store/useGroceryCartStore';
 import { theme } from '../theme';
+import { IMAGES } from '../assets/hq';
 
 const { width } = Dimensions.get('window');
 
@@ -17,57 +18,57 @@ type Section = 'grocery' | 'daily' | 'household' | 'tools' | 'fashion';
 interface Category {
   id: string;
   name: string;
-  image: string;
+  image: any;
   count: number;
   section: Section;
 }
 
 const SECTIONS = [
-  { key: 'grocery'   as Section, label: 'Grocery',         img: 'https://img.icons8.com/color/96/shopping-cart--v1.png', bg: '#E8F5E9', active: '#163D26' },
-  { key: 'daily'     as Section, label: 'Daily Essentials',img: 'https://img.icons8.com/color/96/detergent--v1.png',     bg: '#FFF8E1', active: '#F57F17' },
-  { key: 'household' as Section, label: 'Household',       img: 'https://img.icons8.com/color/96/home--v1.png',          bg: '#E3F2FD', active: '#1565C0' },
-  { key: 'tools'     as Section, label: 'Tools',           img: 'https://img.icons8.com/color/96/wrench--v1.png',        bg: '#F3E5F5', active: '#6A1B9A' },
-  { key: 'fashion'   as Section, label: 'Fashion',         img: 'https://img.icons8.com/color/96/women-clothing--v1.png',bg: '#FCE4EC', active: '#C62828' },
+  { key: 'grocery'   as Section, label: 'Grocery',         img: IMAGES.icon_box, bg: '#E8F5E9', active: '#163D26' },
+  { key: 'daily'     as Section, label: 'Daily Essentials',img: IMAGES.cleaning, bg: '#FFF8E1', active: '#F57F17' },
+  { key: 'household' as Section, label: 'Household',       img: IMAGES.icon_box, bg: '#E3F2FD', active: '#1565C0' },
+  { key: 'tools'     as Section, label: 'Tools',           img: IMAGES.icon_box, bg: '#F3E5F5', active: '#6A1B9A' },
+  { key: 'fashion'   as Section, label: 'Fashion',         img: IMAGES.personal_care,bg: '#FCE4EC', active: '#C62828' },
 ];
 
 const FALLBACK: Category[] = [
-  { id:'g1', section:'grocery',   name:'Fruits & Vegetables',    image:'https://images.unsplash.com/photo-1610832958506-aa56368176cf?w=300&q=75', count:120 },
-  { id:'g2', section:'grocery',   name:'Dairy, Bread & Eggs',    image:'https://images.unsplash.com/photo-1628088062854-d1870b4553da?w=300&q=75', count:105 },
-  { id:'g3', section:'grocery',   name:'Munchies',               image:'https://images.unsplash.com/photo-1599490659213-e2b9527bd087?w=300&q=75', count:14 },
-  { id:'g4', section:'grocery',   name:'Beverages',              image:'https://images.unsplash.com/photo-1437418747212-8d9709afab22?w=300&q=75', count:120 },
-  { id:'g5', section:'grocery',   name:'Bakery & Biscuits',      image:'https://images.unsplash.com/photo-1509440159596-0249088772ff?w=300&q=75', count:78 },
-  { id:'g6', section:'grocery',   name:'Atta, Rice, Oil & Dals', image:'https://images.unsplash.com/photo-1586201375761-83865001e31c?w=300&q=75', count:200 },
-  { id:'g7', section:'grocery',   name:'Masala & Spices',        image:'https://images.unsplash.com/photo-1506802913710-b2985dcd0c20?w=300&q=75', count:130 },
-  { id:'g8', section:'grocery',   name:'Frozen & Instant Food',  image:'https://images.unsplash.com/photo-1568702846914-96b305d2aaeb?w=300&q=75', count:65 },
-  { id:'g9', section:'grocery',   name:'Breakfast & Sauces',     image:'https://images.unsplash.com/photo-1504556074145-e0b78def9474?w=300&q=75', count:108 },
-  { id:'g10',section:'grocery',   name:'Baby Care',              image:'https://images.unsplash.com/photo-1515488042361-ee00e0ddd4e4?w=300&q=75', count:60 },
-  { id:'g11',section:'grocery',   name:'Pet Care',               image:'https://images.unsplash.com/photo-1587300003388-59208cc962cb?w=300&q=75', count:45 },
-  { id:'g12',section:'grocery',   name:'Meat, Fish & Eggs',      image:'https://images.unsplash.com/photo-1607623814075-e51df1bdc82f?w=300&q=75', count:90 },
-  { id:'d1', section:'daily',     name:'Cleaning Essentials',    image:'https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=300&q=75', count:110 },
-  { id:'d2', section:'daily',     name:'Personal Care',          image:'https://images.unsplash.com/photo-1556228578-8c89e6adf883?w=300&q=75', count:90 },
-  { id:'d3', section:'daily',     name:'Laundry Detergents',     image:'https://images.unsplash.com/photo-1582735689369-4fe89db7114c?w=300&q=75', count:42 },
-  { id:'d4', section:'daily',     name:'Skincare & Haircare',    image:'https://images.unsplash.com/photo-1540555700478-4be289fbecef?w=300&q=75', count:75 },
-  { id:'d5', section:'daily',     name:'Toilet & Floor Cleaners',image:'https://images.unsplash.com/photo-1585421514738-01798e348b17?w=300&q=75', count:35 },
-  { id:'h1', section:'household', name:'Kitchen Storage',        image:'https://images.unsplash.com/photo-1556909114-f6e7ad7d3136?w=300&q=75', count:80 },
-  { id:'h2', section:'household', name:'Cookware & Pans',        image:'https://images.unsplash.com/photo-1590794056226-79ef3a8147e1?w=300&q=75', count:65 },
-  { id:'h3', section:'household', name:'Containers & Boxes',     image:'https://images.unsplash.com/photo-1611690951566-b4a4f9fd7e4c?w=300&q=75', count:55 },
-  { id:'h4', section:'household', name:'Brooms & Mops',          image:'https://images.unsplash.com/photo-1584931423298-c576fda54bd2?w=300&q=75', count:40 },
-  { id:'h5', section:'household', name:'Organizers & Shelves',   image:'https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=300&q=75', count:48 },
-  { id:'t1', section:'tools',     name:'Hand Tools',             image:'https://images.unsplash.com/photo-1504148455328-c376907d081c?w=300&q=75', count:70 },
-  { id:'t2', section:'tools',     name:'Adhesives & Tapes',      image:'https://images.unsplash.com/photo-1572981779307-38b8cabb2407?w=300&q=75', count:45 },
-  { id:'t3', section:'tools',     name:'Locks & Safety',         image:'https://images.unsplash.com/photo-1558618047-3c8c76ca7d13?w=300&q=75', count:38 },
-  { id:'t4', section:'tools',     name:'Electrical Fittings',    image:'https://images.unsplash.com/photo-1565193566173-7a0ee3dbe261?w=300&q=75', count:60 },
-  { id:'f1', section:'fashion',   name:"Men's T-Shirts",         image:'https://images.unsplash.com/photo-1521572163474-6864f9cf17ab?w=300&q=75', count:200 },
-  { id:'f2', section:'fashion',   name:"Women's Kurtas",         image:'https://images.unsplash.com/photo-1583744946564-b52ac1c389c8?w=300&q=75', count:180 },
-  { id:'f3', section:'fashion',   name:'Kids Clothing',          image:'https://images.unsplash.com/photo-1519689680058-324335c77eba?w=300&q=75', count:150 },
-  { id:'f4', section:'fashion',   name:'Footwear',               image:'https://images.unsplash.com/photo-1542291026-7eec264c27ff?w=300&q=75', count:120 },
-  { id:'f5', section:'fashion',   name:'Accessories',             image:'https://images.unsplash.com/photo-1553062407-98eeb64c6a62?w=300&q=75', count:95 },
+  { id:'g1', section:'grocery',   name:'Fruits & Vegetables',    image: IMAGES.fruits, count:120 },
+  { id:'g2', section:'grocery',   name:'Dairy, Bread & Eggs',    image: IMAGES.dairy, count:105 },
+  { id:'g3', section:'grocery',   name:'Munchies',               image: IMAGES.snacks, count:14 },
+  { id:'g4', section:'grocery',   name:'Beverages',              image: IMAGES.beverages, count:120 },
+  { id:'g5', section:'grocery',   name:'Bakery & Biscuits',      image: IMAGES.snacks, count:78 },
+  { id:'g6', section:'grocery',   name:'Atta, Rice, Oil & Dals', image: IMAGES.atta_rice, count:200 },
+  { id:'g7', section:'grocery',   name:'Masala & Spices',        image: IMAGES.masala, count:130 },
+  { id:'g8', section:'grocery',   name:'Frozen & Instant Food',  image: IMAGES.snacks, count:65 },
+  { id:'g9', section:'grocery',   name:'Breakfast & Sauces',     image: IMAGES.breakfast, count:108 },
+  { id:'g10',section:'grocery',   name:'Baby Care',              image: IMAGES.personal_care, count:60 },
+  { id:'g11',section:'grocery',   name:'Pet Care',               image: IMAGES.snacks, count:45 },
+  { id:'g12',section:'grocery',   name:'Meat, Fish & Eggs',      image: IMAGES.snacks, count:90 },
+  { id:'d1', section:'daily',     name:'Cleaning Essentials',    image: IMAGES.cleaning, count:110 },
+  { id:'d2', section:'daily',     name:'Personal Care',          image: IMAGES.personal_care, count:90 },
+  { id:'d3', section:'daily',     name:'Laundry Detergents',     image: IMAGES.cleaning, count:42 },
+  { id:'d4', section:'daily',     name:'Skincare & Haircare',    image: IMAGES.personal_care, count:75 },
+  { id:'d5', section:'daily',     name:'Toilet & Floor Cleaners',image: IMAGES.cleaning, count:35 },
+  { id:'h1', section:'household', name:'Kitchen Storage',        image: IMAGES.cleaning, count:80 },
+  { id:'h2', section:'household', name:'Cookware & Pans',        image: IMAGES.cleaning, count:65 },
+  { id:'h3', section:'household', name:'Containers & Boxes',     image: IMAGES.icon_box, count:55 },
+  { id:'h4', section:'household', name:'Brooms & Mops',          image: IMAGES.cleaning, count:40 },
+  { id:'h5', section:'household', name:'Organizers & Shelves',   image: IMAGES.icon_box, count:48 },
+  { id:'t1', section:'tools',     name:'Hand Tools',             image: IMAGES.icon_box, count:70 },
+  { id:'t2', section:'tools',     name:'Adhesives & Tapes',      image: IMAGES.icon_box, count:45 },
+  { id:'t3', section:'tools',     name:'Locks & Safety',         image: IMAGES.icon_box, count:38 },
+  { id:'t4', section:'tools',     name:'Electrical Fittings',    image: IMAGES.icon_box, count:60 },
+  { id:'f1', section:'fashion',   name:"Men's T-Shirts",         image: IMAGES.personal_care, count:200 },
+  { id:'f2', section:'fashion',   name:"Women's Kurtas",         image: IMAGES.personal_care, count:180 },
+  { id:'f3', section:'fashion',   name:'Kids Clothing',          image: IMAGES.personal_care, count:150 },
+  { id:'f4', section:'fashion',   name:'Footwear',               image: IMAGES.personal_care, count:120 },
+  { id:'f5', section:'fashion',   name:'Accessories',             image: IMAGES.personal_care, count:95 },
 ];
 
 const DEALS = [
-  { id:'1', cat:'Fruits & Vegetables', tag:'Fresh Produce', pct:'40', bg:'#1B5E20', img:'https://images.unsplash.com/photo-1610832958506-aa56368176cf?w=400&q=80' },
-  { id:'2', cat:'Munchies',            tag:'Snack Attack',  pct:'25', bg:'#B71C1C', img:'https://images.unsplash.com/photo-1599490659213-e2b9527bd087?w=400&q=80' },
-  { id:'3', cat:'Dairy, Bread & Eggs', tag:'Morning Must',  pct:'15', bg:'#1A237E', img:'https://images.unsplash.com/photo-1628088062854-d1870b4553da?w=400&q=80' },
+  { id:'1', cat:'Fruits & Vegetables', tag:'Fresh Produce', pct:'40', bg:'#1B5E20', img: IMAGES.fruits },
+  { id:'2', cat:'Munchies',            tag:'Snack Attack',  pct:'25', bg:'#B71C1C', img: IMAGES.snacks },
+  { id:'3', cat:'Dairy, Bread & Eggs', tag:'Morning Must',  pct:'15', bg:'#1A237E', img: IMAGES.dairy },
 ];
 
 const CARD_W = (width - 44) / 3;
@@ -129,7 +130,7 @@ export const InstamartHomeScreen = () => {
       onPress={() => navigation.navigate('InstamartCategory', { categoryId: item.id, categoryName: item.name })}
     >
       <View style={cat.imgWrap}>
-        <Image source={{ uri: item.image }} style={cat.img} resizeMode="cover" />
+        <Image source={item.image} style={cat.img} resizeMode="cover" />
         <View style={cat.overlay} />
       </View>
       <Text style={cat.name} numberOfLines={2}>{item.name}</Text>
@@ -151,11 +152,11 @@ export const InstamartHomeScreen = () => {
         </View>
         <View style={s.headerRight}>
           <View style={s.deliveryPill}>
-            <Image source={{ uri: 'https://img.icons8.com/color/96/express-delivery--v1.png' }} style={s.deliveryImg} resizeMode="contain" />
+            <Image source={IMAGES.icon_bike} style={s.deliveryImg} resizeMode="contain" />
             <Text style={s.deliveryText}>Under 40 min</Text>
           </View>
           <TouchableOpacity style={s.cartBtn} onPress={() => navigation.navigate('GroceryCart')}>
-            <Image source={{ uri: 'https://img.icons8.com/color/96/shopping-cart--v1.png' }} style={s.cartImg} resizeMode="contain" />
+            <Image source={IMAGES.icon_box} style={s.cartImg} resizeMode="contain" />
             {cartItems.length > 0 && (
               <View style={s.cartBadge}>
                 <Text style={s.cartBadgeText}>{cartItems.length}</Text>
@@ -167,7 +168,7 @@ export const InstamartHomeScreen = () => {
 
       {/* Search */}
       <View style={s.searchWrap}>
-        <Image source={{ uri: 'https://img.icons8.com/color/96/search--v1.png' }} style={s.searchIconImg} resizeMode="contain" />
+        <Image source={IMAGES.icon_search} style={s.searchIconImg} resizeMode="contain" />
         <TextInput
           style={s.searchInput}
           placeholder={`Search in ${activeMeta.label}…`}
@@ -193,7 +194,7 @@ export const InstamartHomeScreen = () => {
               style={[s.tab, active && { backgroundColor: sec.active, borderColor: sec.active }]}
               activeOpacity={0.8}
             >
-              <Image source={{ uri: sec.img }} style={[s.tabImg, active && s.tabImgActive]} resizeMode="contain" />
+              <Image source={sec.img} style={[s.tabImg, active && s.tabImgActive]} resizeMode="contain" />
               <Text style={[s.tabLabel, active && s.tabLabelActive]}>{sec.label}</Text>
             </TouchableOpacity>
           );
@@ -230,7 +231,7 @@ export const InstamartHomeScreen = () => {
                     <Text style={s.dealBtnText}>Shop Now</Text>
                   </TouchableOpacity>
                 </View>
-                <Image source={{ uri: d.img }} style={s.dealImg} resizeMode="cover" />
+                <Image source={d.img} style={s.dealImg} resizeMode="cover" />
               </TouchableOpacity>
             ))}
           </ScrollView>
@@ -281,14 +282,14 @@ export const InstamartHomeScreen = () => {
           <Text style={s.promisesTitle}>Why shoppers love Instamart</Text>
           <View style={s.promisesGrid}>
             {[
-              { img: 'https://img.icons8.com/color/96/leaf.png', t: '100% Fresh', s: 'Daily sourced produce', bg: '#ECFDF3' },
-              { img: 'https://img.icons8.com/color/96/express-delivery--v1.png', t: '10 Min Delivery', s: 'Lightning fast dispatch', bg: '#EFF6FF' },
-              { img: 'https://img.icons8.com/color/96/price-tag--v1.png', t: 'Best Prices', s: 'Top savings every day', bg: '#FFF7ED' },
-              { img: 'https://img.icons8.com/color/96/return-purchase--v1.png', t: 'Easy Returns', s: 'Hassle-free refunds', bg: '#F5F3FF' },
+              { img: IMAGES.fruits, t: '100% Fresh', s: 'Daily sourced produce', bg: '#ECFDF3' },
+              { img: IMAGES.icon_bike, t: '10 Min Delivery', s: 'Lightning fast dispatch', bg: '#EFF6FF' },
+              { img: IMAGES.icon_coin, t: 'Best Prices', s: 'Top savings every day', bg: '#FFF7ED' },
+              { img: IMAGES.icon_box, t: 'Easy Returns', s: 'Hassle-free refunds', bg: '#F5F3FF' },
             ].map((p) => (
               <View key={p.t} style={s.promiseCard}>
                 <View style={[s.promiseIconWrap, { backgroundColor: p.bg }]}>
-                  <Image source={{ uri: p.img }} style={s.promiseImg} resizeMode="contain" />
+                  <Image source={p.img} style={s.promiseImg} resizeMode="contain" />
                 </View>
                 <Text style={s.promiseTitle}>{p.t}</Text>
                 <Text style={s.promiseSub}>{p.s}</Text>

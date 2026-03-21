@@ -11,6 +11,7 @@ import { AppNavigationProp } from '../navigation/types';
 import { ProductCard } from '../components/ProductCard';
 import { useAuthStore } from '../store/useAuthStore';
 import { api } from '../services/api';
+import { IMAGES } from '../assets/hq';
 
 const { width } = Dimensions.get('window');
 
@@ -24,7 +25,7 @@ const BANNER_DATA = [
     sub: 'Fresh produce at your door',
     badge: '40% OFF',
     badgeColor: '#F5A826',
-    image: 'https://images.unsplash.com/photo-1542838132-92c53300491e?w=400&q=80',
+    image: IMAGES.banner_fresh,
   },
   {
     id: '2',
@@ -34,7 +35,7 @@ const BANNER_DATA = [
     sub: 'Lays, Oreo, Kurkure & more',
     badge: '₹99 Store',
     badgeColor: '#E45F10',
-    image: 'https://images.unsplash.com/photo-1599490659213-e2b9527bd087?w=400&q=80',
+    image: IMAGES.banner_snacks,
   },
   {
     id: '3',
@@ -44,36 +45,36 @@ const BANNER_DATA = [
     sub: 'Milk, eggs, bread & butter',
     badge: '15% OFF',
     badgeColor: '#2E7D32',
-    image: 'https://images.unsplash.com/photo-1563636619-e9143da7973b?w=400&q=80',
+    image: IMAGES.banner_dairy,
   },
 ];
 
 const QUICK_CATS = [
-  { id: '1', label: 'Fruits & Veg',  cat: 'Fruits & Vegetables',    image: 'https://images.unsplash.com/photo-1540420773420-3366772f4999?w=120&q=80', bg: '#E8F5E9', color: '#2E7D32' },
-  { id: '2', label: 'Dairy & Eggs',  cat: 'Dairy, Bread & Eggs',    image: 'https://images.unsplash.com/photo-1628088062854-d1870b4553da?w=120&q=80', bg: '#E3F2FD', color: '#1565C0' },
-  { id: '3', label: 'Snacks',        cat: 'Munchies',               image: 'https://images.unsplash.com/photo-1599490659213-e2b9527bd087?w=120&q=80', bg: '#FFF8E1', color: '#F57F17' },
-  { id: '4', label: 'Beverages',     cat: 'Beverages',              image: 'https://images.unsplash.com/photo-1622483767028-3f66f32aef97?w=120&q=80', bg: '#E8F5E9', color: '#1B5E20' },
-  { id: '5', label: 'Breakfast',     cat: 'Breakfast & Sauces',     image: 'https://images.unsplash.com/photo-1533920379810-6bedac9c1d22?w=120&q=80', bg: '#FBE9E7', color: '#BF360C' },
-  { id: '6', label: 'Atta & Rice',   cat: 'Atta, Rice, Oil & Dals', image: 'https://images.unsplash.com/photo-1586201375761-83865001e31c?w=120&q=80', bg: '#FFF3E0', color: '#E65100' },
-  { id: '7', label: 'Cleaning',      cat: 'Cleaning Essentials',    image: 'https://images.unsplash.com/photo-1585421514738-01798e348b17?w=120&q=80', bg: '#F3E5F5', color: '#6A1B9A' },
-  { id: '8', label: 'Personal Care', cat: 'Personal Care',          image: 'https://images.unsplash.com/photo-1584308666744-24d5c474f2ae?w=120&q=80', bg: '#E0F7FA', color: '#006064' },
+  { id: '1', label: 'Fruits & Veg',  cat: 'Fruits & Vegetables',    image: IMAGES.fruits, bg: '#E8F5E9', color: '#2E7D32' },
+  { id: '2', label: 'Dairy & Eggs',  cat: 'Dairy, Bread & Eggs',    image: IMAGES.dairy, bg: '#E3F2FD', color: '#1565C0' },
+  { id: '3', label: 'Snacks',        cat: 'Munchies',               image: IMAGES.snacks, bg: '#FFF8E1', color: '#F57F17' },
+  { id: '4', label: 'Beverages',     cat: 'Beverages',              image: IMAGES.beverages, bg: '#E8F5E9', color: '#1B5E20' },
+  { id: '5', label: 'Breakfast',     cat: 'Breakfast & Sauces',     image: IMAGES.breakfast, bg: '#FBE9E7', color: '#BF360C' },
+  { id: '6', label: 'Atta & Rice',   cat: 'Atta, Rice, Oil & Dals', image: IMAGES.atta_rice, bg: '#FFF3E0', color: '#E65100' },
+  { id: '7', label: 'Cleaning',      cat: 'Cleaning Essentials',    image: IMAGES.cleaning, bg: '#F3E5F5', color: '#6A1B9A' },
+  { id: '8', label: 'Personal Care', cat: 'Personal Care',          image: IMAGES.personal_care, bg: '#E0F7FA', color: '#006064' },
 ];
 
 const OFFERS = [
-  { id: 'o1', text: 'FREE delivery on orders above ₹299', img: 'https://img.icons8.com/color/96/in-transit--v1.png' },
-  { id: 'o2', text: 'Use WELCOME50 — Flat ₹50 off',       img: 'https://img.icons8.com/color/96/give-gift--v1.png' },
-  { id: 'o3', text: 'Pay with UPI, get ₹20 cashback',       img: 'https://img.icons8.com/color/96/coin--v1.png' },
+  { id: 'o1', text: 'FREE delivery on orders above ₹299', img: IMAGES.icon_box },
+  { id: 'o2', text: 'Use WELCOME50 — Flat ₹50 off',       img: IMAGES.icon_coin },
+  { id: 'o3', text: 'Pay with UPI, get ₹20 cashback',       img: IMAGES.icon_coin },
 ];
 
 const CATEGORY_GRID = [
-  { id: 'g1', label: 'Fruits & Veg',    image: 'https://images.unsplash.com/photo-1540420773420-3366772f4999?w=300&q=80', cat: 'Fruits & Vegetables' },
-  { id: 'g2', label: 'Dairy & Eggs',    image: 'https://images.unsplash.com/photo-1628088062854-d1870b4553da?w=300&q=80', cat: 'Dairy, Bread & Eggs' },
-  { id: 'g3', label: 'Snacks',          image: 'https://images.unsplash.com/photo-1599490659213-e2b9527bd087?w=300&q=80', cat: 'Munchies' },
-  { id: 'g4', label: 'Atta & Rice',     image: 'https://images.unsplash.com/photo-1586201375761-83865001e31c?w=300&q=80', cat: 'Atta, Rice, Oil & Dals' },
-  { id: 'g5', label: 'Beverages',       image: 'https://images.unsplash.com/photo-1629203851122-3726ecdf080e?w=200&q=80', cat: 'Beverages' },
-  { id: 'g6', label: 'Home & Cleaning', image: 'https://images.unsplash.com/photo-1585421514738-01798e348b17?w=200&q=80', cat: 'Cleaning Essentials' },
-  { id: 'g7', label: 'Personal Care',   image: 'https://images.unsplash.com/photo-1584308666744-24d5c474f2ae?w=200&q=80', cat: 'Personal Care' },
-  { id: 'g8', label: 'Masala',          image: 'https://images.unsplash.com/photo-1506802913710-b2985dcd0c20?w=200&q=80', cat: 'Masala & Spices' },
+  { id: 'g1', label: 'Fruits & Veg',    image: IMAGES.fruits, cat: 'Fruits & Vegetables' },
+  { id: 'g2', label: 'Dairy & Eggs',    image: IMAGES.dairy, cat: 'Dairy, Bread & Eggs' },
+  { id: 'g3', label: 'Snacks',          image: IMAGES.snacks, cat: 'Munchies' },
+  { id: 'g4', label: 'Atta & Rice',     image: IMAGES.atta_rice, cat: 'Atta, Rice, Oil & Dals' },
+  { id: 'g5', label: 'Beverages',       image: IMAGES.beverages, cat: 'Beverages' },
+  { id: 'g6', label: 'Home & Cleaning', image: IMAGES.cleaning, cat: 'Cleaning Essentials' },
+  { id: 'g7', label: 'Personal Care',   image: IMAGES.personal_care, cat: 'Personal Care' },
+  { id: 'g8', label: 'Masala',          image: IMAGES.masala, cat: 'Masala & Spices' },
 ];
 
 // --- Hero Banner Carousel --------------------------------------------------
@@ -125,7 +126,7 @@ const HeroBanner = ({ onShopNow }: { onShopNow: (cat: string) => void }) => {
               </TouchableOpacity>
             </View>
             <View style={banner.right}>
-              <Image source={{ uri: b.image }} style={banner.img} resizeMode="cover" />
+              <Image source={b.image} style={banner.img} resizeMode="cover" />
               <View style={[banner.badge, { backgroundColor: b.badgeColor }]}>
                 <Text style={banner.badgeText}>{b.badge}</Text>
               </View>
@@ -229,7 +230,7 @@ const ProductRow = ({ products, loading, onSeeAll }: ProductRowProps) => {
       })}
       {onSeeAll && (
         <TouchableOpacity style={pr.seeAllCard} onPress={onSeeAll}>
-          <Image source={{ uri: 'https://img.icons8.com/color/96/shopping-cart--v1.png' }} style={pr.seeAllImg} resizeMode="contain" />
+          <Image source={IMAGES.icon_box} style={pr.seeAllImg} resizeMode="contain" />
           <Text style={pr.seeAllText}>See{'\n'}All</Text>
           <Text style={pr.seeAllArrow}>→</Text>
         </TouchableOpacity>
@@ -343,16 +344,16 @@ export const HomeScreen = () => {
 
         {/* Row 2: Search bar */}
         <TouchableOpacity style={s.searchBar} onPress={() => goTo('SearchTab')} activeOpacity={0.8}>
-          <Image source={{ uri: 'https://img.icons8.com/color/96/search--v1.png' }} style={s.searchIconImg} resizeMode="contain" />
+          <Image source={IMAGES.icon_search} style={s.searchIconImg} resizeMode="contain" />
           <Text style={s.searchPlaceholder}>Search "milk", "chips", "atta"…</Text>
           <View style={s.micBtn}>
-            <Image source={{ uri: 'https://img.icons8.com/color/96/microphone--v1.png' }} style={{ width: 18, height: 18 }} resizeMode="contain" />
+            <Image source={IMAGES.icon_mic} style={{ width: 18, height: 18 }} resizeMode="contain" />
           </View>
         </TouchableOpacity>
 
         {/* Row 3: Offer ticker */}
         <View style={s.offerTicker}>
-          <Image source={{ uri: OFFERS[offerIndex].img }} style={s.offerIconImg} resizeMode="contain" />
+          <Image source={OFFERS[offerIndex].img} style={s.offerIconImg} resizeMode="contain" />
           <Text style={s.offerText}>{OFFERS[offerIndex].text}</Text>
         </View>
       </View>
@@ -368,11 +369,11 @@ export const HomeScreen = () => {
           >
             <View style={s.liveOrderLeft}>
               <Image
-                source={{ uri: activeOrder.status === 'pickup'
-                  ? 'https://img.icons8.com/color/96/motorcycle-delivery--v1.png'
+                source={activeOrder.status === 'pickup'
+                  ? IMAGES.icon_bike
                   : activeOrder.status === 'ready'
-                  ? 'https://img.icons8.com/color/96/box--v1.png'
-                  : 'https://img.icons8.com/color/96/cooking.png' }}
+                  ? IMAGES.icon_box
+                  : IMAGES.icon_box}
                 style={s.liveOrderImg}
                 resizeMode="contain"
               />
@@ -411,7 +412,7 @@ export const HomeScreen = () => {
                 onPress={() => goTo('ProductList', { categoryName: q.cat })}
                 activeOpacity={0.8}
               >
-                <Image source={{ uri: q.image }} style={s.quickCatImg} resizeMode="cover" />
+                <Image source={q.image} style={s.quickCatImg} resizeMode="cover" />
                 <Text style={[s.quickCatLabel, { color: q.color }]}>{q.label}</Text>
               </TouchableOpacity>
             ))}
@@ -429,7 +430,7 @@ export const HomeScreen = () => {
                 activeOpacity={0.85}
               >
                 <View style={s.catGridImgWrap}>
-                  <Image source={{ uri: g.image }} style={s.catGridImg} resizeMode="cover" />
+                  <Image source={g.image} style={s.catGridImg} resizeMode="cover" />
                   <View style={s.catGridOverlay} />
                 </View>
                 <Text style={s.catGridLabel} numberOfLines={2}>{g.label}</Text>
@@ -446,7 +447,7 @@ export const HomeScreen = () => {
           </View>
           <View style={s.dealStripRight}>
             <Image
-              source={{ uri: 'https://images.unsplash.com/photo-1540420773420-3366772f4999?w=200&q=80' }}
+              source={IMAGES.fruits}
               style={s.dealStripImg}
               resizeMode="cover"
             />
@@ -475,7 +476,7 @@ export const HomeScreen = () => {
 
         {/* Zero fee bar */}
         <View style={s.zeroFeeBar}>
-          <Image source={{ uri: 'https://img.icons8.com/color/96/in-transit--v1.png' }} style={s.zeroFeeIconImg} resizeMode="contain" />
+          <Image source={IMAGES.icon_bike} style={s.zeroFeeIconImg} resizeMode="contain" />
           <Text style={s.zeroFeeText}>FREE delivery  ·  Zero handling fee  ·  Zero surge pricing</Text>
         </View>
 
@@ -546,14 +547,14 @@ export const HomeScreen = () => {
           <Text style={s.trustTitle}>Why customers trust us</Text>
           <View style={s.trustGrid}>
             {[
-              { img: 'https://img.icons8.com/color/96/leaf.png', label: '100% Fresh', sub: 'Daily sourced', bg: '#ECFDF3' },
-              { img: 'https://img.icons8.com/color/96/express-delivery--v1.png', label: '10 Min Delivery', sub: 'Quick dispatch', bg: '#EFF6FF' },
-              { img: 'https://img.icons8.com/color/96/price-tag--v1.png', label: 'Best Prices', sub: 'Great value deals', bg: '#FFF7ED' },
-              { img: 'https://img.icons8.com/color/96/return-purchase--v1.png', label: 'Easy Returns', sub: 'Simple refunds', bg: '#F5F3FF' },
+              { img: IMAGES.fruits, label: '100% Fresh', sub: 'Daily sourced', bg: '#ECFDF3' },
+              { img: IMAGES.icon_bike, label: '10 Min Delivery', sub: 'Quick dispatch', bg: '#EFF6FF' },
+              { img: IMAGES.icon_coin, label: 'Best Prices', sub: 'Great value deals', bg: '#FFF7ED' },
+              { img: IMAGES.icon_box, label: 'Easy Returns', sub: 'Simple refunds', bg: '#F5F3FF' },
             ].map(t => (
               <View key={t.label} style={s.trustCard}>
                 <View style={[s.trustIconWrap, { backgroundColor: t.bg }]}>
-                  <Image source={{ uri: t.img }} style={s.trustImg} resizeMode="contain" />
+                  <Image source={t.img} style={s.trustImg} resizeMode="contain" />
                 </View>
                 <Text style={s.trustLabel}>{t.label}</Text>
                 <Text style={s.trustSub}>{t.sub}</Text>

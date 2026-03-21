@@ -19,6 +19,7 @@ import { useNavigation, useRoute } from '@react-navigation/native';
 import { useCartStore } from '../store/useCartStore';
 import { api } from '../services/api';
 import { theme } from '../theme';
+import { IMAGES } from '../assets/hq';
 
 interface DeliveryAddress {
   id?: string;
@@ -289,7 +290,7 @@ export const CheckoutScreen = () => {
           <View style={styles.methodRow}>
             <View style={styles.payLeft}>
               <View style={[styles.methodIconBox, { backgroundColor: '#E8F5E9' }]}>
-                <Image source={{ uri: 'https://img.icons8.com/color/96/coins--v1.png' }} style={{ width: 18, height: 18 }} resizeMode="contain" />
+                <Image source={IMAGES.icon_coin} style={{ width: 18, height: 18 }} resizeMode="contain" />
               </View>
               <View>
                 <Text style={styles.payName}>F&G Wallet</Text>
@@ -424,7 +425,7 @@ export const CheckoutScreen = () => {
           <View style={styles.methodRow}>
             <View style={styles.payLeft}>
                <View style={styles.methodIconBox}>
-                  <Image source={{ uri: 'https://img.icons8.com/color/96/banknotes--v1.png' }} style={{ width: 18, height: 18 }} resizeMode="contain" />
+                  <Image source={IMAGES.icon_coin} style={{ width: 18, height: 18 }} resizeMode="contain" />
                </View>
                <View>
                  <Text style={styles.payName}>Cash on Delivery</Text>
@@ -458,7 +459,7 @@ export const CheckoutScreen = () => {
           {couponDiscount > 0 ? (
             <View style={styles.couponApplied}>
               <View style={styles.couponAppliedLeft}>
-                <Image source={{ uri: 'https://img.icons8.com/color/96/discount--v1.png' }} style={styles.couponAppliedImg} resizeMode="contain" />
+                <Image source={IMAGES.icon_coin} style={styles.couponAppliedImg} resizeMode="contain" />
                 <View>
                   <Text style={styles.couponAppliedCode}>{couponCode.trim().toUpperCase()}</Text>
                   <Text style={styles.couponAppliedSaving}>Saving ₹{couponDiscount.toLocaleString('en-IN')}</Text>

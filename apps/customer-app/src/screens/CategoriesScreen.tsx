@@ -5,6 +5,7 @@ import {
 } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { theme } from '../theme';
+import { IMAGES } from '../assets/hq';
 
 const { width } = Dimensions.get('window');
 // 4 cards per row, 12px padding each side, 8px gap × 3 between 4 cards
@@ -12,7 +13,7 @@ const CARD_W = (width - 24 - 24) / 4;
 
 interface SubCat {
   label: string;
-  image: string;    // HQ Unsplash image URL
+  image: any;       // HQ local asset handle
   cat: string;      // DB category to navigate to
   subCat?: string;  // optional DB sub_category for finer filtering
 }
@@ -33,10 +34,10 @@ const SECTIONS: Section[] = [
     headerColor: '#2E7D32',
     rows: [
       [
-        { label: 'Fresh\nVegetables',    image: 'https://images.unsplash.com/photo-1540420773420-3366772f4999?w=200&q=80', cat: 'Fruits & Vegetables', subCat: 'Vegetables' },
-        { label: 'Fresh\nFruits',        image: 'https://images.unsplash.com/photo-1619566636858-adf3ef46400b?w=200&q=80', cat: 'Fruits & Vegetables', subCat: 'Fruits'     },
-        { label: 'Dairy, Bread\n& Eggs', image: 'https://images.unsplash.com/photo-1628088062854-d1870b4553da?w=200&q=80', cat: 'Dairy, Bread & Eggs' },
-        { label: 'Meat &\nSeafood',      image: 'https://images.unsplash.com/photo-1607623814075-e51df1bdc82f?w=200&q=80', cat: 'Meat & Seafood' },
+        { label: 'Fresh\nVegetables',    image: IMAGES.fruits, cat: 'Fruits & Vegetables', subCat: 'Vegetables' },
+        { label: 'Fresh\nFruits',        image: IMAGES.fruits, cat: 'Fruits & Vegetables', subCat: 'Fruits'     },
+        { label: 'Dairy, Bread\n& Eggs', image: IMAGES.dairy, cat: 'Dairy, Bread & Eggs' },
+        { label: 'Meat &\nSeafood',      image: IMAGES.snacks, cat: 'Meat & Seafood' },
       ],
     ],
   },
@@ -47,10 +48,10 @@ const SECTIONS: Section[] = [
     headerColor: '#E65100',
     rows: [
       [
-        { label: 'Atta, Rice\n& Dal',    image: 'https://images.unsplash.com/photo-1586201375761-83865001e31c?w=200&q=80', cat: 'Atta, Rice, Oil & Dals' },
-        { label: 'Masalas',              image: 'https://images.unsplash.com/photo-1506802913710-b2985dcd0c20?w=200&q=80', cat: 'Masala & Spices' },
-        { label: 'Oils &\nGhee',         image: 'https://images.unsplash.com/photo-1474979266404-7eaacbcd87c5?w=200&q=80', cat: 'Atta, Rice, Oil & Dals', subCat: 'Oils & Ghee' },
-        { label: 'Cereals &\nBreakfast', image: 'https://images.unsplash.com/photo-1533920379810-6bedac9c1d22?w=200&q=80', cat: 'Breakfast & Sauces',    subCat: 'Cereals & Muesli' },
+        { label: 'Atta, Rice\n& Dal',    image: IMAGES.atta_rice, cat: 'Atta, Rice, Oil & Dals' },
+        { label: 'Masalas',              image: IMAGES.masala, cat: 'Masala & Spices' },
+        { label: 'Oils &\nGhee',         image: IMAGES.atta_rice, cat: 'Atta, Rice, Oil & Dals', subCat: 'Oils & Ghee' },
+        { label: 'Cereals &\nBreakfast', image: IMAGES.breakfast, cat: 'Breakfast & Sauces',    subCat: 'Cereals & Muesli' },
       ],
     ],
   },
@@ -61,22 +62,22 @@ const SECTIONS: Section[] = [
     headerColor: '#C62828',
     rows: [
       [
-        { label: 'Cold Drinks\n& Juices',     image: 'https://images.unsplash.com/photo-1622483767028-3f66f32aef97?w=200&q=80', cat: 'Beverages',             subCat: 'Cold Drinks'    },
-        { label: 'Ice Creams\n& Frozen Dessert', image: 'https://images.unsplash.com/photo-1497034825429-c343d7c6a68f?w=200&q=80', cat: 'Frozen & Instant Food', subCat: 'Ice Creams'     },
-        { label: 'Chips &\nNamkeens',          image: 'https://images.unsplash.com/photo-1599490659213-e2b9527bd087?w=200&q=80', cat: 'Munchies',               subCat: 'Chips & Crisps' },
-        { label: 'Chocolates',                 image: 'https://images.unsplash.com/photo-1549007994-cb92caebd54b?w=200&q=80', cat: 'Munchies',               subCat: 'Chocolates'     },
+        { label: 'Cold Drinks\n& Juices',     image: IMAGES.beverages, cat: 'Beverages',             subCat: 'Cold Drinks'    },
+        { label: 'Ice Creams\n& Frozen Dessert', image: IMAGES.snacks, cat: 'Frozen & Instant Food', subCat: 'Ice Creams'     },
+        { label: 'Chips &\nNamkeens',          image: IMAGES.snacks, cat: 'Munchies',               subCat: 'Chips & Crisps' },
+        { label: 'Chocolates',                 image: IMAGES.snacks, cat: 'Munchies',               subCat: 'Chocolates'     },
       ],
       [
-        { label: 'Biscuits\n& Cakes',          image: 'https://images.unsplash.com/photo-1509440159596-0249088772ff?w=200&q=80', cat: 'Munchies',            subCat: 'Biscuits & Cookies' },
-        { label: 'Tea, Coffees\n& Milk Drinks', image: 'https://images.unsplash.com/photo-1544787219-7f47ccb76574?w=200&q=80', cat: 'Beverages',           subCat: 'Health Drinks'      },
-        { label: 'Sauces &\nSpreads',          image: 'https://images.unsplash.com/photo-1596462502278-27bfdc403348?w=200&q=80', cat: 'Breakfast & Sauces', subCat: 'Sauces & Spreads'   },
-        { label: 'Sweet\nCorner',              image: 'https://images.unsplash.com/photo-1583395838144-2b890f63e34a?w=200&q=80', cat: 'Munchies',            subCat: 'Chocolates'         },
+        { label: 'Biscuits\n& Cakes',          image: IMAGES.snacks, cat: 'Munchies',            subCat: 'Biscuits & Cookies' },
+        { label: 'Tea, Coffees\n& Milk Drinks', image: IMAGES.beverages, cat: 'Beverages',           subCat: 'Health Drinks'      },
+        { label: 'Sauces &\nSpreads',          image: IMAGES.breakfast, cat: 'Breakfast & Sauces', subCat: 'Sauces & Spreads'   },
+        { label: 'Sweet\nCorner',              image: IMAGES.snacks, cat: 'Munchies',            subCat: 'Chocolates'         },
       ],
       [
-        { label: 'Noodles, Pasta,\nVermicelli', image: 'https://images.unsplash.com/photo-1569718212165-3a8278d5f624?w=200&q=80', cat: 'Frozen & Instant Food', subCat: 'Noodles & Pasta' },
-        { label: 'Frozen\nFood',               image: 'https://images.unsplash.com/photo-1626200419199-391ae4be7a41?w=200&q=80', cat: 'Frozen & Instant Food', subCat: 'Frozen Snacks'   },
-        { label: 'Dry Fruits\n& Seeds',        image: 'https://images.unsplash.com/photo-1559181567-c3190ca9959b?w=200&q=80', cat: 'Atta, Rice, Oil & Dals', subCat: 'Dals & Pulses'  },
-        { label: 'Cold\nDrinks',               image: 'https://images.unsplash.com/photo-1622540796758-a14fd81bdc23?w=200&q=80', cat: 'Beverages',               subCat: 'Cold Drinks'    },
+        { label: 'Noodles, Pasta,\nVermicelli', image: IMAGES.snacks, cat: 'Frozen & Instant Food', subCat: 'Noodles & Pasta' },
+        { label: 'Frozen\nFood',               image: IMAGES.snacks, cat: 'Frozen & Instant Food', subCat: 'Frozen Snacks'   },
+        { label: 'Dry Fruits\n& Seeds',        image: IMAGES.atta_rice, cat: 'Atta, Rice, Oil & Dals', subCat: 'Dals & Pulses'  },
+        { label: 'Cold\nDrinks',               image: IMAGES.beverages, cat: 'Beverages',               subCat: 'Cold Drinks'    },
       ],
     ],
   },
@@ -87,16 +88,16 @@ const SECTIONS: Section[] = [
     headerColor: '#6A1B9A',
     rows: [
       [
-        { label: 'Bath &\nBody',      image: 'https://images.unsplash.com/photo-1584305574647-0cc949a2bb9f?w=200&q=80', cat: 'Personal Care', subCat: 'Bath & Body' },
-        { label: 'Haircare',          image: 'https://images.unsplash.com/photo-1522337360788-8b13dee7a37e?w=200&q=80', cat: 'Personal Care', subCat: 'Hair Care'  },
-        { label: 'Skincare',          image: 'https://images.unsplash.com/photo-1556228720-195a672e8a03?w=200&q=80', cat: 'Personal Care' },
-        { label: 'Makeup',            image: 'https://images.unsplash.com/photo-1512207736890-6ffed8a84e8d?w=200&q=80', cat: 'Personal Care' },
+        { label: 'Bath &\nBody',      image: IMAGES.personal_care, cat: 'Personal Care', subCat: 'Bath & Body' },
+        { label: 'Haircare',          image: IMAGES.personal_care, cat: 'Personal Care', subCat: 'Hair Care'  },
+        { label: 'Skincare',          image: IMAGES.personal_care, cat: 'Personal Care' },
+        { label: 'Makeup',            image: IMAGES.personal_care, cat: 'Personal Care' },
       ],
       [
-        { label: 'Feminine\nHygiene', image: 'https://images.unsplash.com/photo-1565402170291-8491f14678db?w=200&q=80', cat: 'Personal Care', subCat: 'Feminine Care' },
-        { label: 'Sexual\nWellness',  image: 'https://images.unsplash.com/photo-1505751172876-fa1923c5c528?w=200&q=80', cat: 'Personal Care' },
-        { label: 'Health &\nPharma',  image: 'https://images.unsplash.com/photo-1584308666744-24d5c474f2ae?w=200&q=80', cat: 'Personal Care' },
-        { label: 'Babycare',          image: 'https://images.unsplash.com/photo-1515488042361-ee00e0ddd4e4?w=200&q=80', cat: 'Personal Care' },
+        { label: 'Feminine\nHygiene', image: IMAGES.personal_care, cat: 'Personal Care', subCat: 'Feminine Care' },
+        { label: 'Sexual\nWellness',  image: IMAGES.personal_care, cat: 'Personal Care' },
+        { label: 'Health &\nPharma',  image: IMAGES.personal_care, cat: 'Personal Care' },
+        { label: 'Babycare',          image: IMAGES.personal_care, cat: 'Personal Care' },
       ],
     ],
   },
@@ -107,16 +108,16 @@ const SECTIONS: Section[] = [
     headerColor: '#1565C0',
     rows: [
       [
-        { label: 'Home &\nKitchen',        image: 'https://images.unsplash.com/photo-1556909114-f6e7ad7d3136?w=200&q=80', cat: 'Cleaning Essentials' },
-        { label: 'Puja\nStore',            image: 'https://images.unsplash.com/photo-1605289982774-9a6fef564df8?w=200&q=80', cat: 'Cleaning Essentials' },
-        { label: 'Cleaners &\nRepellents', image: 'https://images.unsplash.com/photo-1585421514738-01798e348b17?w=200&q=80', cat: 'Cleaning Essentials' },
-        { label: 'Toys &\nStationary',     image: 'https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=200&q=80', cat: '' },
+        { label: 'Home &\nKitchen',        image: IMAGES.cleaning, cat: 'Cleaning Essentials' },
+        { label: 'Puja\nStore',            image: IMAGES.masala, cat: 'Cleaning Essentials' },
+        { label: 'Cleaners &\nRepellents', image: IMAGES.cleaning, cat: 'Cleaning Essentials' },
+        { label: 'Toys &\nStationary',     image: IMAGES.snacks, cat: '' },
       ],
       [
-        { label: 'Electronics\n& Appliances', image: 'https://images.unsplash.com/photo-1468495244123-6c6c332eeece?w=200&q=80', cat: '' },
-        { label: 'Fashion',                   image: 'https://images.unsplash.com/photo-1445205170230-053b83016050?w=200&q=80', cat: '' },
-        { label: 'Pet\nSupplies',             image: 'https://images.unsplash.com/photo-1587300003388-59208cc962cb?w=200&q=80', cat: '' },
-        { label: 'Sports &\nFitness',         image: 'https://images.unsplash.com/photo-1517836357463-d25dfeac3438?w=200&q=80', cat: '' },
+        { label: 'Electronics\n& Appliances', image: IMAGES.icon_box, cat: '' },
+        { label: 'Fashion',                   image: IMAGES.personal_care, cat: '' },
+        { label: 'Pet\nSupplies',             image: IMAGES.snacks, cat: '' },
+        { label: 'Sports &\nFitness',         image: IMAGES.personal_care, cat: '' },
       ],
     ],
   },
@@ -125,7 +126,7 @@ const SECTIONS: Section[] = [
 const SubCatCard = ({ item, onPress }: { item: SubCat; onPress: () => void }) => (
   <TouchableOpacity style={card.wrap} onPress={onPress} activeOpacity={0.75}>
     <View style={card.imgWrap}>
-      <Image source={{ uri: item.image }} style={card.img} resizeMode="cover" />
+      <Image source={item.image} style={card.img} resizeMode="cover" />
     </View>
     <Text style={card.label} numberOfLines={2}>{item.label}</Text>
   </TouchableOpacity>
@@ -165,7 +166,7 @@ export const CategoriesScreen = () => {
       <View style={s.header}>
         <Text style={s.headerTitle}>All Categories</Text>
         <TouchableOpacity onPress={() => navigation.navigate('SearchMain')} style={s.searchBtn}>
-          <Image source={{ uri: 'https://img.icons8.com/color/96/search--v1.png' }} style={{ width: 22, height: 22 }} resizeMode="contain" />
+          <Image source={IMAGES.icon_search} style={{ width: 22, height: 22 }} resizeMode="contain" />
         </TouchableOpacity>
       </View>
 
