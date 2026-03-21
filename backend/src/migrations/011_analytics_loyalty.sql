@@ -1,16 +1,16 @@
 -- Analytics & Loyalty Engine Schema
 CREATE TABLE IF NOT EXISTS loyalty_points (
-    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-    user_id UUID NOT NULL REFERENCES users(id),
-    order_id UUID REFERENCES orders(id),
+    id SERIAL PRIMARY KEY,
+    user_id INT NOT NULL REFERENCES users(id),
+    order_id INT REFERENCES orders(id),
     points INTEGER NOT NULL,
     transaction_type VARCHAR(20) NOT NULL, -- earned, redeemed, expired
     created_at TIMESTAMPTZ DEFAULT NOW()
 );
 
 CREATE TABLE IF NOT EXISTS merchant_analytics_daily (
-    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-    store_id UUID NOT NULL REFERENCES stores(id),
+    id SERIAL PRIMARY KEY,
+    store_id INT NOT NULL REFERENCES stores(id),
     date DATE NOT NULL,
     total_orders INTEGER DEFAULT 0,
     total_revenue DECIMAL(12,2) DEFAULT 0,
