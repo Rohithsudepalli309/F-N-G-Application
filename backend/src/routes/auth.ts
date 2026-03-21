@@ -50,13 +50,13 @@ router.post('/otp', async (req, res) => {
   try {
     await sendOtp(phone, otp);
   } catch (err) {
-    console.error('[OTP] SMS delivery failed:', (err as Error).message);
+    logger.error('[OTP] SMS delivery failed', { err: (err as Error).message });
     if (process.env.NODE_ENV === 'production') {
       res.status(502).json({ error: 'Could not send OTP. Please try again later.' });
       return;
     }
 
-    console.warn('[OTP] Continuing in non-production mode with fallback delivery.');
+    logger.warn('[OTP] Continuing in non-production mode with fallback delivery.');
   }
 
   res.json({

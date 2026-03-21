@@ -1,4 +1,5 @@
 import axios from 'axios';
+import { logger } from '../logger';
 
 /**
  * High-performance Routing Service for FNG Application.
@@ -36,7 +37,7 @@ export async function getRoadDistance(
 
     return { distanceKm, durationMin };
   } catch (err) {
-    console.warn('[RoutingService] OSRM failed, falling back to Haversine:', (err as Error).message);
+    logger.warn('[RoutingService] OSRM failed, falling back to Haversine', { err: (err as Error).message });
     // Fallback to Haversine if service is down
     const hDist = haversineKm(lat1, lng1, lat2, lng2);
     // Rough estimate: 20km/h average city speed for fallback

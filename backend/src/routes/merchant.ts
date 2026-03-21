@@ -1,6 +1,7 @@
 import { Router } from 'express';
 import pool from '../db';
 import { requireAuth, requireRole, AuthRequest } from '../middleware/auth';
+import { logger } from '../logger';
 import { io } from '../server';
 import { redis, DRIVER_GEO_KEY } from '../redis';
 import { validate, schemas } from '../utils/validation';
@@ -272,7 +273,7 @@ router.patch('/orders/:id/status', async (req: AuthRequest, res) => {
   // ── When order is ready: push assignment to nearest available driver ─────
   if (newStatus === 'ready') {
     assignNearestDriver(order).catch((e) =>
-      console.error('[merchant/assign_driver] error:', e)
+      logger.error('[merchant/assign_driver] error', { err: e })
     );
   }
 

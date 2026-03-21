@@ -8,6 +8,7 @@
  */
 import { Router } from 'express';
 import pool from '../db';
+import { logger } from '../logger';
 
 const router = Router();
 
@@ -48,7 +49,7 @@ router.get('/', async (req, res) => {
     const result = await pool.query(query, params);
     res.json(result.rows);
   } catch (err: any) {
-    console.error('[products] GET /', err.message);
+    logger.error('[products] GET /', { err: err.message });
     res.status(500).json({ error: 'Failed to fetch products' });
   }
 });
@@ -63,7 +64,7 @@ router.get('/categories', async (_req, res) => {
     );
     res.json({ categories: result.rows.map((r) => r.category) });
   } catch (err: any) {
-    console.error('[products] GET /categories', err.message);
+    logger.error('[products] GET /categories', { err: err.message });
     res.status(500).json({ error: 'Failed to fetch categories' });
   }
 });
@@ -81,7 +82,7 @@ router.get('/sub-categories', async (req, res) => {
     );
     res.json({ subCategories: result.rows.map((r) => r.sub_category) });
   } catch (err: any) {
-    console.error('[products] GET /sub-categories', err.message);
+    logger.error('[products] GET /sub-categories', { err: err.message });
     res.status(500).json({ error: 'Failed to fetch sub-categories' });
   }
 });

@@ -49,6 +49,7 @@ export async function publishOrderEvent(event: OrderEvent): Promise<void> {
   try {
     await redis.xadd(
       STREAMS.ORDER_EVENTS,
+      'MAXLEN', '~', '10000',
       '*',           // auto-generate monotonic message ID
       'type',       event.type,
       'orderId',    event.orderId,

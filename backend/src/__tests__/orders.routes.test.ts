@@ -125,11 +125,12 @@ describe('POST / (place order)', () => {
   it('returns 400 when coupon code is invalid', async () => {
     mockTxQuery
       .mockResolvedValueOnce(undefined)   // BEGIN
-      .mockResolvedValueOnce({            // products
+      .mockResolvedValueOnce({            // products lookup
         rows: [{ id: 1, store_id: 1, name: 'Burger', price: 10000, is_available: true, stock: 5 }],
       })
+      .mockResolvedValueOnce({ rows: [{ name: 'Burger' }] }) // Atomic Stock Decrement success
       .mockResolvedValueOnce({ rows: [] }) // pro subscription check
-      .mockResolvedValueOnce({ rows: [] }); // coupon not found
+      .mockResolvedValueOnce({ rows: [] }); // coupon lookup (not found)
     const res = await request(app).post('/').send({
       storeId: 1,
       items: [{ productId: 1, quantity: 1 }],
@@ -143,9 +144,10 @@ describe('POST / (place order)', () => {
   it('returns 201 with order details on success (no coupon)', async () => {
     mockTxQuery
       .mockResolvedValueOnce(undefined)   // BEGIN
-      .mockResolvedValueOnce({            // products
+      .mockResolvedValueOnce({            // products lookup
         rows: [{ id: 1, store_id: 1, name: 'Burger', price: 10000, image_url: null, is_available: true, stock: 5 }],
       })
+      .mockResolvedValueOnce({ rows: [{ name: 'Burger' }] }) // Atomic Stock Decrement success
       .mockResolvedValueOnce({ rows: [] }) // pro subscription check
       .mockResolvedValueOnce({ rows: [{ name: 'FNG Eats' }] }) // store name
       .mockResolvedValueOnce({ rows: [{ id: 50, order_number: 'FNG-TEST-123', total_amount: 13625, status: 'placed', payment_method: 'cod' }] }) // INSERT order

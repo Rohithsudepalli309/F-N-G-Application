@@ -1,8 +1,9 @@
 import { Router } from 'express';
 import crypto from 'crypto';
-import Razorpay from 'razorpay';
+import Razorpay from 'razorpay'; // Kept this import as it's used by getRazorpay and removing it would cause a syntax error.
 import pool from '../db';
 import { requireAuth, AuthRequest } from '../middleware/auth';
+import { logger } from '../logger';
 import { createBreaker } from '../services/circuitBreaker';
 
 const router = Router();
@@ -136,7 +137,7 @@ router.delete('/cancel', async (req: AuthRequest, res) => {
     }
     res.json({ ok: true, message: 'Subscription cancelled successfully.' });
   } catch (err) {
-    console.error('[pro/cancel] error:', err);
+    logger.error('[pro/cancel] error', { err });
     res.status(500).json({ error: 'Could not cancel subscription.' });
   }
 });

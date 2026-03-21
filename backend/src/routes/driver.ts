@@ -7,6 +7,7 @@ import { notifyUser } from '../services/notify';
 import { redis, DRIVER_GEO_KEY } from '../redis';
 import { getRoadDistance } from '../services/routing';
 import { validate, schemas } from '../utils/validation';
+import { logger } from '../logger';
 
 const router = Router();
 router.use(requireAuth, requireRole(['driver', 'admin']));
@@ -46,7 +47,7 @@ router.post('/kyc', async (req: AuthRequest, res) => {
     }
     res.json({ success: true, status: result.rows[0].kyc_status });
   } catch (err) {
-    console.error('[driver/kyc] error:', err);
+    logger.error('[driver/kyc] error', { err });
     res.status(500).json({ error: 'Failed to submit KYC.' });
   }
 });
@@ -127,7 +128,7 @@ router.get('/orders', async (req: AuthRequest, res) => {
 
     res.json(orders);
   } catch (err) {
-    console.error('[driver/orders] error:', err);
+    logger.error('[driver/orders] error', { err });
     res.status(500).json({ error: 'Could not fetch orders.' });
   }
 });
@@ -283,7 +284,7 @@ router.post('/accept', async (req: AuthRequest, res) => {
     res.json({ success: true, order: orderOut });
   } catch (err) {
     await client.query('ROLLBACK');
-    console.error('[driver/accept] error:', err);
+    logger.error('[driver/accept] error', { err });
     res.status(500).json({ error: 'Could not accept order.' });
   } finally {
     client.release();
@@ -349,7 +350,7 @@ router.post('/reject', async (req: AuthRequest, res) => {
       });
     }
   } catch (err) {
-    console.error('[driver/reject] re-dispatch error:', err);
+    logger.error('[driver/reject] re-dispatch error', { err });
   }
 });
 
@@ -427,7 +428,7 @@ router.post('/pickup', async (req: AuthRequest, res) => {
     res.json({ success: true });
   } catch (err) {
     await client.query('ROLLBACK');
-    console.error('[driver/pickup] error:', err);
+    logger.error('[driver/pickup] error', { err });
     res.status(500).json({ error: 'Could not mark order as picked up.' });
   } finally {
     client.release();
@@ -544,7 +545,7 @@ router.post('/complete', async (req: AuthRequest, res) => {
     res.json({ success: true });
   } catch (err) {
     await client.query('ROLLBACK');
-    console.error('[driver/complete] error:', err);
+    logger.error('[driver/complete] error', { err });
     res.status(500).json({ error: 'Could not complete delivery.' });
   } finally {
     client.release();
@@ -583,7 +584,7 @@ router.patch('/status', async (req: AuthRequest, res) => {
     }
     res.json({ success: true, isOnline });
   } catch (err) {
-    console.error('[driver/status] error:', err);
+    logger.error('[driver/status] error', { err });
     res.status(500).json({ error: 'Could not update driver status.' });
   }
 });
@@ -662,7 +663,7 @@ router.get('/earnings', async (req: AuthRequest, res) => {
       history: historyRes.rows,
     });
   } catch (err) {
-    console.error('[driver/earnings] error:', err);
+    logger.error('[driver/earnings] error', { err });
     res.status(500).json({ error: 'Could not fetch earnings.' });
   }
 });
@@ -691,7 +692,7 @@ router.get('/profile', async (req: AuthRequest, res) => {
       total_deliveries: Number(r.total_deliveries),
     });
   } catch (err) {
-    console.error('[driver/profile] error:', err);
+    logger.error('[driver/profile] error', { err });
     res.status(500).json({ error: 'Could not fetch driver profile.' });
   }
 });
@@ -712,7 +713,7 @@ router.patch('/profile', async (req: AuthRequest, res) => {
     res.json({ ok: true });
   } catch (err) {
     await client.query('ROLLBACK');
-    console.error('[driver/profile/patch] error:', err);
+    logger.error('[driver/profile/patch] error', { err });
     res.status(500).json({ error: 'Could not update profile.' });
   } finally {
     client.release();

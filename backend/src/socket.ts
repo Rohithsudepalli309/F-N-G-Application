@@ -4,6 +4,8 @@ import { createAdapter } from '@socket.io/redis-adapter';
 import jwt from 'jsonwebtoken';
 import pool from './db';
 import { redis, DRIVER_GEO_KEY } from './redis';
+import { logger } from './logger';
+import { requireAuth, requireRole, AuthRequest } from './middleware/auth';
 
 interface TokenPayload {
   id: number;
@@ -54,7 +56,7 @@ export function initSocket(httpServer: HttpServer): SocketServer {
   // adapter and rely on Socket.IO's built-in single-process memory adapter.
   if (process.env.NODE_ENV === 'production') {
     const subClient = redis.duplicate();
-    subClient.on('error', (err: Error) => console.error('[Redis/Sub]', err.message));
+    subClient.on('error', (err: Error) => logger.error('[Redis/Sub]', { err: err.message }));
     io.adapter(createAdapter(redis, subClient));
   }
 
@@ -175,7 +177,7 @@ export function initSocket(httpServer: HttpServer): SocketServer {
         );
         socket.emit('driver:available_ack', { ok: true });
       } catch (err) {
-        console.error('[Socket/driver:available]', err);
+        logger.error('[Socket/driver:available]', { err });
       }
     });
 
@@ -260,7 +262,7 @@ export function initSocket(httpServer: HttpServer): SocketServer {
         });
         socket.emit('driver:accept_ack', { ok: true });
       } catch (e) {
-        console.error('[Socket] driver:accept_order error:', e);
+        logger.error('[Socket] driver:accept_order error', { err: e });
       }
     });
 

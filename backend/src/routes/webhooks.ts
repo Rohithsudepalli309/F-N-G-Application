@@ -1,5 +1,6 @@
 import { Router } from 'express';
 import pool from '../db';
+import { logger } from '../logger';
 import crypto from 'crypto';
 import { AppError } from '../middleware/errorHandler';
 import { io } from '../server';
@@ -59,12 +60,12 @@ router.post('/razorpay', async (req, res, next) => {
 
       // Notify User and Store via Socket
       io.to(`order:${orderId}`).emit('order.payment_confirmed', { orderId });
-      console.log(`✅ Payment captured for Order ${orderId}`);
+      logger.info(`✅ Payment captured for Order ${orderId}`);
     }
 
     if (event === 'payment.failed') {
       // Log failure for recovery
-      console.error(`❌ Payment failed: ${payload.payment.entity.id}`);
+      logger.error(`❌ Payment failed: ${payload.payment.entity.id}`);
     }
 
     res.json({ status: 'ok' });

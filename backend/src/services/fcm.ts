@@ -1,4 +1,5 @@
 import admin from 'firebase-admin';
+import { logger } from '../logger';
 import pool from '../db';
 import { io } from '../server';
 
@@ -43,16 +44,16 @@ async function saveNotification(
 export function initFCM(): void {
   const raw = process.env.FIREBASE_SERVICE_ACCOUNT_JSON;
   if (!raw) {
-    console.log('[FCM] FIREBASE_SERVICE_ACCOUNT_JSON not set — push notifications disabled');
+    logger.info('[FCM] FIREBASE_SERVICE_ACCOUNT_JSON not set — push notifications disabled');
     return;
   }
   try {
     const serviceAccount = JSON.parse(raw) as admin.ServiceAccount;
     admin.initializeApp({ credential: admin.credential.cert(serviceAccount) });
     initialized = true;
-    console.log('[FCM] Firebase Admin initialized');
+    logger.info('[FCM] Firebase Admin initialized');
   } catch (e) {
-    console.warn('[FCM] Init failed:', (e as Error).message);
+    logger.warn('[FCM] Init failed:', { err: (e as Error).message });
   }
 }
 
@@ -81,7 +82,7 @@ export async function sendPushToUser(
     });
   } catch (e) {
     // Non-fatal — stale tokens are common; log and continue
-    console.warn('[FCM] Send failed for user', userId, (e as Error).message);
+    logger.warn('[FCM] Send failed for user', { userId, err: (e as Error).message });
   }
 }
 

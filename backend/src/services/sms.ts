@@ -10,6 +10,7 @@
  *   MSG91:  MSG91_AUTH_KEY, MSG91_TEMPLATE_ID, MSG91_SENDER_ID (optional, default FNGAPP)
  *   Twilio: TWILIO_ACCOUNT_SID, TWILIO_AUTH_TOKEN, TWILIO_FROM_NUMBER
  */
+import { logger } from '../logger';
 
 const OTP_MESSAGE = (otp: string) =>
   `${otp} is your F&G verification code. Valid for 10 minutes. Do not share with anyone.`;
@@ -94,7 +95,7 @@ export async function sendOtp(phone: string, otp: string): Promise<void> {
   // Always use console in test environment regardless of SMS_PROVIDER setting
   if (process.env.NODE_ENV === 'test' || provider === 'console') {
     // LOW-2: never log plaintext OTP — mask the phone and omit the OTP value
-    console.log(`[SMS/console] OTP sent to ${phone.slice(0, 4)}****`);
+    logger.info(`[SMS/console] OTP sent to ${phone.slice(0, 4)}****`);
     return;
   }
 
@@ -106,5 +107,5 @@ export async function sendOtp(phone: string, otp: string): Promise<void> {
     throw new Error(`Unknown SMS_PROVIDER value: "${provider}". Use msg91, twilio, or console.`);
   }
 
-  console.log(`[SMS/${provider}] OTP delivered to ${phone}`);
+  logger.info(`[SMS/${provider}] OTP delivered to ${phone}`);
 }
