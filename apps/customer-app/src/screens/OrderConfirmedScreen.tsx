@@ -18,6 +18,7 @@ import {
 } from 'react-native';
 import { useNavigation, useRoute, CommonActions } from '@react-navigation/native';
 import { theme } from '../theme';
+import { IMAGES } from '../assets/hq';
 
 export const OrderConfirmedScreen = () => {
   const navigation = useNavigation<any>();
@@ -103,13 +104,13 @@ export const OrderConfirmedScreen = () => {
           {/* Steps timeline */}
           <View style={styles.timeline}>
             {[
-              { img: 'https://img.icons8.com/color/96/checkmark--v1.png',          label: 'Order Confirmed',       done: true },
-              { img: 'https://img.icons8.com/color/96/cooking.png',                 label: 'Restaurant Preparing',  done: false },
-              { img: 'https://img.icons8.com/color/96/motorcycle-delivery--v1.png', label: 'Agent Pickup',          done: false },
-              { img: 'https://img.icons8.com/color/96/box--v1.png',                 label: 'Out for Delivery',      done: false },
+              { img: IMAGES.icon_coin,          label: 'Order Confirmed',       done: true },
+              { img: IMAGES.icon_box,           label: 'Restaurant Preparing',  done: false },
+              { img: IMAGES.icon_bike,          label: 'Agent Pickup',          done: false },
+              { img: IMAGES.icon_box,           label: 'Out for Delivery',      done: false },
             ].map((step, i) => (
               <View key={i} style={styles.timelineRow}>
-                <Image source={{ uri: step.img }} style={styles.timelineImg} resizeMode="contain" />
+                <Image source={step.img} style={styles.timelineImg} resizeMode="contain" />
                 <Text style={[styles.timelineLabel, step.done && styles.timelineDone]}>
                   {step.label}
                 </Text>
