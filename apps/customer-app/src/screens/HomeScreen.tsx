@@ -294,7 +294,7 @@ export const HomeScreen = () => {
     fetchHome();
   }, []);
 
-  const goTo = (screen: string, params?: any) => navigation.navigate(screen, params);
+  const goTo = (screen: any, params?: any) => navigation.navigate(screen, params);
 
   return (
     <SafeAreaView style={s.root}>
