@@ -11,7 +11,11 @@
 import { Request, Response, NextFunction } from 'express';
 import { v4 as uuidv4 } from 'uuid';
 
-export function requestId(req: Request, res: Response, next: NextFunction): void {
+export interface RequestWithId extends Request {
+  requestId?: string;
+}
+
+export function requestId(req: RequestWithId, res: Response, next: NextFunction): void {
   const existing = req.headers['x-request-id'];
   // Accept an upstream-provided ID (load balancer, API gateway) or generate one
   const id = (Array.isArray(existing) ? existing[0] : existing) ?? uuidv4();

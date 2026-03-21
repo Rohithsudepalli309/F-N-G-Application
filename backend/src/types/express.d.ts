@@ -7,6 +7,6 @@
 declare namespace Express {
   interface Request {
     /** RFC-4122 UUID correlation ID — set by requestId middleware, forwarded in X-Request-Id header */
-    requestId: string;
+    requestId?: string;
   }
 }

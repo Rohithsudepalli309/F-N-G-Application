@@ -1,10 +1,11 @@
-import { Request, Response, NextFunction } from 'express';
+import { Response, NextFunction } from 'express';
 import crypto from 'crypto';
 import jwt from 'jsonwebtoken';
 import { AppError } from './errorHandler';
 import { redis, redisEnabled } from '../redis';
+import { RequestWithId } from './requestId';
 
-export interface AuthRequest extends Request {
+export interface AuthRequest extends RequestWithId {
   user?: { id: number; role: string; storeId?: number };
 }
 

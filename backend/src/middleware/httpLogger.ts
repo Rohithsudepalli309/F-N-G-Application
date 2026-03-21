@@ -5,10 +5,11 @@
  * Fields: requestId, method, path, status, latency (ms), IP, user-agent.
  * Skips /health polling to avoid log noise.
  */
-import { Request, Response, NextFunction } from 'express';
+import { Response, NextFunction } from 'express';
 import { logger } from '../logger';
+import { RequestWithId } from './requestId';
 
-export function httpLogger(req: Request, res: Response, next: NextFunction): void {
+export function httpLogger(req: RequestWithId, res: Response, next: NextFunction): void {
   // Skip health-check endpoints to keep logs clean
   if (req.path === '/health') { next(); return; }
 
