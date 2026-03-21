@@ -1,4 +1,3 @@
-import { app as expressApp } from 'express';
 import http from 'http';
 import './services/observability';
 import express from 'express';

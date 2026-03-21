@@ -28,7 +28,6 @@ describe('Order Lifecycle Integration Test', () => {
     process.env.JWT_SECRET = process.env.JWT_SECRET || 'test_jwt_secret_32_chars_long__';
 
     ({ app } = await import('../server'));
-
     const cust = await pool.query(
       `INSERT INTO users (phone, name, role) VALUES ($1,$2,'customer') RETURNING id`,
       [customerPhone, 'Test Customer']
