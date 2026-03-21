@@ -50,6 +50,7 @@ router.get('/stores', async (_req, res) => {
   try {
     const result = await pool.query(
       `SELECT s.id, s.name, s.store_type, s.is_active, s.is_verified,
+              s.kyc_status, s.kyc_document_url, s.kyc_tax_id,
               s.rating, s.total_ratings, s.created_at, u.name AS owner
        FROM stores s LEFT JOIN users u ON u.id = s.owner_id
        ORDER BY s.created_at DESC`
@@ -91,7 +92,7 @@ router.get('/drivers', async (_req, res) => {
   try {
     const result = await pool.query(
       `SELECT d.id, d.name, d.phone, d.vehicle_type, d.is_available,
-              d.is_active, d.rating, d.current_lat, d.current_lng,
+              d.is_active, d.kyc_status, d.rating, d.current_lat, d.current_lng,
               d.last_seen_at, u.id AS user_id
        FROM drivers d JOIN users u ON u.id = d.user_id
        ORDER BY d.created_at DESC`
@@ -100,6 +101,55 @@ router.get('/drivers', async (_req, res) => {
   } catch (err) {
     logger.error('[admin/drivers]', { err });
     res.status(500).json({ error: 'Could not fetch drivers.' });
+  }
+});
+
+// ─── GET /admin/drivers/locations (Real-time Fleet Map) ────────────────────
+router.get('/drivers/locations', async (_req, res) => {
+  try {
+    const result = await pool.query(
+      `SELECT id, name, vehicle_type, is_available, current_lat, current_lng, last_seen_at
+       FROM drivers 
+       WHERE is_active = TRUE AND last_seen_at > NOW() - INTERVAL '5 minutes'`
+    );
+    res.json({ drivers: result.rows });
+  } catch (err) {
+    logger.error('[admin/drivers/locations]', { err });
+    res.status(500).json({ error: 'Could not fetch driver locations.' });
+  }
+});
+
+// ─── PATCH /admin/stores/:id/kyc ─── Approve/Reject Store KYC ──────────────
+router.patch('/stores/:id/kyc', async (req, res) => {
+  const { id } = req.params;
+  const { status, reason } = req.body as { status: string; reason?: string };
+
+  if (!['verified', 'rejected'].includes(status)) {
+    res.status(400).json({ error: 'Invalid status. Use "verified" or "rejected".' });
+    return;
+  }
+
+  try {
+    const result = await pool.query(
+      `UPDATE stores
+       SET kyc_status         = $1,
+           kyc_rejection_reason = $2,
+           kyc_verified_at    = CASE WHEN $1 = 'verified' THEN NOW() ELSE kyc_verified_at END,
+           is_verified        = CASE WHEN $1 = 'verified' THEN TRUE ELSE is_verified END
+       WHERE id = $3
+       RETURNING id, name, kyc_status`,
+      [status, reason ?? null, id]
+    );
+
+    if (result.rows.length === 0) {
+      res.status(404).json({ error: 'Store not found.' });
+      return;
+    }
+
+    res.json({ store: result.rows[0] });
+  } catch (err) {
+    logger.error('[admin/stores/kyc]', { err });
+    res.status(500).json({ error: 'Could not update store KYC status.' });
   }
 });
 
@@ -444,30 +494,86 @@ router.post('/disputes/:id/resolve', async (req, res) => {
   const { note } = req.body as { note: string };
   const adminId = (req as AuthRequest).user?.id;
 
+  const client = await pool.connect();
   try {
-    const result = await pool.query(
+    await client.query('BEGIN');
+
+    const result = await client.query(
       `UPDATE disputes
        SET status = 'resolved',
            resolution_note = $1,
            resolved_by = $2,
            resolved_at = NOW(),
            updated_at = NOW()
-       WHERE id = $3
-       RETURNING id, order_id`,
+       WHERE id = $3 AND status = 'pending'
+       RETURNING id, order_id, amount`,
       [note, adminId, id]
     );
 
     if (result.rows.length === 0) {
-      res.status(404).json({ error: 'Dispute not found.' });
+      await client.query('ROLLBACK');
+      res.status(404).json({ error: 'Dispute not found or already closed.' });
       return;
     }
 
-    // TODO: In a real system, trigger refund via payment gateway (Stripe/Razorpay) here
+    const { order_id, amount } = result.rows[0];
+    const amountPaise = Math.round(Number(amount) * 100);
 
-    res.json({ message: 'Dispute resolved and refund marked.' });
-  } catch (err) {
+    const orderRes = await client.query(
+      `SELECT payment_method, payment_status, razorpay_payment_id, customer_id
+       FROM orders WHERE id = $1`,
+      [order_id]
+    );
+    const order = orderRes.rows[0];
+
+    if (order?.payment_status === 'paid') {
+      // 1. Razorpay Refund
+      if (order.payment_method === 'razorpay' && order.razorpay_payment_id) {
+        const Razorpay = (await import('razorpay')).default;
+        const rzp = new Razorpay({
+          key_id: process.env.RAZORPAY_KEY_ID!,
+          key_secret: process.env.RAZORPAY_KEY_SECRET!,
+        });
+        await rzp.payments.refund(order.razorpay_payment_id, {
+          amount: amountPaise,
+          speed: 'optimum',
+          notes: { reason: 'Dispute resolved', dispute_id: id },
+        });
+        await client.query(
+          `UPDATE orders SET payment_status = 'refund_initiated' WHERE id = $1`,
+          [order_id]
+        );
+      }
+      
+      // 2. Wallet Refund
+      if (order.payment_method === 'wallet') {
+        const walletRes = await client.query(
+          `UPDATE wallets SET balance = balance + $1, updated_at = NOW()
+           WHERE user_id = $2 RETURNING id`,
+          [amountPaise, order.customer_id]
+        );
+        if (walletRes.rows[0]) {
+          await client.query(
+            `INSERT INTO wallet_transactions (wallet_id, amount, type, reference_id, note)
+             VALUES ($1, $2, 'credit', $3, 'Refund for dispute resolution')`,
+            [walletRes.rows[0].id, amountPaise, id]
+          );
+          await client.query(
+            `UPDATE orders SET payment_status = 'refunded' WHERE id = $1`,
+            [order_id]
+          );
+        }
+      }
+    }
+
+    await client.query('COMMIT');
+    res.json({ message: 'Dispute resolved and refund processed.' });
+  } catch (err: any) {
+    await client.query('ROLLBACK');
     logger.error('[admin/disputes/resolve]', { err });
-    res.status(500).json({ error: 'Could not resolve dispute.' });
+    res.status(500).json({ error: err.message || 'Could not resolve dispute.' });
+  } finally {
+    client.release();
   }
 });
 

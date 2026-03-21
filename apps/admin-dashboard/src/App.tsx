@@ -11,6 +11,7 @@ import { AnalyticsPage } from './pages/AnalyticsPage';
 import { PayoutsPage } from './pages/PayoutsPage';
 import DisputesPage from './pages/DisputesPage';
 import FraudFlagsPage from './pages/FraudFlagsPage';
+import { FleetMapPage } from './pages/FleetMapPage';
 
 function App() {
   return (
@@ -30,6 +31,7 @@ function App() {
             <Route path="/payouts" element={<PayoutsPage />} />
             <Route path="/disputes" element={<DisputesPage />} />
             <Route path="/fraud" element={<FraudFlagsPage />} />
+            <Route path="/fleet-map" element={<FleetMapPage />} />
             {/* Catch all */}
             <Route path="*" element={<Navigate to="/" replace />} />
           </Route>

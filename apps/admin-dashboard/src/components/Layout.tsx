@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Navigate, Outlet, NavLink } from 'react-router-dom';
-import { LayoutDashboard, ShoppingBag, Users, Store, Truck, LogOut, Tag, TrendingUp, Wallet, Zap, ShieldAlert } from 'lucide-react';
+import { LayoutDashboard, ShoppingBag, Users, Store, Truck, LogOut, Tag, TrendingUp, Wallet, Zap, ShieldAlert, MapPin } from 'lucide-react';
 import { useAuthStore } from '../store/useAuthStore';
 import api from '../services/api';
 
@@ -37,7 +37,8 @@ export const AdminLayout = () => {
     { label: 'Live Orders', path: '/orders',      icon: ShoppingBag },
     { label: 'Users',       path: '/users',       icon: Users },
     { label: 'Stores',      path: '/stores',      icon: Store },
-    { label: 'Fleet',       path: '/drivers',     icon: Truck },
+    { label: 'Fleet Status', path: '/drivers',     icon: Truck },
+    { label: 'Fleet Map',    path: '/fleet-map',   icon: MapPin },
     { label: 'Coupons',     path: '/coupons',     icon: Tag },
     { label: 'Analytics',   path: '/analytics',   icon: TrendingUp },
     { label: 'Payouts',     path: '/payouts',     icon: Wallet },

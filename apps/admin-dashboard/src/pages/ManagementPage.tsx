@@ -8,6 +8,9 @@ interface Entity {
   email?: string;
   role?: string;
   is_active: boolean;
+  is_verified?: boolean;
+  kyc_status?: string;
+  metadata?: any;
   type?: string; 
 }
 
@@ -45,12 +48,23 @@ export const ManagementPage = ({ type }: Props) => {
     if (!window.confirm(confirmMessage)) return;
 
     try {
-      // Users use /admin/users/:id/status; stores use /admin/stores/:id
       const url = type === 'users' ? `/admin/users/${item.id}/status` : `/admin/${type}/${item.id}`;
       await api.patch(url, { is_active: !item.is_active });
       setItems((prev: Entity[]) => prev.map(i => i.id === item.id ? { ...i, is_active: !i.is_active } : i));
     } catch (err) {
       alert('Action failed. Ensure you have admin permissions.');
+    }
+  };
+
+  const handleKYC = async (item: Entity, status: 'verified' | 'rejected') => {
+    const reason = status === 'rejected' ? window.prompt('Reason for rejection:') : null;
+    if (status === 'rejected' && reason === null) return;
+
+    try {
+      await api.patch(`/admin/${type}/${item.id}/kyc`, { status, reason });
+      setItems((prev: Entity[]) => prev.map(i => i.id === item.id ? { ...i, kyc_status: status, is_verified: status === 'verified' } : i));
+    } catch (err) {
+      alert('KYC update failed.');
     }
   };
 
@@ -102,7 +116,12 @@ export const ManagementPage = ({ type }: Props) => {
             ) : pagedItems.map((item) => (
               <tr key={item.id} className="hover:bg-gray-50">
                 <td className="px-6 py-4">
-                  <div className="font-semibold text-gray-800">{item.name}</div>
+                  <div className="flex items-center gap-2">
+                    <div className="font-semibold text-gray-800">{item.name}</div>
+                    {item.metadata?.fraud_flag === "true" && (
+                      <span className="bg-red-500 text-white text-[10px] px-1.5 rounded font-bold animate-pulse">FRAUD RISK</span>
+                    )}
+                  </div>
                   <div className="text-xs text-gray-500">{item.email || item.id}</div>
                 </td>
                 {type === 'stores' && <td className="px-6 py-4 text-sm text-gray-600">{item.type}</td>}
@@ -118,16 +137,34 @@ export const ManagementPage = ({ type }: Props) => {
                   )}
                 </td>
                 <td className="px-6 py-4">
-                  <button 
-                    onClick={() => toggleStatus(item)}
-                    className={`px-4 py-2 text-xs font-bold rounded transition-colors ${
-                      item.is_active 
-                        ? 'text-red-600 hover:bg-red-50' 
-                        : 'text-green-600 hover:bg-green-50'
-                    }`}
-                  >
-                    {item.is_active ? 'DISABLE' : 'ENABLE'}
-                  </button>
+                  <div className="flex flex-col gap-2">
+                    <button 
+                      onClick={() => toggleStatus(item)}
+                      className={`px-3 py-1.5 text-[10px] font-bold rounded transition-colors border ${
+                        item.is_active 
+                          ? 'text-red-600 border-red-100 hover:bg-red-50' 
+                          : 'text-green-600 border-green-100 hover:bg-green-50'
+                      }`}
+                    >
+                      {item.is_active ? 'DEACTIVATE' : 'ACTIVATE'}
+                    </button>
+                    {(type === 'stores' || type === 'drivers') && item.kyc_status === 'pending' && (
+                      <div className="flex gap-1">
+                        <button 
+                          onClick={() => handleKYC(item, 'verified')}
+                          className="flex-1 bg-emerald-600 text-white text-[9px] font-bold py-1 rounded"
+                        >
+                          APPROVE
+                        </button>
+                        <button 
+                          onClick={() => handleKYC(item, 'rejected')}
+                          className="flex-1 bg-red-600 text-white text-[9px] font-bold py-1 rounded"
+                        >
+                          REJECT
+                        </button>
+                      </div>
+                    )}
+                  </div>
                 </td>
               </tr>
             ))}

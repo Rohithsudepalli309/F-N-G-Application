@@ -140,13 +140,22 @@ export function initSocket(httpServer: HttpServer): SocketServer {
         return;
       }
       if (role === 'merchant') {
-        // SEC-003 FIX: Verify the merchant actually owns this store before joining
+        // SEC-003 FIX: Verify merchant ownership + Merchant KYC (Phase 9)
         pool.query(
-          `SELECT 1 FROM stores WHERE id=$1 AND owner_id=$2 LIMIT 1`,
+          `SELECT kyc_status FROM stores WHERE id=$1 AND owner_id=$2 LIMIT 1`,
           [storeId, userId]
         ).then(r => {
-          if (r.rows.length > 0) socket.join(`merchant:${storeId}`);
-          // Silently deny if not owner — avoids room-name enumeration
+          if (r.rows.length > 0) {
+            const kyc = r.rows[0].kyc_status;
+            if (kyc === 'verified' || kyc === 'pending') {
+              socket.join(`merchant:${storeId}`);
+            } else {
+              socket.emit('error', { 
+                code: 'KYC_REQUIRED', 
+                message: 'Your store must be in verified or pending status to receive live orders.' 
+              });
+            }
+          }
         }).catch(() => {/* non-critical */});
       }
     });

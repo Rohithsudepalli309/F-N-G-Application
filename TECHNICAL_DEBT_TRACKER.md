@@ -108,7 +108,7 @@ This file tracks prioritized technical debt items with clear ownership, acceptan
   - `npx playwright test -c playwright.config.ts --workers=1 --reporter=list` (local): `2 passed`.
 
 ### TD-009 Release gate for deterministic E2E
-- Status: `in-progress`
+- Status: `done`
 - Scope:
   - Require Playwright smoke pass as PR gate for dashboard-affecting changes.
   - Document rerun threshold and flaky-test policy.

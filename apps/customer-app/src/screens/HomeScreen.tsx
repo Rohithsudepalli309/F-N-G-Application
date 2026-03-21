@@ -189,8 +189,17 @@ const sh = StyleSheet.create({
 });
 
 // --- Horizontal Product Row ------------------------------------------------
+interface Product {
+  id: string | number;
+  name: string;
+  price: number | string;
+  original_price?: number | string;
+  image_url: any;
+  unit?: string;
+}
+
 interface ProductRowProps {
-  products: any[];
+  products: Product[];
   loading: boolean;
   onSeeAll?: () => void;
 }
@@ -210,7 +219,7 @@ const ProductRow = ({ products, loading, onSeeAll }: ProductRowProps) => {
     >
       {products.map(p => {
         const discPct = p.original_price
-          ? Math.round((1 - p.price / p.original_price) * 100)
+          ? Math.round((1 - Number(p.price) / Number(p.original_price)) * 100)
           : 0;
         return (
           <ProductCard
@@ -251,11 +260,11 @@ export const HomeScreen = () => {
   const user = useAuthStore(s => s.user);
   const scrollRef = useRef<ScrollView>(null);
   const [loading, setLoading] = useState(true);
-  const [activeOrder, setActiveOrder] = useState<any>(null);
-  const [offZoneProducts, setOffZoneProducts]   = useState<any[]>([]);
-  const [munchiesProducts, setMunchiesProducts] = useState<any[]>([]);
-  const [dairyProducts, setDairyProducts]       = useState<any[]>([]);
-  const [cleaningProducts, setCleaningProducts] = useState<any[]>([]);
+  const [activeOrder, setActiveOrder] = useState<any>(null); // Keeping any for now due to complex nested API response, but improved usage below
+  const [offZoneProducts, setOffZoneProducts]   = useState<Product[]>([]);
+  const [munchiesProducts, setMunchiesProducts] = useState<Product[]>([]);
+  const [dairyProducts, setDairyProducts]       = useState<Product[]>([]);
+  const [cleaningProducts, setCleaningProducts] = useState<Product[]>([]);
   const [offerIndex, setOfferIndex] = useState(0);
 
   useEffect(() => {
@@ -313,7 +322,7 @@ export const HomeScreen = () => {
               <Text style={s.locationLabel}>DELIVER TO</Text>
               <View style={{ flexDirection: 'row', alignItems: 'center' }}>
                 <Text style={s.locationName} numberOfLines={1}>
-                  {(user as any)?.address?.split(',')[0] || 'Select location'}
+                  {user?.address?.split(',')[0] || 'Select location'}
                 </Text>
                 <MaterialCommunityIcons name="chevron-down" size={14} color={theme.colors.primary} />
               </View>

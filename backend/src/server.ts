@@ -157,6 +157,14 @@ app.get('/health', (_req, res) => {
   res.json({ status: 'ok', ts: new Date().toISOString() });
 });
 
+app.get('/health/socket', (_req, res) => {
+  res.json({ 
+    status: 'ok', 
+    clients: io?.engine.clientsCount ?? 0,
+    timestamp: new Date().toISOString()
+  });
+});
+
 // ── 404 catch-all ─────────────────────────────────────────────────────────
 app.use((_req, res) => {
   res.status(404).json({ error: 'Not found' });
