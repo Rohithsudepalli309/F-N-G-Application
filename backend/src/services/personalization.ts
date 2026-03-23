@@ -191,7 +191,7 @@ export class PersonalizationService {
   static async getPastPurchases(userId: number) {
     try {
       const ordersSql = `
-        SELECT items FROM orders 
+        SELECT cart_items FROM orders 
         WHERE customer_id = $1 AND status = 'delivered' 
         ORDER BY created_at DESC LIMIT 20
       `;
@@ -201,7 +201,7 @@ export class PersonalizationService {
       const productIds: number[] = [];
 
       orders.forEach(order => {
-        const items = order.items || [];
+        const items = order.cart_items || [];
         items.forEach((item: any) => {
           const pid = Number(item.productId || item.id);
           if (!productStats[pid]) {

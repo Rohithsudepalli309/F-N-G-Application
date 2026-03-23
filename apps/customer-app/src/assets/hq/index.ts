@@ -47,5 +47,5 @@ export const IMAGES = {
   prod_tata_tea:             require('./prod_tata_tea.png'),
   prod_nescafe:              require('./prod_nescafe.png'),
   prod_kelloggs:             require('./prod_kelloggs.png'),
-  prod_parle_g:             require('./prod_parle_g_biscuits.png'),
+  prod_parle_g:             require('./icon_delivery_box.png'),
 };
