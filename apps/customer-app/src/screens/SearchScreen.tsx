@@ -4,6 +4,7 @@ import {
   TouchableOpacity, TextInput, FlatList, ActivityIndicator,
   Keyboard, Dimensions, Image, ScrollView,
 } from 'react-native';
+import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
 import { useNavigation } from '@react-navigation/native';
 import { useTranslation } from 'react-i18next';
 import { api } from '../services/api';
@@ -45,9 +46,11 @@ const MiniCard = React.memo(({ item }: { item: any }) => {
   return (
     <View style={mc.card}>
       <View style={mc.imgWrap}>
-        {discPct > 0 && (
-          <View style={mc.discBadge}>
-            <Text style={mc.discText}>{discPct}%{'\n'}OFF</Text>
+          </View>
+        )}
+        {item.previously_bought && (
+          <View style={[mc.discBadge, { backgroundColor: '#84C225', top: 8, right: 8, left: undefined }]}>
+            <Text style={mc.discText}>BOUGHT{'\n'}BEFORE</Text>
           </View>
         )}
         <Image
@@ -119,6 +122,7 @@ export const SearchScreen = () => {
   const inputRef = useRef<TextInput>(null);
   const [query, setQuery]     = useState('');
   const [results, setResults] = useState<any[]>([]);
+  const [suggestions, setSuggestions] = useState<any[]>([]);
   const [loading, setLoading] = useState(false);
   const [searched, setSearched] = useState(false);
 
@@ -140,7 +144,17 @@ export const SearchScreen = () => {
   }, []);
 
   useEffect(() => {
-    const t = setTimeout(() => doSearch(query), 400);
+    const t = setTimeout(async () => {
+      doSearch(query);
+      if (query.trim().length > 1) {
+        try {
+          const { data } = await api.get('/personalization/suggestions', { params: { q: query } });
+          setSuggestions(Array.isArray(data) ? data : []);
+        } catch { setSuggestions([]); }
+      } else {
+        setSuggestions([]);
+      }
+    }, 400);
     return () => clearTimeout(t);
   }, [query, doSearch]);
 
@@ -168,13 +182,30 @@ export const SearchScreen = () => {
             returnKeyType="search"
             onSubmitEditing={() => doSearch(query)}
           />
-          {query.length > 0 && (
-            <TouchableOpacity onPress={() => { setQuery(''); setResults([]); setSearched(false); }}>
-              <Text style={s.clearIcon}>✕</Text>
-            </TouchableOpacity>
           )}
         </View>
       </View>
+
+      {/* Suggestions Overlay */}
+      {!searched && suggestions.length > 0 && (
+        <View style={s.suggestionsBox}>
+          {suggestions.map(item => (
+            <TouchableOpacity 
+              key={item.id} 
+              style={s.suggestionItem}
+              onPress={() => { setQuery(item.name); doSearch(item.name); }}
+            >
+              <MaterialCommunityIcons name="history" size={16} color="#9E9E9E" />
+              <Text style={s.suggestionText}>{item.name}</Text>
+              {item.previously_bought && (
+                <View style={s.boughtPill}>
+                  <Text style={s.boughtPillText}>Bought before</Text>
+                </View>
+              )}
+            </TouchableOpacity>
+          )) }
+        </View>
+      )}
 
       {/* Pre-search state */}
       {!searched && query.length === 0 && (
@@ -285,4 +316,10 @@ const s = StyleSheet.create({
   grid:        { paddingHorizontal: 12, paddingTop: 4 },
   row:         { justifyContent: 'space-between' },
   resultCount: { fontSize: 13, color: '#9E9E9E', paddingVertical: 10, fontWeight: '500' },
+
+  suggestionsBox: { backgroundColor: '#FFF', borderBottomWidth: 1, borderBottomColor: '#EBEBEB', elevation: 2 },
+  suggestionItem: { flexDirection: 'row', alignItems: 'center', padding: 14, borderBottomWidth: 1, borderBottomColor: '#F5F5F5', gap: 10 },
+  suggestionText: { flex: 1, fontSize: 14, color: '#333' },
+  boughtPill: { backgroundColor: '#F0F7F2', paddingHorizontal: 8, paddingVertical: 3, borderRadius: 4 },
+  boughtPillText: { fontSize: 10, fontWeight: '700', color: '#84C225' },
 });

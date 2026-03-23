@@ -116,4 +116,69 @@ export class PersonalizationService {
     }
     return recent;
   }
+
+  /**
+   * getSearchSuggestions
+   * 
+   * Returns product suggestions for a search query, prioritizing user history.
+   */
+  static async getSearchSuggestions(userId: number, query: string) {
+    try {
+      const searchPattern = `%${query}%`;
+      const sql = `
+        SELECT p.id, p.name, p.brand, p.image_url,
+          (EXISTS (
+            SELECT 1 FROM order_items oi 
+            JOIN orders o ON oi.order_id = o.id 
+            WHERE oi.product_id = p.id AND o.customer_id = $1
+          )) as previously_bought
+        FROM products p
+        WHERE p.name ILIKE $2 OR p.brand ILIKE $2
+        ORDER BY previously_bought DESC, p.name ASC
+        LIMIT 10;
+      `;
+      const { rows } = await pool.query(sql, [userId, searchPattern]);
+      return rows;
+    } catch (error) {
+      logger.error('Error in getSearchSuggestions:', error);
+      return [];
+    }
+  }
+
+  /**
+   * getPersonalizedCoupons
+   * 
+   * Returns coupons tailored to the user's favorite categories.
+   */
+  static async getPersonalizedCoupons(userId: number) {
+    try {
+      const sql = `
+        WITH user_cats AS (
+          SELECT p.category, COUNT(*) as cat_count
+          FROM order_items oi
+          JOIN products p ON oi.product_id = p.id
+          JOIN orders o ON oi.order_id = o.id
+          WHERE o.customer_id = $1
+          GROUP BY p.category
+          ORDER BY cat_count DESC
+          LIMIT 3
+        )
+        SELECT c.*
+        FROM coupons c
+        LEFT JOIN user_cats uc ON c.target_category = uc.category
+        WHERE c.is_active = true
+          AND (c.expires_at IS NULL OR c.expires_at > NOW())
+          AND NOT EXISTS (
+            SELECT 1 FROM orders o WHERE o.customer_id = $1 AND o.coupon_id = c.id
+          )
+        ORDER BY uc.cat_count DESC NULLS LAST, c.discount_value DESC
+        LIMIT 5;
+      `;
+      const { rows } = await pool.query(sql, [userId]);
+      return rows;
+    } catch (error) {
+      logger.error('Error in getPersonalizedCoupons:', error);
+      return [];
+    }
+  }
 }

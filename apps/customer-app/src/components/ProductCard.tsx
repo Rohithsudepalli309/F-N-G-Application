@@ -12,6 +12,7 @@ import {
 } from 'react-native';
 import { theme } from '../theme';
 import { useCartStore } from '../store/useCartStore';
+import { useNavigation } from '@react-navigation/native';
 
 const { width } = Dimensions.get('window');
 
@@ -48,10 +49,16 @@ export const ProductCard = ({ product }: { product: Product }) => {
 
   const handleDecrement = () => decrementFromCart(product.id);
 
+  const navigation = useNavigation<any>();
+  const handlePress = () => {
+    navigation.navigate('ProductDetail', { product });
+  };
+
   return (
     <View style={styles.card}>
-      {/* ── IMAGE CONTAINER ─────────────────────────────────── */}
-      <View style={styles.imageContainer}>
+      <TouchableOpacity activeOpacity={0.9} onPress={handlePress}>
+        {/* ── IMAGE CONTAINER ─────────────────────────────────── */}
+        <View style={styles.imageContainer}>
         {product.discountTag && (
           <View style={styles.discountBadge}>
             <Text style={styles.discountBadgeText}>{product.discountTag}</Text>
@@ -72,12 +79,15 @@ export const ProductCard = ({ product }: { product: Product }) => {
         <Text style={styles.name} numberOfLines={2}>{product.name}</Text>
         
         {/* ── WEIGHT SELECTOR ─────────────────────────────────── */}
-        <TouchableOpacity style={styles.weightSelector} activeOpacity={0.7}>
+        <View style={styles.weightSelector}>
           <Text style={styles.weightText}>{product.weight}</Text>
           <Text style={styles.chevron}>▼</Text>
-        </TouchableOpacity>
+        </View>
+      </View>
+    </TouchableOpacity>
 
-        {/* ── PRICE & ADD ─────────────────────────────────────── */}
+      {/* ── PRICE & ADD (Keep outside of main touchable) ─────── */}
+      <View style={[styles.infoContainer, { paddingTop: 0 }]}>
         <View style={styles.bottomRow}>
           <View style={styles.priceCol}>
             <View style={styles.priceRow}>

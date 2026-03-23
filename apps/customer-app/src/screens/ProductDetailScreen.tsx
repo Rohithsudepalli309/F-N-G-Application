@@ -122,7 +122,7 @@ export const ProductDetailScreen = () => {
           <View style={styles.detailItem}>
             <Text style={styles.detailKey}>Manufacturer</Text>
             <Text style={styles.detailValue}>{product.brand || 'Premium Brand Ltd.'}</Text>
-          </Text>
+          </View>
           <Text style={styles.description}>
             {product.description || 'Highly accurate and premium quality product sourced directly from the manufacturer to ensure freshness and authenticity.'}
           </Text>

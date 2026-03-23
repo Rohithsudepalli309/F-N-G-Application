@@ -40,4 +40,40 @@ router.get('/recommendations/:productId', async (req, res) => {
   }
 });
 
+/**
+ * GET /personalization/suggestions
+ * 
+ * Returns personalized search suggestions for a query.
+ */
+router.get('/suggestions', requireAuth, async (req: any, res) => {
+  try {
+    const userId = req.user.id;
+    const query = req.query.q as string;
+    if (!query) {
+      return res.json([]);
+    }
+    const suggestions = await PersonalizationService.getSearchSuggestions(userId, query);
+    res.json(suggestions);
+  } catch (error) {
+    logger.error('Error in /personalization/suggestions:', error);
+    res.status(500).json({ error: 'Internal Server Error' });
+  }
+});
+
+/**
+ * GET /personalization/coupons
+ * 
+ * Returns personalized coupons for the user.
+ */
+router.get('/coupons', requireAuth, async (req: any, res) => {
+  try {
+    const userId = req.user.id;
+    const coupons = await PersonalizationService.getPersonalizedCoupons(userId);
+    res.json(coupons);
+  } catch (error) {
+    logger.error('Error in /personalization/coupons:', error);
+    res.status(500).json({ error: 'Internal Server Error' });
+  }
+});
+
 export default router;
