@@ -11,8 +11,8 @@
     "diag": "node scripts/diagnostics.js",
     "dev:live": "npm run diag && node scripts/dev-live-runner.js",
     "dev:refresh": "node scripts/dev-refresh-runner.js",
-    "dev:logs": "adb logcat *:S ReactNative:V ReactNativeJS:V"
-    ,"fix:android-modules": "node scripts/patch-android-modules.js"
+    "dev:logs": "adb logcat *:S ReactNative:V ReactNativeJS:V",
+    "fix:android-modules": "node scripts/patch-android-modules.js"
   },
   "main": "index.js",
   "dependencies": {
@@ -43,6 +43,7 @@
     "zustand": "^4.5.2"
   },
   "devDependencies": {
+    "@babel/plugin-transform-template-literals": "^7.27.1",
     "@react-native/babel-preset": "^0.73.0",
     "@react-native/metro-config": "^0.73.0",
     "@types/jest": "^29.5.0",
