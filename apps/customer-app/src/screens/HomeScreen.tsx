@@ -80,10 +80,10 @@ const CATEGORY_GRID = [
 const BRANDED_OFFERS = [
   { id: 'b1', name: 'Amul Gold Milk', brand: 'Amul', price: 2700, original_price: 2800, image: IMAGES.prod_amul_milk, unit: '500 ml' },
   { id: 'b2', name: 'Maggi Noodles', brand: 'Maggi', price: 1400, original_price: 1600, image: IMAGES.prod_maggi_noodles, unit: '70 g' },
-  { id: 'b3', name: 'Fortune Oil', brand: 'Fortune', price: 14500, original_price: 16500, image: IMAGES.prod_fortune_oil, unit: '1 L' },
-  { id: 'b4', name: 'Aashirvaad Atta', brand: 'Aashirvaad', price: 24500, original_price: 27500, image: IMAGES.prod_aashirvaad_atta, unit: '5 kg' },
-  { id: 'b5', name: 'Surf Excel', brand: 'Surf Excel', price: 11000, original_price: 13000, image: IMAGES.prod_surf_excel, unit: '1 kg' },
-  { id: 'b6', name: 'Nandini Ghee', brand: 'Nandini', price: 31000, original_price: 33500, image: IMAGES.prod_nandini_ghee, unit: '500 ml' },
+  { id: 'b3', name: 'Nescafe Classic', brand: 'Nescafe', price: 16500, original_price: 18500, image: IMAGES.prod_nescafe, unit: '50 g' },
+  { id: 'b4', name: 'Kellogg\'s Corn Flakes', brand: 'Kelloggs', price: 34500, original_price: 37500, image: IMAGES.prod_kelloggs, unit: '875 g' },
+  { id: 'b5', name: 'Fortune Oil', brand: 'Fortune', price: 14500, original_price: 16500, image: IMAGES.prod_fortune_oil, unit: '1 L' },
+  { id: 'b6', name: 'Aashirvaad Atta', brand: 'Aashirvaad', price: 24500, original_price: 27500, image: IMAGES.prod_aashirvaad_atta, unit: '5 kg' },
 ];
 
 // --- Hero Banner Carousel --------------------------------------------------
@@ -275,6 +275,7 @@ export const HomeScreen = () => {
   const [munchiesProducts, setMunchiesProducts] = useState<Product[]>([]);
   const [dairyProducts, setDairyProducts]       = useState<Product[]>([]);
   const [cleaningProducts, setCleaningProducts] = useState<Product[]>([]);
+  const [smartBasketProducts, setSmartBasketProducts] = useState<Product[]>([]);
   const [offerIndex, setOfferIndex] = useState(0);
 
   useEffect(() => {
@@ -300,15 +301,25 @@ export const HomeScreen = () => {
       } finally {
         setLoading(false);
       }
+
       try {
-        const ordersRes = await api.get('/orders');
+        const [ordersRes, smartRes] = await Promise.all([
+          api.get('/orders'),
+          api.get('/personalization/basket'),
+        ]);
+        
         const active = Array.isArray(ordersRes.data)
           ? ordersRes.data.find((o: any) =>
               ['placed', 'preparing', 'ready', 'pickup'].includes(o.status))
           : null;
         setActiveOrder(active || null);
+
+        if (Array.isArray(smartRes.data)) {
+          setSmartBasketProducts(smartRes.data.length > 0 ? smartRes.data : BRANDED_OFFERS as any);
+        }
       } catch {
-        // not logged in — silently ignore
+        // not logged in — fallback to default branded offers
+        setSmartBasketProducts(BRANDED_OFFERS as any);
       }
     };
     fetchHome();
@@ -420,12 +431,12 @@ export const HomeScreen = () => {
         <View style={{ marginTop: 24 }}>
           <SectionHeader 
             title="My Smart Basket" 
-            subtitle="Based on your frequent buys" 
+            subtitle={user ? "Based on your frequent buys" : "Popular items for you"} 
             onSeeAll={() => goTo('ProductList', { categoryName: 'Munchies' })} 
           />
           <ProductRow
-            products={BRANDED_OFFERS as any}
-            loading={false}
+            products={smartBasketProducts.length > 0 ? smartBasketProducts : BRANDED_OFFERS as any}
+            loading={loading}
           />
         </View>
 

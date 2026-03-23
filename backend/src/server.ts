@@ -42,6 +42,7 @@ import paymentMethodsRouter from './routes/paymentMethods';
 import walletRouter         from './routes/wallet';
 import webhooksRouter       from './routes/webhooks';
 import waitlistRouter       from './routes/waitlist';
+import personalizationRouter from './routes/personalization';
 import { errorHandler }     from './middleware/errorHandler';
 
 export const app = express();
@@ -151,6 +152,7 @@ app.use('/api/v1/payment-methods', paymentMethodsRouter);
 app.use('/api/v1/wallet',          walletRouter);
 app.use('/api/v1/webhooks',        webhooksRouter);
 app.use('/api/v1/waitlist',        waitlistRouter);
+app.use('/api/v1/personalization', personalizationRouter);
 
 // ── Health check ─────────────────────────────────────────────────────────
 app.get('/health', (_req, res) => {

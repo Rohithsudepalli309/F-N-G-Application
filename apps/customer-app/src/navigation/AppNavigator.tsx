@@ -80,6 +80,7 @@ import { SettingsScreen } from '../screens/SettingsScreen';
 import { CategoriesScreen } from '../screens/CategoriesScreen';
 import { BuyAgainScreen } from '../screens/BuyAgainScreen';
 import { FreshScreen } from '../screens/FreshScreen';
+import { ProductDetailScreen } from '../screens/ProductDetailScreen';
 
 // ─── New screens (spec §8.1 — completing 30-screen inventory) ─────────────────
 import { OrderConfirmedScreen } from '../screens/OrderConfirmedScreen';
@@ -194,6 +195,7 @@ const HomeStackNav = () => (
     <HomeStack.Screen name="Categories" component={CategoriesScreen} />
     <HomeStack.Screen name="BuyAgain" component={BuyAgainScreen} />
     <HomeStack.Screen name="Fresh" component={FreshScreen} />
+    <HomeStack.Screen name="ProductDetail" component={ProductDetailScreen} />
   </HomeStack.Navigator>
 );
 

@@ -32,6 +32,7 @@ export type HomeStackParamList = {
   Categories: undefined;
   BuyAgain: undefined;
   Fresh: undefined;
+  ProductDetail: { product: any };
 };
 
 export type CategoriesStackParamList = {
