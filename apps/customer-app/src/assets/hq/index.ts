@@ -45,4 +45,6 @@ export const IMAGES = {
   prod_colgate_maxfresh:     require('./prod_colgate_maxfresh.png'),
   prod_daawat_rice:          require('./prod_daawat_rice.png'),
   prod_tata_tea:             require('./prod_tata_tea.png'),
+  prod_nescafe:              require('./prod_nescafe.png'),
+  prod_kelloggs:             require('./prod_kelloggs.png'),
 };
