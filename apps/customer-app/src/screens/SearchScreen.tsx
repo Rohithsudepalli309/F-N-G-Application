@@ -46,6 +46,9 @@ const MiniCard = React.memo(({ item }: { item: any }) => {
   return (
     <View style={mc.card}>
       <View style={mc.imgWrap}>
+        {discPct > 0 && (
+          <View style={mc.discBadge}>
+            <Text style={mc.discText}>{discPct}%{'\n'}OFF</Text>
           </View>
         )}
         {item.previously_bought && (
@@ -132,11 +135,16 @@ export const SearchScreen = () => {
   }, []);
 
   const doSearch = useCallback(async (q: string) => {
-    if (!q.trim()) { setResults([]); setSearched(false); return; }
+    if (!q.trim()) { 
+      setResults([]); 
+      setSearched(false); 
+      setSuggestions([]);
+      return; 
+    }
     setLoading(true);
     setSearched(true);
+    setSuggestions([]);
     try {
-      // Logic updated for Universal Search §4.3
       const { data } = await api.get('/search', { params: { query: q.trim() } });
       setResults(Array.isArray(data) ? data : []);
     } catch { setResults([]); }
@@ -145,10 +153,9 @@ export const SearchScreen = () => {
 
   useEffect(() => {
     const t = setTimeout(async () => {
-      doSearch(query);
-      if (query.trim().length > 1) {
+      if (query.trim().length > 1 && !searched) {
         try {
-          const { data } = await api.get('/personalization/suggestions', { params: { q: query } });
+          const { data } = await api.get('/personalization/suggestions', { params: { q: query.trim() } });
           setSuggestions(Array.isArray(data) ? data : []);
         } catch { setSuggestions([]); }
       } else {
@@ -156,7 +163,7 @@ export const SearchScreen = () => {
       }
     }, 400);
     return () => clearTimeout(t);
-  }, [query, doSearch]);
+  }, [query, searched]);
 
   const renderProduct = ({ item }: { item: any }) => <MiniCard item={item} />;
   const keyExtract    = (item: any) => String(item.id);
@@ -178,10 +185,17 @@ export const SearchScreen = () => {
             placeholder={t('search_placeholder') || 'Search products, brands…'}
             placeholderTextColor="#9E9E9E"
             value={query}
-            onChangeText={setQuery}
+            onChangeText={(text) => {
+              setQuery(text);
+              if (searched) setSearched(false);
+            }}
             returnKeyType="search"
             onSubmitEditing={() => doSearch(query)}
           />
+          {query.length > 0 && (
+            <TouchableOpacity onPress={() => { setQuery(''); setResults([]); setSearched(false); setSuggestions([]); }}>
+              <Text style={s.clearIcon}>✕</Text>
+            </TouchableOpacity>
           )}
         </View>
       </View>
@@ -213,7 +227,7 @@ export const SearchScreen = () => {
           <Text style={s.sectionTitle}>Trending Now</Text>
           <View style={s.trendingWrap}>
             {TRENDING.map(t => (
-              <TouchableOpacity key={t} style={s.trendingPill} onPress={() => setQuery(t)}>
+              <TouchableOpacity key={t} style={s.trendingPill} onPress={() => { setQuery(t); doSearch(t); }}>
                 <Text style={s.trendingText}>{t}</Text>
               </TouchableOpacity>
             ))}
@@ -252,7 +266,7 @@ export const SearchScreen = () => {
           <Text style={s.emptySub}>Try different keywords or browse by category</Text>
           <View style={s.trendingWrap}>
             {TRENDING.slice(0, 4).map(t => (
-              <TouchableOpacity key={t} style={s.trendingPill} onPress={() => setQuery(t)}>
+              <TouchableOpacity key={t} style={s.trendingPill} onPress={() => { setQuery(t); doSearch(t); }}>
                 <Text style={s.trendingText}>{t}</Text>
               </TouchableOpacity>
             ))}
@@ -261,7 +275,7 @@ export const SearchScreen = () => {
       )}
 
       {/* Results grid */}
-      {!loading && results.length > 0 && (
+      {!loading && searched && results.length > 0 && (
         <FlatList
           data={results}
           keyExtractor={keyExtract}

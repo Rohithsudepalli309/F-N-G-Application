@@ -212,6 +212,15 @@ interface ProductRowProps {
   loading: boolean;
   onSeeAll?: () => void;
 }
+
+interface Coupon {
+  id: string | number;
+  code: string;
+  discount_type: 'fixed' | 'percentage';
+  discount_value: number;
+  description: string;
+  target_category?: string;
+}
 const ProductRow = ({ products, loading, onSeeAll }: ProductRowProps) => {
   if (loading) {
     return (
@@ -276,6 +285,7 @@ export const HomeScreen = () => {
   const [dairyProducts, setDairyProducts]       = useState<Product[]>([]);
   const [cleaningProducts, setCleaningProducts] = useState<Product[]>([]);
   const [smartBasketProducts, setSmartBasketProducts] = useState<Product[]>([]);
+  const [coupons, setCoupons] = useState<Coupon[]>([]);
   const [offerIndex, setOfferIndex] = useState(0);
 
   useEffect(() => {
@@ -317,9 +327,19 @@ export const HomeScreen = () => {
         if (Array.isArray(smartRes.data)) {
           setSmartBasketProducts(smartRes.data.length > 0 ? smartRes.data : BRANDED_OFFERS as any);
         }
+
+        try {
+          const couponRes = await api.get('/personalization/coupons');
+          if (Array.isArray(couponRes.data)) {
+            setCoupons(couponRes.data);
+          }
+        } catch {
+          setCoupons([]);
+        }
       } catch {
         // not logged in — fallback to default branded offers
         setSmartBasketProducts(BRANDED_OFFERS as any);
+        setCoupons([]);
       }
     };
     fetchHome();
@@ -426,6 +446,31 @@ export const HomeScreen = () => {
 
         {/* Hero banner */}
         <HeroBanner onShopNow={cat => goTo('ProductList', { categoryName: cat })} />
+
+        {/* Personalized Coupons */}
+        {coupons.length > 0 && (
+          <View style={{ marginTop: 24 }}>
+            <SectionHeader title="Offers Just For You" subtitle="Top discounts on your favorites" />
+            <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ paddingHorizontal: 16 }}>
+              {coupons.map(c => (
+                <View key={c.id} style={s.couponCard}>
+                  <View style={s.couponLeft}>
+                    <Text style={s.couponCode}>{c.code}</Text>
+                    <Text style={s.couponValue}>
+                      {c.discount_type === 'percentage' ? `${c.discount_value}% OFF` : `₹${c.discount_value/100} OFF`}
+                    </Text>
+                  </View>
+                  <View style={s.couponRight}>
+                    <Text style={s.couponDesc} numberOfLines={2}>{c.description}</Text>
+                    <TouchableOpacity style={s.applyBtn} onPress={() => {}}>
+                      <Text style={s.applyBtnText}>APPLY</Text>
+                    </TouchableOpacity>
+                  </View>
+                </View>
+              ))}
+            </ScrollView>
+          </View>
+        )}
 
         {/* Branded "My Smart Basket" */}
         <View style={{ marginTop: 24 }}>
@@ -708,4 +753,13 @@ const s = StyleSheet.create({
   trustImg: { width: 18, height: 18 },
   trustLabel: { fontSize: 11, fontWeight: '800', color: '#0D1B14', textAlign: 'center' },
   trustSub: { fontSize: 10, color: '#738093', textAlign: 'center', marginTop: 2, lineHeight: 13 },
+
+  couponCard: { width: 240, height: 85, backgroundColor: '#FFF', borderRadius: 12, marginRight: 12, flexDirection: 'row', borderWidth: 1, borderColor: '#DDD', overflow: 'hidden', borderStyle: 'dashed' },
+  couponLeft: { width: 80, backgroundColor: '#84C225', alignItems: 'center', justifyContent: 'center', padding: 8 },
+  couponCode: { fontSize: 12, fontWeight: '900', color: '#FFF' },
+  couponValue: { fontSize: 10, fontWeight: '700', color: '#FFF', marginTop: 4 },
+  couponRight: { flex: 1, padding: 10, justifyContent: 'space-between' },
+  couponDesc: { fontSize: 11, color: '#444', fontWeight: '600' },
+  applyBtn: { paddingVertical: 4, width: 60, alignItems: 'center', borderTopWidth: 1, borderTopColor: '#EEE' },
+  applyBtnText: { fontSize: 10, fontWeight: '800', color: '#84C225' },
 });
