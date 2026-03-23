@@ -20,11 +20,13 @@ const CARD_W = (width - 48) / 3;
 interface Product {
   id: string;
   name: string;
+  brand?: string;
   weight: string;
+  weightOptions?: string[];
   price: number;
   originalPrice?: number;
   discountTag?: string;
-  image: string;
+  image: any;
   deliveryTime: string;
 }
 
@@ -34,11 +36,6 @@ export const ProductCard = ({ product }: { product: Product }) => {
   const cartItems = useCartStore((state) => state.items);
 
   const qty = cartItems.find((i: any) => i.productId === product.id)?.quantity || 0;
-
-  // 3D press animation
-  const pressAnim = useRef(new Animated.Value(1)).current;
-  const animateIn = () => Animated.spring(pressAnim, { toValue: 0.96, useNativeDriver: true, speed: 40 }).start();
-  const animateOut = () => Animated.spring(pressAnim, { toValue: 1, useNativeDriver: true, speed: 20 }).start();
 
   const handleAdd = () => {
     addToCart('default-store', {
@@ -51,282 +48,228 @@ export const ProductCard = ({ product }: { product: Product }) => {
 
   const handleDecrement = () => decrementFromCart(product.id);
 
-  const discount = product.originalPrice
-    ? Math.round(product.originalPrice - product.price)
-    : null;
-
   return (
-    <Animated.View style={[styles.card, { transform: [{ scale: pressAnim }] }]}>
+    <View style={styles.card}>
+      {/* ── IMAGE CONTAINER ─────────────────────────────────── */}
+      <View style={styles.imageContainer}>
+        {product.discountTag && (
+          <View style={styles.discountBadge}>
+            <Text style={styles.discountBadgeText}>{product.discountTag}</Text>
+          </View>
+        )}
+        <Image
+          source={typeof product.image === 'number' ? product.image : { uri: product.image }}
+          style={styles.image}
+          resizeMode="contain"
+        />
+      </View>
 
-      {/* ── 3D IMAGE CONTAINER ───────────────────────────────── */}
-      <View style={styles.imageShadowWrap}>
-        <View style={styles.imageContainer}>
+      {/* ── BRAND & NAME ─────────────────────────────────────── */}
+      <View style={styles.infoContainer}>
+        {product.brand && (
+          <Text style={styles.brandText}>{product.brand.toUpperCase()}</Text>
+        )}
+        <Text style={styles.name} numberOfLines={2}>{product.name}</Text>
+        
+        {/* ── WEIGHT SELECTOR ─────────────────────────────────── */}
+        <TouchableOpacity style={styles.weightSelector} activeOpacity={0.7}>
+          <Text style={styles.weightText}>{product.weight}</Text>
+          <Text style={styles.chevron}>▼</Text>
+        </TouchableOpacity>
 
-          {/* Glossy top-left shimmer */}
-          <View style={styles.glossOverlay} />
+        {/* ── PRICE & ADD ─────────────────────────────────────── */}
+        <View style={styles.bottomRow}>
+          <View style={styles.priceCol}>
+            <View style={styles.priceRow}>
+              <Text style={styles.price}>₹{(product.price / 100).toLocaleString('en-IN')}</Text>
+              {product.originalPrice && (
+                <Text style={styles.mrp}>₹{(product.originalPrice / 100).toLocaleString('en-IN')}</Text>
+              )}
+            </View>
+            <View style={styles.deliveryRow}>
+              <Text style={styles.deliveryTime}>⚡ {product.deliveryTime}</Text>
+            </View>
+          </View>
 
-          <Image
-            source={{ uri: product.image }}
-            style={styles.image}
-            resizeMode="contain"
-          />
-
-          {/* Favourite */}
-          <TouchableOpacity style={styles.favBtn} hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}>
-            <Text style={styles.favIcon}>🤍</Text>
-          </TouchableOpacity>
-
-          {/* ADD / QTY pill — floats over the image box bottom edge */}
-          <View style={styles.addBtnWrap}>
+          <View style={styles.actionCol}>
             {qty === 0 ? (
-              <TouchableOpacity
-                style={styles.addBtn}
-                onPress={handleAdd}
-                onPressIn={animateIn}
-                onPressOut={animateOut}
-                activeOpacity={0.85}
-              >
-                <Text style={styles.addText}>ADD</Text>
-                <Text style={styles.addPlus}>+</Text>
+              <TouchableOpacity style={styles.addBtn} onPress={handleAdd} activeOpacity={0.8}>
+                <Text style={styles.addBtnText}>ADD</Text>
               </TouchableOpacity>
             ) : (
-              <View style={styles.qtyContainer}>
-                <TouchableOpacity style={styles.qtyBtn} onPress={handleDecrement}>
-                  <Text style={styles.qtyBtnText}>−</Text>
+              <View style={styles.qtyStepper}>
+                <TouchableOpacity style={styles.stepperBtn} onPress={handleDecrement}>
+                  <Text style={styles.stepperText}>−</Text>
                 </TouchableOpacity>
-                <Text style={styles.qtyText}>{qty}</Text>
-                <TouchableOpacity style={styles.qtyBtn} onPress={handleAdd}>
-                  <Text style={styles.qtyBtnText}>+</Text>
+                <Text style={styles.qtyVal}>{qty}</Text>
+                <TouchableOpacity style={styles.stepperBtn} onPress={handleAdd}>
+                  <Text style={styles.stepperText}>+</Text>
                 </TouchableOpacity>
               </View>
             )}
           </View>
         </View>
       </View>
-
-      {/* ── PRICE ROW ─────────────────────────────────────────── */}
-      <View style={styles.priceRow}>
-        <View style={styles.pricePill}>
-          <Text style={styles.priceText}>₹{(product.price / 100).toLocaleString('en-IN')}</Text>
-        </View>
-        {product.originalPrice ? (
-          <Text style={styles.mrp}>₹{(product.originalPrice / 100).toLocaleString('en-IN')}</Text>
-        ) : null}
-      </View>
-
-      {discount ? (
-        <Text style={styles.discountText}>₹{(discount / 100).toLocaleString('en-IN')} OFF</Text>
-      ) : null}
-
-      {/* Dashed separator ─ */}
-      <View style={styles.dashed} />
-
-      {/* ── NAME & WEIGHT ─────────────────────────────────────── */}
-      <Text style={styles.name} numberOfLines={2}>{product.name}</Text>
-      <Text style={styles.weight} numberOfLines={1}>{product.weight}</Text>
-
-      <View style={styles.deliveryRow}>
-        <Text style={styles.bolt}>⚡</Text>
-        <Text style={styles.deliveryTime}>{product.deliveryTime}</Text>
-      </View>
-    </Animated.View>
+    </View>
   );
 };
 
 /* ─────────────────────────────────────────────────────────────── STYLES ── */
 const styles = StyleSheet.create({
-  /* Outer card */
   card: {
-    width: CARD_W,
-    marginRight: 10,
-    marginBottom: 22,
+    width: (width - 48) / 2.2, // Slightly larger for better readability
+    marginRight: 12,
+    marginBottom: 16,
     backgroundColor: '#FFF',
-  },
-
-  /* 3-D shadow wrap: gives depth beneath the image box */
-  imageShadowWrap: {
-    borderRadius: 14,
-    // iOS multi-layer shadow
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 6 },
-    shadowOpacity: 0.14,
-    shadowRadius: 10,
-    // Android elevation
-    elevation: 6,
-    backgroundColor: '#FFF',
-    marginBottom: 12,
-  },
-
-  /* The actual image box */
-  imageContainer: {
-    width: '100%',
-    aspectRatio: 0.88,
-    backgroundColor: '#F4F6F8',
-    borderRadius: 14,
-    alignItems: 'center',
-    justifyContent: 'center',
+    borderRadius: 8,
+    borderWidth: 1,
+    borderColor: '#F2F2F2',
     overflow: 'hidden',
   },
 
-  /* Top-left gloss shimmer to fake 3D surface */
-  glossOverlay: {
+  imageContainer: {
+    width: '100%',
+    aspectRatio: 1,
+    backgroundColor: '#FFF',
+    alignItems: 'center',
+    justifyContent: 'center',
+    padding: 10,
+    position: 'relative',
+  },
+  image: {
+    width: '90%',
+    height: '90%',
+  },
+
+  discountBadge: {
     position: 'absolute',
     top: 0,
     left: 0,
-    width: '55%',
-    height: '30%',
-    backgroundColor: 'rgba(255,255,255,0.35)',
-    borderBottomRightRadius: 50,
-    zIndex: 2,
-  },
-
-  image: {
-    width: '78%',
-    height: '78%',
-    zIndex: 1,
-  },
-
-  /* Heart icon */
-  favBtn: {
-    position: 'absolute',
-    top: 8,
-    right: 8,
+    backgroundColor: '#E45F10',
+    paddingHorizontal: 6,
+    paddingVertical: 2,
+    borderBottomRightRadius: 8,
     zIndex: 5,
-    backgroundColor: 'rgba(255,255,255,0.75)',
-    borderRadius: 20,
-    padding: 3,
   },
-  favIcon: { fontSize: 14 },
-
-  /* ADD button wrapper — pokes out of the image box */
-  addBtnWrap: {
-    position: 'absolute',
-    bottom: -14,
-    alignSelf: 'center',
-    zIndex: 10,
-  },
-
-  addBtn: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: '#FFF',
-    borderWidth: 1.5,
-    borderColor: theme.colors.primary,
-    borderRadius: 8,
-    paddingHorizontal: 12,
-    paddingVertical: 5,
-    shadowColor: theme.colors.primary,
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.2,
-    shadowRadius: 4,
-    elevation: 4,
-  },
-  addText: {
-    color: theme.colors.primary,
-    fontFamily: theme.typography.fontFamily.bold,
-    fontSize: 11,
-    fontWeight: '900',
-    letterSpacing: 0.5,
-  },
-  addPlus: {
-    color: theme.colors.primary,
-    fontSize: 14,
-    fontWeight: '900',
-    marginLeft: 2,
-  },
-
-  /* QTY stepper */
-  qtyContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: theme.colors.primary,
-    borderRadius: 8,
-    shadowColor: theme.colors.primary,
-    shadowOffset: { width: 0, height: 3 },
-    shadowOpacity: 0.35,
-    shadowRadius: 5,
-    elevation: 5,
-    overflow: 'hidden',
-  },
-  qtyBtn: { paddingHorizontal: 9, paddingVertical: 5 },
-  qtyBtnText: { color: '#FFF', fontSize: 16, fontWeight: '900' },
-  qtyText: {
+  discountBadgeText: {
     color: '#FFF',
-    fontSize: 12,
-    fontFamily: theme.typography.fontFamily.bold,
-    minWidth: 16,
-    textAlign: 'center',
+    fontSize: 9,
+    fontWeight: '800',
   },
 
-  /* Price */
+  infoContainer: {
+    padding: 8,
+    flex: 1,
+  },
+  brandText: {
+    fontSize: 9,
+    color: '#999',
+    fontWeight: '700',
+    marginBottom: 2,
+  },
+  name: {
+    fontSize: 12,
+    color: '#333',
+    fontWeight: '500',
+    lineHeight: 16,
+    height: 32, // Exactly 2 lines
+    marginBottom: 8,
+  },
+
+  weightSelector: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    backgroundColor: '#F7F7F7',
+    borderRadius: 4,
+    paddingHorizontal: 6,
+    paddingVertical: 4,
+    marginBottom: 10,
+    borderWidth: 1,
+    borderColor: '#EEE',
+  },
+  weightText: {
+    fontSize: 11,
+    color: '#666',
+  },
+  chevron: {
+    fontSize: 8,
+    color: '#999',
+  },
+
+  bottomRow: {
+    flexDirection: 'row',
+    alignItems: 'flex-end',
+    justifyContent: 'space-between',
+  },
+  priceCol: {
+    flex: 1,
+  },
   priceRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    paddingHorizontal: 2,
+    flexWrap: 'wrap',
   },
-  pricePill: {
-    backgroundColor: '#388E3C',
-    paddingHorizontal: 6,
-    paddingVertical: 2,
-    borderRadius: 5,
-    marginRight: 6,
-    // Subtle 3D depth on the green pill
-    shadowColor: '#388E3C',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.4,
-    shadowRadius: 3,
-    elevation: 3,
-  },
-  priceText: {
-    fontSize: 12,
-    fontFamily: theme.typography.fontFamily.bold,
-    color: '#FFF',
+  price: {
+    fontSize: 13,
+    fontWeight: '800',
+    color: '#222',
+    marginRight: 4,
   },
   mrp: {
-    fontSize: 11,
-    color: '#9E9E9E',
+    fontSize: 10,
+    color: '#999',
     textDecorationLine: 'line-through',
   },
-  discountText: {
-    fontSize: 10,
-    color: '#388E3C',
-    fontFamily: theme.typography.fontFamily.bold,
-    paddingHorizontal: 2,
+  deliveryRow: {
     marginTop: 2,
   },
-
-  /* separator */
-  dashed: {
-    borderBottomWidth: 1,
-    borderColor: '#F0F0F0',
-    marginVertical: 5,
-  },
-
-  /* Name / Weight / Delivery */
-  name: {
-    fontSize: 11,
-    fontFamily: theme.typography.fontFamily.medium,
-    color: '#212121',
-    paddingHorizontal: 2,
-    lineHeight: 14,
-    height: 30,
-  },
-  weight: {
-    fontSize: 10,
-    color: '#757575',
-    paddingHorizontal: 2,
-    marginTop: 1,
-  },
-  deliveryRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    paddingHorizontal: 2,
-    marginTop: 4,
-  },
-  bolt: { fontSize: 10, marginRight: 2 },
   deliveryTime: {
     fontSize: 9,
-    color: '#757575',
-    fontFamily: theme.typography.fontFamily.medium,
+    color: '#84C225',
+    fontWeight: '700',
+  },
+
+  actionCol: {
+    marginLeft: 4,
+  },
+  addBtn: {
+    backgroundColor: '#F0F7F2',
+    borderColor: '#84C225',
+    borderWidth: 1,
+    borderRadius: 4,
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    minWidth: 55,
+    alignItems: 'center',
+  },
+  addBtnText: {
+    color: '#84C225',
+    fontSize: 11,
+    fontWeight: '900',
+  },
+
+  qtyStepper: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#84C225',
+    borderRadius: 4,
+    overflow: 'hidden',
+  },
+  stepperBtn: {
+    paddingHorizontal: 8,
+    paddingVertical: 6,
+  },
+  stepperText: {
+    color: '#FFF',
+    fontSize: 14,
+    fontWeight: '900',
+  },
+  qtyVal: {
+    color: '#FFF',
+    fontSize: 12,
+    fontWeight: '800',
+    minWidth: 14,
+    textAlign: 'center',
   },
 });

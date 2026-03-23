@@ -72,9 +72,18 @@ const CATEGORY_GRID = [
   { id: 'g3', label: 'Snacks',          image: IMAGES.snacks, cat: 'Munchies' },
   { id: 'g4', label: 'Atta & Rice',     image: IMAGES.atta_rice, cat: 'Atta, Rice, Oil & Dals' },
   { id: 'g5', label: 'Beverages',       image: IMAGES.beverages, cat: 'Beverages' },
-  { id: 'g6', label: 'Home & Cleaning', image: IMAGES.cleaning, cat: 'Cleaning Essentials' },
+  { id: 'g6', label: 'Home Care',       image: IMAGES.cleaning, cat: 'Cleaning Essentials' },
   { id: 'g7', label: 'Personal Care',   image: IMAGES.personal_care, cat: 'Personal Care' },
   { id: 'g8', label: 'Masala',          image: IMAGES.masala, cat: 'Masala & Spices' },
+];
+
+const BRANDED_OFFERS = [
+  { id: 'b1', name: 'Amul Gold Milk', brand: 'Amul', price: 2700, original_price: 2800, image: IMAGES.prod_amul_milk, unit: '500 ml' },
+  { id: 'b2', name: 'Maggi Noodles', brand: 'Maggi', price: 1400, original_price: 1600, image: IMAGES.prod_maggi_noodles, unit: '70 g' },
+  { id: 'b3', name: 'Fortune Oil', brand: 'Fortune', price: 14500, original_price: 16500, image: IMAGES.prod_fortune_oil, unit: '1 L' },
+  { id: 'b4', name: 'Aashirvaad Atta', brand: 'Aashirvaad', price: 24500, original_price: 27500, image: IMAGES.prod_aashirvaad_atta, unit: '5 kg' },
+  { id: 'b5', name: 'Surf Excel', brand: 'Surf Excel', price: 11000, original_price: 13000, image: IMAGES.prod_surf_excel, unit: '1 kg' },
+  { id: 'b6', name: 'Nandini Ghee', brand: 'Nandini', price: 31000, original_price: 33500, image: IMAGES.prod_nandini_ghee, unit: '500 ml' },
 ];
 
 // --- Hero Banner Carousel --------------------------------------------------
@@ -227,10 +236,11 @@ const ProductRow = ({ products, loading, onSeeAll }: ProductRowProps) => {
             product={{
               id: String(p.id),
               name: p.name,
+              brand: (p as any).brand || 'Premium',
               weight: p.unit || '1 pack',
               price: Number(p.price),
               originalPrice: p.original_price ? Number(p.original_price) : undefined,
-              image: p.image_url,
+              image: p.image_url || (p as any).image,
               deliveryTime: '10 mins',
               discountTag: discPct > 0 ? discPct.toString() + '% OFF' : undefined,
             }}
@@ -406,8 +416,21 @@ export const HomeScreen = () => {
         {/* Hero banner */}
         <HeroBanner onShopNow={cat => goTo('ProductList', { categoryName: cat })} />
 
+        {/* Branded "My Smart Basket" */}
+        <View style={{ marginTop: 24 }}>
+          <SectionHeader 
+            title="My Smart Basket" 
+            subtitle="Based on your frequent buys" 
+            onSeeAll={() => goTo('ProductList', { categoryName: 'Munchies' })} 
+          />
+          <ProductRow
+            products={BRANDED_OFFERS as any}
+            loading={false}
+          />
+        </View>
+
         {/* Quick category pills */}
-        <View style={{ marginTop: 20 }}>
+        <View style={{ marginTop: 24 }}>
           <SectionHeader title="Shop by Category" />
           <ScrollView
             horizontal
@@ -620,11 +643,11 @@ const s = StyleSheet.create({
   searchPlaceholder: { flex: 1, fontSize: 13, color: '#9E9E9E', fontWeight: '500' },
   micBtn:            { width: 32, height: 32, borderRadius: 16, backgroundColor: '#F0F4EF', alignItems: 'center', justifyContent: 'center' },
 
-  offerTicker: { backgroundColor: theme.colors.primary, paddingHorizontal: 16, paddingVertical: 7, flexDirection: 'row', alignItems: 'center' },
-  offerIconImg: { width: 16, height: 16, marginRight: 8, tintColor: '#FFF' },
-  offerText:   { color: '#FFFFFF', fontSize: 11, fontWeight: '600', flex: 1 },
+  offerTicker: { backgroundColor: '#E45F10', paddingHorizontal: 16, paddingVertical: 7, flexDirection: 'row', alignItems: 'center' },
+  offerIconImg: { width: 14, height: 14, marginRight: 8, tintColor: '#FFF' },
+  offerText:   { color: '#FFFFFF', fontSize: 10, fontWeight: '700', flex: 1, textTransform: 'uppercase', letterSpacing: 0.5 },
 
-  liveOrder:      { marginHorizontal: 16, marginTop: 14, backgroundColor: '#0D1B14', borderRadius: 14, padding: 14, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', elevation: 4 },
+  liveOrder:      { marginHorizontal: 16, marginTop: 14, backgroundColor: '#0D1B14', borderRadius: 12, padding: 12, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
   liveOrderLeft:  { flexDirection: 'row', alignItems: 'center', flex: 1 },
   liveOrderImg:   { width: 30, height: 30, marginRight: 12 },
   liveOrderTitle: { color: '#FFF', fontSize: 14, fontWeight: '700' },
@@ -637,13 +660,13 @@ const s = StyleSheet.create({
   quickCatImg:   { width: 44, height: 44, borderRadius: 10, marginBottom: 6, overflow: 'hidden' } as any,
   quickCatLabel: { fontSize: 11, fontWeight: '700', textAlign: 'center' },
 
-  catGridSection:  { marginHorizontal: 16, marginTop: 20, marginBottom: 4 },
+  catGridSection:  { marginHorizontal: 16, marginTop: 24, marginBottom: 4 },
   catGrid:         { flexDirection: 'row', flexWrap: 'wrap', justifyContent: 'space-between' },
-  catGridCard:     { width: (width - 52) / 4, marginBottom: 10, alignItems: 'center' },
-  catGridImgWrap:  { width: (width - 52) / 4, height: (width - 52) / 4, borderRadius: 14, overflow: 'hidden' },
-  catGridImg:      { width: '100%', height: '100%' },
-  catGridOverlay:  { position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, backgroundColor: 'rgba(0,0,0,0.12)' },
-  catGridLabel:    { fontSize: 10, fontWeight: '700', color: '#0D1B14', textAlign: 'center', marginTop: 5, lineHeight: 13 },
+  catGridCard:     { width: (width - 56) / 4, marginBottom: 16, alignItems: 'center' },
+  catGridImgWrap:  { width: (width - 56) / 4, height: (width - 56) / 4, borderRadius: 99, overflow: 'hidden', backgroundColor: '#F0F7F2', borderWidth: 1, borderColor: '#E8F5E9' },
+  catGridImg:      { width: '70%', height: '70%', alignSelf: 'center', marginTop: '15%' },
+  catGridOverlay:  { display: 'none' },
+  catGridLabel:    { fontSize: 10, fontWeight: '600', color: '#444', textAlign: 'center', marginTop: 8, lineHeight: 13 },
 
   dealStrip:       { marginHorizontal: 16, marginTop: 20, backgroundColor: theme.colors.primary, borderRadius: 16, padding: 16, flexDirection: 'row', alignItems: 'center' },
   dealStripLeft:   { flex: 1 },

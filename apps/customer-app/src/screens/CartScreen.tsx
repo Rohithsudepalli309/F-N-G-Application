@@ -294,7 +294,7 @@ const styles = StyleSheet.create({
   qtyContainer: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#339233',
+    backgroundColor: theme.colors.primary,
     borderRadius: 8,
     overflow: 'hidden',
   },
@@ -400,7 +400,7 @@ const styles = StyleSheet.create({
     lineHeight: 20,
   },
   browseBtn: {
-    backgroundColor: '#339233',
+    backgroundColor: theme.colors.primary,
     paddingHorizontal: 32,
     paddingVertical: 14,
     borderRadius: 12,
@@ -440,7 +440,7 @@ const styles = StyleSheet.create({
       fontFamily: theme.typography.fontFamily.bold,
   },
   checkoutBtn: {
-    backgroundColor: '#339233',
+    backgroundColor: theme.colors.primary,
     flexDirection: 'row',
     alignItems: 'center',
     paddingHorizontal: 24,

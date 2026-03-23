@@ -3,37 +3,37 @@
 export const theme = {
   colors: {
     // Brand core
-    primary:   '#163D26',    // F&G Deep Green — headers, logo bg, primary actions
-    accent:    '#F5A826',    // Amber — CTA buttons, active states, FAB
-    accent2:   '#F7D252',    // Yellow — highlights, gradient start
-    accent3:   '#E45F10',    // Burnt orange — gradient end, discount badges
-
+    primary:   '#84c225',    // Big Basket Green — headers, primary actions
+    accent:    '#F5A826',    // Amber — secondary highlights
+    accent2:   '#FFF8E1',    // Light yellow bg
+    accent3:   '#E45F10',    // Offer Red/Orange
+    
     // Neutrals
     background: '#FFFFFF',
-    surface:    '#F5F7FA',
-    surfaceAlt: '#F0F4EF',   // Slight green tint for category sections
-    border:     '#EAEAEA',
+    surface:    '#F8F8F8',
+    surfaceAlt: '#F0F7F2',   // Very light green tint
+    border:     '#EBEBEB',
 
     // Text
     text: {
-      primary:   '#0D1B14',  // Near-black on white
-      secondary: '#6B7280',  // Muted gray
+      primary:   '#222222',  // Professional dark gray
+      secondary: '#666666',  // Muted gray
       inverse:   '#FFFFFF',
-      accent:    '#F5A826',  // Amber inline text
+      accent:    '#84c225',  // Green inline text
     },
 
     // Semantic
-    success: '#1A7A3C',
-    error:   '#DC3545',
+    success: '#84C225',
+    error:   '#E45F10',
     warning: '#F5A826',
     info:    '#2563EB',
 
     // Tab bar
-    tabActive:   '#163D26',
-    tabInactive: '#9CA3AF',
+    tabActive:   '#84c225',
+    tabInactive: '#666666',
 
     // Cards
-    cardShadowColor: '#163D26',
+    cardShadowColor: '#000000',
   },
 
   spacing: {

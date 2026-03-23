@@ -35,44 +35,53 @@ const MiniCard = React.memo(({ item }: { item: any }) => {
       <View style={mc.imgWrap}>
         {discPct > 0 && (
           <View style={mc.discBadge}>
-            <Text style={mc.discText}>{discPct}%{'\n'}OFF</Text>
+            <Text style={mc.discText}>{discPct}% OFF</Text>
           </View>
         )}
         <Image
-          source={{ uri: item.image_url || 'https://images.unsplash.com/photo-1610832958506-aa56368176cf?w=300&q=60' }}
+          source={typeof item.image_url === 'number' ? item.image_url : { uri: item.image_url || 'https://images.unsplash.com/photo-1610832958506-aa56368176cf?w=300&q=60' }}
           style={mc.img}
           resizeMode="contain"
         />
-        <View style={mc.addWrap}>
-          {qty === 0 ? (
-            <TouchableOpacity style={mc.addBtn} onPress={handleAdd} activeOpacity={0.85}>
-              <Text style={mc.addText}>ADD +</Text>
-            </TouchableOpacity>
-          ) : (
-            <View style={mc.stepper}>
-              <TouchableOpacity style={mc.stepBtn} onPress={handleDec}>
-                <Text style={mc.stepBtnText}>{qty === 1 ? '×' : '−'}</Text>
-              </TouchableOpacity>
-              <Text style={mc.stepNum}>{qty}</Text>
-              <TouchableOpacity style={mc.stepBtn} onPress={handleInc}>
-                <Text style={mc.stepBtnText}>+</Text>
-              </TouchableOpacity>
-            </View>
-          )}
-        </View>
       </View>
+
       <View style={mc.info}>
+        <Text style={mc.brand} numberOfLines={1}>{(item as any).brand?.toUpperCase() || 'PREMIUM'}</Text>
         <Text style={mc.name} numberOfLines={2}>{item.name}</Text>
-        <Text style={mc.unit} numberOfLines={1}>{item.unit || '1 pack'}</Text>
-        <View style={mc.priceRow}>
-          <Text style={mc.price}>
-            {'\u20B9'}{(item.price / 100).toLocaleString('en-IN', { maximumFractionDigits: 0 })}
-          </Text>
-          {item.original_price ? (
-            <Text style={mc.mrp}>
-              {'\u20B9'}{(item.original_price / 100).toLocaleString('en-IN', { maximumFractionDigits: 0 })}
-            </Text>
-          ) : null}
+        
+        <View style={mc.weightRow}>
+          <Text style={mc.unit} numberOfLines={1}>{item.unit || '1 pack'}</Text>
+          <Text style={mc.chevron}>▼</Text>
+        </View>
+
+        <View style={mc.bottom}>
+          <View style={mc.priceCol}>
+            <View style={mc.priceRow}>
+              <Text style={mc.price}>₹{(item.price / 100).toLocaleString('en-IN')}</Text>
+              {item.original_price && (
+                <Text style={mc.mrp}>₹{(item.original_price / 100).toLocaleString('en-IN')}</Text>
+              )}
+            </View>
+            <Text style={mc.delivery}>⚡ 10 mins</Text>
+          </View>
+
+          <View style={mc.action}>
+            {qty === 0 ? (
+              <TouchableOpacity style={mc.addBtn} onPress={handleAdd} activeOpacity={0.85}>
+                <Text style={mc.addText}>ADD</Text>
+              </TouchableOpacity>
+            ) : (
+              <View style={mc.stepper}>
+                <TouchableOpacity style={mc.stepBtn} onPress={handleDec}>
+                  <Text style={mc.stepBtnText}>−</Text>
+                </TouchableOpacity>
+                <Text style={mc.stepNum}>{qty}</Text>
+                <TouchableOpacity style={mc.stepBtn} onPress={handleInc}>
+                  <Text style={mc.stepBtnText}>+</Text>
+                </TouchableOpacity>
+              </View>
+            )}
+          </View>
         </View>
       </View>
     </View>
@@ -80,24 +89,30 @@ const MiniCard = React.memo(({ item }: { item: any }) => {
 });
 
 const mc = StyleSheet.create({
-  card:     { width: CARD_W, backgroundColor: '#FFF', borderRadius: 12, marginBottom: 12, borderWidth: 1, borderColor: '#EBEBEB', overflow: 'hidden' },
-  imgWrap:  { width: '100%', aspectRatio: 1, backgroundColor: '#F5F7FA', alignItems: 'center', justifyContent: 'center', position: 'relative' },
-  img:      { width: '75%', height: '75%' },
-  discBadge:{ position: 'absolute', top: 8, left: 8, backgroundColor: '#1B5E20', borderRadius: 6, paddingHorizontal: 6, paddingVertical: 3 },
-  discText: { color: '#FFF', fontSize: 10, fontWeight: '900', textAlign: 'center', lineHeight: 13 },
-  addWrap:  { position: 'absolute', bottom: 8, right: 8 },
-  addBtn:   { backgroundColor: theme.colors.primary, paddingHorizontal: 12, paddingVertical: 6, borderRadius: 8 },
-  addText:  { color: '#FFF', fontSize: 11, fontWeight: '900' },
-  stepper:  { flexDirection: 'row', alignItems: 'center', backgroundColor: theme.colors.primary, borderRadius: 8, overflow: 'hidden' },
-  stepBtn:  { paddingHorizontal: 9, paddingVertical: 6 },
+  card:     { width: CARD_W, backgroundColor: '#FFF', borderRadius: 8, marginBottom: 16, borderWidth: 1, borderColor: '#F2F2F2', overflow: 'hidden' },
+  imgWrap:  { width: '100%', aspectRatio: 1, backgroundColor: '#FFF', alignItems: 'center', justifyContent: 'center', padding: 12 },
+  img:      { width: '85%', height: '85%' },
+  discBadge:{ position: 'absolute', top: 0, left: 0, backgroundColor: '#E45F10', paddingHorizontal: 6, paddingVertical: 2, borderBottomRightRadius: 8, zIndex: 5 },
+  discText: { color: '#FFF', fontSize: 9, fontWeight: '800' },
+  info:     { padding: 8, borderTopWidth: 1, borderTopColor: '#F8F8F8' },
+  brand:    { fontSize: 9, color: '#999', fontWeight: '700', marginBottom: 2 },
+  name:     { fontSize: 12, fontWeight: '500', color: '#222', marginBottom: 4, lineHeight: 16, height: 32 },
+  weightRow:{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', backgroundColor: '#F8F8F8', borderRadius: 4, paddingHorizontal: 6, paddingVertical: 4, marginBottom: 8, borderWidth: 1, borderColor: '#EEE' },
+  unit:     { fontSize: 10, color: '#666' },
+  chevron:  { fontSize: 7, color: '#999' },
+  bottom:   { flexDirection: 'row', alignItems: 'flex-end', justifyContent: 'space-between' },
+  priceCol: { flex: 1 },
+  priceRow: { flexDirection: 'row', alignItems: 'center', gap: 4, flexWrap: 'wrap' },
+  price:    { fontSize: 13, fontWeight: '800', color: '#222' },
+  mrp:      { fontSize: 10, color: '#999', textDecorationLine: 'line-through' },
+  delivery: { fontSize: 9, color: '#84C225', fontWeight: '700', marginTop: 2 },
+  action:   { marginLeft: 4 },
+  addBtn:   { backgroundColor: '#F0F7F2', borderColor: '#84C225', borderWidth: 1, borderRadius: 4, paddingHorizontal: 12, paddingVertical: 6, minWidth: 55, alignItems: 'center' },
+  addText:  { color: '#84C225', fontSize: 11, fontWeight: '900' },
+  stepper:  { flexDirection: 'row', alignItems: 'center', backgroundColor: '#84C225', borderRadius: 4, overflow: 'hidden' },
+  stepBtn:  { paddingHorizontal: 8, paddingVertical: 6 },
   stepBtnText:{ color: '#FFF', fontSize: 14, fontWeight: '900' },
-  stepNum:  { color: '#FFF', fontSize: 13, fontWeight: '900', minWidth: 20, textAlign: 'center' },
-  info:     { padding: 10 },
-  name:     { fontSize: 13, fontWeight: '700', color: '#0D1B14', marginBottom: 2, lineHeight: 17 },
-  unit:     { fontSize: 11, color: '#9E9E9E', marginBottom: 6 },
-  priceRow: { flexDirection: 'row', alignItems: 'center', gap: 6 },
-  price:    { fontSize: 14, fontWeight: '900', color: '#0D1B14' },
-  mrp:      { fontSize: 11, color: '#BDBDBD', textDecorationLine: 'line-through' },
+  stepNum:  { color: '#FFF', fontSize: 12, fontWeight: '800', minWidth: 14, textAlign: 'center' },
 });
 // ─────────────────────────────────────────────────────────────────────────────
 
