@@ -3,9 +3,11 @@ import {
   View, Text, StyleSheet, SafeAreaView, ScrollView,
   ActivityIndicator, TouchableOpacity, Image,
 } from 'react-native';
+import { useNavigation } from '@react-navigation/native';
 import { theme } from '../theme';
 import { ProductCard } from '../components/ProductCard';
 import { api } from '../services/api';
+import { StatusBar } from 'react-native';
 
 interface RecentItem {
   id: string;
@@ -47,6 +49,7 @@ function extractItems(orders: any[]): RecentItem[] {
 }
 
 export const BuyAgainScreen = () => {
+  const navigation = useNavigation<any>();
   const [items, setItems]       = useState<RecentItem[]>([]);
   const [loading, setLoading]   = useState(true);
   const [error, setError]       = useState<string | null>(null);
@@ -55,11 +58,20 @@ export const BuyAgainScreen = () => {
     try {
       setLoading(true);
       setError(null);
-      const { data } = await api.get('/orders');
-      const orders = Array.isArray(data) ? data : (data.orders ?? []);
-      setItems(extractItems(orders));
-    } catch {
-      setError('Could not load recent items. Pull down to retry.');
+      const { data } = await api.get('/personalization/past-purchases');
+      const formattedItems = (data || []).map((p: any) => ({
+        id: String(p.id),
+        name: p.name,
+        brand: p.brand,
+        weight: p.unit || '1 unit',
+        price: p.price,
+        originalPrice: p.original_price,
+        image: p.image_url,
+        deliveryTime: '10 mins',
+      }));
+      setItems(formattedItems);
+    } catch (err) {
+      setError('Could not load your past favorites. Please try again.');
     } finally {
       setLoading(false);
     }
@@ -69,26 +81,35 @@ export const BuyAgainScreen = () => {
 
   return (
     <SafeAreaView style={styles.container}>
+      <StatusBar barStyle="dark-content" backgroundColor="#FFF" />
       <View style={styles.header}>
+        <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backBtn}>
+          <Text style={styles.backArrow}>←</Text>
+        </TouchableOpacity>
         <Text style={styles.headerTitle}>Buy Again</Text>
+        <View style={{ width: 40 }} />
       </View>
 
-      <ScrollView contentContainerStyle={styles.content}>
+      <ScrollView contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>
         <View style={styles.infoBox}>
-          <Image source={{ uri: 'https://img.icons8.com/color/96/shopping-bag--v1.png' }} style={styles.infoImg} resizeMode="contain" />
-          <Text style={styles.infoTitle}>Your Recent Staples</Text>
-          <Text style={styles.infoSubtitle}>Quickly add your most-ordered items back to cart.</Text>
+          <Image 
+            source={{ uri: 'https://img.icons8.com/color/96/shopping-bag--v1.png' }} 
+            style={styles.infoImg} 
+            resizeMode="contain" 
+          />
+          <Text style={styles.infoTitle}>Your Favorites</Text>
+          <Text style={styles.infoSubtitle}>Quickly restock the items you order most frequently.</Text>
         </View>
 
         {loading && (
-          <ActivityIndicator size="large" color={theme.colors?.primary ?? '#F97316'} style={{ marginTop: 32 }} />
+          <ActivityIndicator size="large" color={theme.colors.primary} style={{ marginTop: 32 }} />
         )}
 
         {!loading && error && (
           <View style={styles.emptyState}>
             <Text style={styles.emptyText}>{error}</Text>
             <TouchableOpacity onPress={loadItems} style={styles.retryBtn}>
-              <Text style={styles.retryText}>Retry</Text>
+              <Text style={styles.retryText}>RETRY</Text>
             </TouchableOpacity>
           </View>
         )}
@@ -108,7 +129,13 @@ export const BuyAgainScreen = () => {
 
         {!loading && !error && items.length === 0 && (
           <View style={styles.emptyState}>
-            <Text style={styles.emptyText}>No delivered orders yet — order something to see it here!</Text>
+            <Text style={styles.emptyText}>You haven't ordered anything yet!</Text>
+            <TouchableOpacity 
+              onPress={() => navigation.navigate('HomeFeed')}
+              style={styles.retryBtn}
+            >
+              <Text style={styles.retryText}>START SHOPPING</Text>
+            </TouchableOpacity>
           </View>
         )}
       </ScrollView>
@@ -122,14 +149,20 @@ const styles = StyleSheet.create({
     backgroundColor: '#F5F7FA',
   },
   header: {
-    padding: 16,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingHorizontal: 16,
+    paddingVertical: 14,
     backgroundColor: '#FFF',
     borderBottomWidth: 1,
     borderBottomColor: '#EEE',
   },
+  backBtn: { padding: 4 },
+  backArrow: { fontSize: 22, color: '#000' },
   headerTitle: {
-    fontSize: 20,
-    fontFamily: theme.typography.fontFamily.bold,
+    fontSize: 18,
+    fontWeight: '800',
     color: '#000',
   },
   content: {
@@ -188,14 +221,14 @@ const styles = StyleSheet.create({
   },
   retryBtn: {
     marginTop: 16,
-    paddingHorizontal: 24,
-    paddingVertical: 10,
-    backgroundColor: '#F97316',
-    borderRadius: 8,
+    paddingHorizontal: 32,
+    paddingVertical: 12,
+    backgroundColor: theme.colors.primary,
+    borderRadius: 12,
   },
   retryText: {
     color: '#FFF',
-    fontFamily: theme.typography.fontFamily.bold,
+    fontWeight: '800',
     fontSize: 14,
   },
 });

@@ -181,4 +181,51 @@ export class PersonalizationService {
       return [];
     }
   }
+
+  /**
+   * getPastPurchases
+   * 
+   * Aggregates all unique items bought by the user across their history.
+   * Useful for the "Buy Again" feature.
+   */
+  static async getPastPurchases(userId: number) {
+    try {
+      const ordersSql = `
+        SELECT items FROM orders 
+        WHERE customer_id = $1 AND status = 'delivered' 
+        ORDER BY created_at DESC LIMIT 20
+      `;
+      const { rows: orders } = await pool.query(ordersSql, [userId]);
+
+      const productStats: Record<number, { count: number }> = {};
+      const productIds: number[] = [];
+
+      orders.forEach(order => {
+        const items = order.items || [];
+        items.forEach((item: any) => {
+          const pid = Number(item.productId || item.id);
+          if (!productStats[pid]) {
+            productStats[pid] = { count: 0 };
+            productIds.push(pid);
+          }
+          productStats[pid].count += Number(item.quantity || 1);
+        });
+      });
+
+      if (productIds.length === 0) return [];
+
+      const productsSql = `SELECT * FROM products WHERE id = ANY($1)`;
+      const { rows: products } = await pool.query(productsSql, [productIds]);
+
+      return products
+        .map(p => ({
+          ...p,
+          frequency: productStats[p.id].count
+        }))
+        .sort((a, b) => b.frequency - a.frequency);
+    } catch (error) {
+      logger.error('Error in getPastPurchases:', error);
+      return [];
+    }
+  }
 }

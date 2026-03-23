@@ -76,4 +76,20 @@ router.get('/coupons', requireAuth, async (req: any, res) => {
   }
 });
 
+/**
+ * GET /personalization/past-purchases
+ * 
+ * Returns unique items purchased by the user in the past, sorted by frequency.
+ */
+router.get('/past-purchases', requireAuth, async (req: any, res) => {
+  try {
+    const userId = req.user.id;
+    const purchases = await PersonalizationService.getPastPurchases(userId);
+    res.json(purchases);
+  } catch (error) {
+    logger.error('Error in /personalization/past-purchases:', error);
+    res.status(500).json({ error: 'Internal Server Error' });
+  }
+});
+
 export default router;

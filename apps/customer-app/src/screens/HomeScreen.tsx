@@ -286,6 +286,8 @@ export const HomeScreen = () => {
   const [cleaningProducts, setCleaningProducts] = useState<Product[]>([]);
   const [smartBasketProducts, setSmartBasketProducts] = useState<Product[]>([]);
   const [coupons, setCoupons] = useState<Coupon[]>([]);
+  const [pastPurchases, setPastPurchases] = useState<any[]>([]);
+  const [loadingPast, setLoadingPast] = useState(true);
   const [offerIndex, setOfferIndex] = useState(0);
 
   useEffect(() => {
@@ -329,17 +331,20 @@ export const HomeScreen = () => {
         }
 
         try {
-          const couponRes = await api.get('/personalization/coupons');
-          if (Array.isArray(couponRes.data)) {
-            setCoupons(couponRes.data);
+          const pastRes = await api.get('/personalization/past-purchases');
+          if (Array.isArray(pastRes.data)) {
+            setPastPurchases(pastRes.data);
           }
         } catch {
-          setCoupons([]);
+          setPastPurchases([]);
         }
       } catch {
         // not logged in — fallback to default branded offers
         setSmartBasketProducts(BRANDED_OFFERS as any);
         setCoupons([]);
+        setPastPurchases([]);
+      } finally {
+        setLoadingPast(false);
       }
     };
     fetchHome();
@@ -469,6 +474,29 @@ export const HomeScreen = () => {
                 </View>
               ))}
             </ScrollView>
+          </View>
+        )}
+
+        {/* Buy Again Section */}
+        {pastPurchases.length > 0 && (
+          <View style={{ marginTop: 24 }}>
+            <SectionHeader 
+              title="Buy Again" 
+              subtitle="Quickly restock your favorites" 
+              onSeeAll={() => goTo('BuyAgain')} 
+            />
+            <ProductRow
+              products={pastPurchases.slice(0, 10).map(p => ({
+                id: String(p.id),
+                name: p.name,
+                brand: p.brand,
+                weight: p.unit || '1 unit',
+                price: p.price,
+                originalPrice: p.original_price,
+                image_url: p.image_url,
+              }))}
+              loading={loadingPast}
+            />
           </View>
         )}
 
