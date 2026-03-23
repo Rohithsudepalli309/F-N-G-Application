@@ -255,23 +255,48 @@ export const CheckoutScreen = () => {
       </View>
 
       <ScrollView contentContainerStyle={styles.scrollContent}>
-        {/* Total Amount Card — itemised bill breakdown */}
-        <View style={styles.amountCard}>
-          <Text style={styles.amountLabel}>Total to pay</Text>
-          <Text style={styles.amountValue}>₹{grandTotal.toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ',')}</Text>
-          {/* Bill breakdown */}
-          <View style={styles.billBreakdown}>
-            <View style={styles.billRow}><Text style={styles.billKey}>Subtotal</Text><Text style={styles.billVal}>₹{billTotal.toFixed(2)}</Text></View>
-            <View style={styles.billRow}><Text style={styles.billKey}>Delivery fee</Text><Text style={styles.billVal}>{deliveryFee === 0 ? <Text style={{color:'#0B6E4F'}}>FREE</Text> : `₹${deliveryFee}`}</Text></View>
-            <View style={styles.billRow}><Text style={styles.billKey}>Handling fee</Text><Text style={styles.billVal}>₹{handlingFee}</Text></View>
-            <View style={styles.billRow}><Text style={styles.billKey}>GST (5%)</Text><Text style={styles.billVal}>₹{taxAmount.toFixed(2)}</Text></View>
+        {/* Total Amount Card — premium itemised bill breakdown */}
+        <View style={styles.premiumAmountCard}>
+          <View style={styles.premiumAmountHeader}>
+            <View>
+              <Text style={styles.premiumAmountLabel}>Final Payment</Text>
+              <Text style={styles.premiumAmountValue}>₹{grandTotal.toLocaleString('en-IN')}</Text>
+            </View>
+            <View style={styles.premiumSecurePill}>
+              <MaterialCommunityIcons name="shield-check" size={16} color="#FFF" />
+              <Text style={styles.premiumSecureText}>SECURE</Text>
+            </View>
+          </View>
+          
+          <View style={styles.premiumBillBreakdown}>
+            <View style={styles.premiumBillRow}>
+              <Text style={styles.premiumBillKey}>Order Subtotal</Text>
+              <Text style={styles.premiumBillVal}>₹{billTotal.toLocaleString('en-IN')}</Text>
+            </View>
+            <View style={styles.premiumBillRow}>
+              <Text style={styles.premiumBillKey}>Delivery Fee</Text>
+              <Text style={[styles.premiumBillVal, deliveryFee === 0 && { color: '#84c225' }]}>
+                {deliveryFee === 0 ? 'FREE' : `₹${deliveryFee}`}
+              </Text>
+            </View>
+            <View style={styles.premiumBillRow}>
+              <Text style={styles.premiumBillKey}>Handling & Packing</Text>
+              <Text style={styles.premiumBillVal}>₹{handlingFee}</Text>
+            </View>
+            <View style={styles.premiumBillRow}>
+              <Text style={styles.premiumBillKey}>GST (5%)</Text>
+              <Text style={styles.premiumBillVal}>₹{taxAmount.toLocaleString('en-IN')}</Text>
+            </View>
             {couponDiscount > 0 && (
-              <View style={styles.billRow}><Text style={[styles.billKey,{color:'#0B6E4F'}]}>Coupon discount</Text><Text style={[styles.billVal,{color:'#0B6E4F'}]}>- ₹{couponDiscount.toFixed(2)}</Text></View>
+              <View style={styles.premiumBillRow}>
+                <Text style={[styles.premiumBillKey, { color: '#84c225' }]}>Coupon Applied</Text>
+                <Text style={[styles.premiumBillVal, { color: '#84c225' }]}>- ₹{couponDiscount.toLocaleString('en-IN')}</Text>
+              </View>
             )}
           </View>
-          <View style={styles.securePill}>
-            <MaterialCommunityIcons name="shield-check" size={12} color="#0B6E4F" />
-            <Text style={styles.securePillText}>100% secure payments</Text>
+          
+          <View style={styles.trustFooter}>
+             <Text style={styles.trustText}>Total Savings: ₹{(couponDiscount + (deliveryFee === 0 ? 25 : 0)).toLocaleString('en-IN')}</Text>
           </View>
         </View>
 
@@ -589,61 +614,81 @@ const styles = StyleSheet.create({
     padding: 16,
     paddingBottom: 196,
   },
-  amountCard: {
+  premiumAmountCard: {
     backgroundColor: '#0F2B1D',
+    borderRadius: 20,
     padding: 20,
-    borderRadius: 16,
-    alignItems: 'center',
     marginBottom: 24,
-    borderWidth: 0,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.1,
+    shadowRadius: 12,
+    elevation: 5,
   },
-  amountLabel: {
-    fontSize: 13,
-    color: 'rgba(255,255,255,0.8)',
-    fontFamily: theme.typography.fontFamily.medium,
-    marginBottom: 4,
-  },
-  amountValue: {
-    fontSize: 28,
-    fontFamily: theme.typography.fontFamily.bold,
-    color: '#FFF',
-    marginBottom: 10,
-  },
-  billBreakdown: {
-    width: '100%',
-    marginBottom: 10,
-    borderTopWidth: 1,
-    borderTopColor: 'rgba(255,255,255,0.15)',
-    paddingTop: 10,
-    gap: 4,
-  },
-  billRow: {
+  premiumAmountHeader: {
     flexDirection: 'row',
     justifyContent: 'space-between',
+    alignItems: 'flex-start',
+    marginBottom: 20,
+    borderBottomWidth: 1,
+    borderBottomColor: 'rgba(255,255,255,0.1)',
+    paddingBottom: 16,
   },
-  billKey: {
-    fontSize: 11,
+  premiumAmountLabel: {
+    fontSize: 12,
     color: 'rgba(255,255,255,0.7)',
     fontFamily: theme.typography.fontFamily.medium,
+    textTransform: 'uppercase',
+    letterSpacing: 0.5,
   },
-  billVal: {
-    fontSize: 11,
-    color: 'rgba(255,255,255,0.9)',
-    fontFamily: theme.typography.fontFamily.bold,
+  premiumAmountValue: {
+    fontSize: 32,
+    color: '#FFF',
+    fontFamily: theme.typography.fontFamily.display,
+    marginTop: 2,
   },
-  securePill: {
-    marginTop: 10,
+  premiumSecurePill: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 5,
-    backgroundColor: '#DDF7EA',
-    borderRadius: 12,
-    paddingHorizontal: 8,
+    backgroundColor: '#84c225',
+    paddingHorizontal: 10,
     paddingVertical: 4,
+    borderRadius: 20,
+    gap: 4,
   },
-  securePillText: {
-    color: '#0B6E4F',
+  premiumSecureText: {
+    color: '#FFF',
     fontSize: 10,
+    fontFamily: theme.typography.fontFamily.bold,
+  },
+  premiumBillBreakdown: {
+    gap: 8,
+  },
+  premiumBillRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+  },
+  premiumBillKey: {
+    fontSize: 13,
+    color: 'rgba(255,255,255,0.6)',
+    fontFamily: theme.typography.fontFamily.medium,
+  },
+  premiumBillVal: {
+    fontSize: 13,
+    color: '#FFF',
+    fontFamily: theme.typography.fontFamily.bold,
+  },
+  trustFooter: {
+    marginTop: 16,
+    paddingTop: 12,
+    borderTopWidth: 1,
+    borderTopColor: 'rgba(255,255,255,0.1)',
+    alignItems: 'center',
+  },
+  trustText: {
+    fontSize: 12,
+    color: '#84c225',
     fontFamily: theme.typography.fontFamily.bold,
   },
   sectionTitle: {
